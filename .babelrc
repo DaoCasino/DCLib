@@ -1,0 +1,10 @@
+{
+    "presets": [
+        "es2015-riot",
+        "stage-2"
+    ],
+
+    "plugins": [
+    	["transform-es2015-modules-commonjs", { "allowTopLevelThis": true }]
+	]
+}

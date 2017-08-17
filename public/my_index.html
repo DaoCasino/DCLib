@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>heads or tails</title>
+
+	<!-- <script src="https://platform.dao.casino/api/lib/DC.js"></script> -->
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+	<style>
+		html, body { overflow: hidden; }
+		body {
+			background:#fcfce0;
+			font-family: Helvetica, sans-serif;
+		}
+
+		#coin {
+			position: absolute; top: 300px; left: 50%; margin-left: -100px;
+			display: block;
+			width:150px; height: 150px;
+			outline: none;
+
+			/*transform: scale(0.8);*/
+			transition: all 0.3s ease;
+		}
+		#coin.ui-draggable-dragging {
+			transition: none;
+		}
+
+		#coin::after, #coin::before { content: '';
+			display: block; width: 100%; height: 100%;
+			background: url('./assets/img/coin.png') no-repeat 0 0;
+		}
+		#coin::before { content: '';
+			background-position:-158px 0;
+			display: none;
+		}
+
+		#coin.back::after { display: none; }
+		#coin.back::before { display: block; }
+
+
+		#coin.hide {
+			transform: translate3d(0,1000px,0);
+		}
+
+		#coin.fly {
+			transition: none;
+			animation: coin-rotate 0.3s both infinite;
+		}
+
+		@keyframes coin-rotate {
+			0 {
+				transform: rotateX(0) rotateY(-10deg);
+			}
+			50% {
+				transform: rotateX(180deg) rotateY(10deg);
+			}
+			100% {
+				transform: rotateX(0deg);
+			}
+		}
+
+
+		form h1 {
+			transition: opacity 0.5s ease;
+			opacity: 1;
+		}
+		form h1.hide {
+			opacity:0;
+		}
+		form {
+			text-align: center;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			display: block;
+			margin: 50px 0;
+		}
+		form legend {
+			display: block; width: 100%;
+			text-align: center;
+			margin: 20px 0;
+			color: #444;
+		}
+		form label {
+			margin:10px; cursor: pointer;
+		}
+		form label:hover {
+			opacity: 0.8;
+		}
+		form p.hide {
+			visibility: hidden;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="data"></div>
+
+	<script type="text/javascript">
+		var Player = function(user_id){
+			this.user_id = user_id
+
+			this.send_rand = false
+
+			this.randNum = function(){
+				if (this.send_rand) { return }
+				this.send_rand = true
+				return Math.ceil( Math.random()*100 )
+			}
+
+			return this
+		}
+
+		var GameRoom = function(){
+			var _self = this
+
+			var playersRandoms = {}
+
+			var Players = {}
+
+			_self.newPlayer = function(user_id){
+				Players[user_id] = new Player(user_id)
+			}
+
+			_self.randNum = function(user_id){
+				playersRandoms[user_id] = Players[user_id].randNum()
+
+				if (Object.keys(Players).sort().join('||') == Object.keys(playersRandoms).sort().join('||')) {
+
+					_self.result()
+
+				}
+			}
+
+			_self.result = function(){
+				var winner_res = Object.values( playersRandoms ).sort().reverse()[0]
+
+				var winner = false
+				var max = 0
+				for(var user_id in playersRandoms){
+					if (playersRandoms[user_id] > max) {
+						max = playersRandoms[user_id]
+						winner = user_id
+					}
+				}
+
+				return winner
+			}
+
+			return _self
+		}
+
+
+		// 1. Ищем банкроллеров
+		// function findBakroller(callback){
+
+		// }
+		// 2. Если есть место в существующих играх - подключаемся или создаём новую
+		// function connectToGame(callback){
+		// }
+		// 3. подключись
+		// function connectToGame(callback){
+		// }
+		// 4. new LogicJS()
+		// 5.
+
+
+
+
+
+
+
+
+
+
+		var game_contract = '0x89fe5E63487b2d45959502bEB1dac4d5A150663e'
+
+		function startGame(deposit){
+			// Open channel
+			Casino.startGame('game_code', game_contract, deposit, function(result){
+				console.log('Game start result:', result )
+				console.log('')
+				console.log('')
+			})
+		}
+
+		function endGame(deposit){
+			// Close channel
+			console.log('Game end proccess')
+			Casino.endGame(deposit, function(result){
+				console.log('Game end result:', result )
+			})
+		}
+
+
+		window.usersNums = {}
+		function userRandom(user_address, random){
+			if (!usersNums[user_address]) {
+				usersNums[user_address] = {}
+			}
+			usersNums[user_address].push(random)
+
+			var h = ''
+			for(var k in usersNums){
+				h += '<div class="user">User:'+k+'<hr>'+(usersNums[k].join('<br>'))+'<hr></div>'
+			}
+			$('#data').html(h)
+		}
+
+		$(function () {
+			window.Casino = new CasinoJS()
+
+
+var Room = new GameRoom()
+
+var player1_id = Casino.Utils.makeSeed()
+var player2_id = Casino.Utils.makeSeed()
+
+Room.newPlayer( player1_id )
+Room.newPlayer( player2_id )
+
+
+Room.randNum(player1_id)
+
+
+Room.randNum(player2_id)
+
+
+			// Casino.getBankrollers('MG')
+
+			// Casino.getBankrollers('Account', info=>{
+			// 	console.log('BET:'+info.balance.bets)
+			// })
+		})
+	</script>
+
+	<style type="text/css">
+		#data {}
+		.user {
+			border: 3px solid #eee;
+			margin: 20px;
+		}
+	</style>
+</body>
+</html>
