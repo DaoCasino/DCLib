@@ -29,6 +29,13 @@ export default class DaoCasino {
 		return this
 	}
 
+	initWeb3(){
+
+		this.web3 = new WEB3(new WEB3.providers.HttpProvider('https://ropsten.infura.io/alexp2ptoken '))
+
+
+	}
+
 	Init(params, callback){
 		this.params = params
 
@@ -36,8 +43,9 @@ export default class DaoCasino {
 			_config[k] = params[k]
 		}
 
+		this.initWeb3()
+
 		this.ABI    = ABI
-		this.web3   = new WEB3()
 
 		this.bigInt = bigInt
 		this.Utils  = Utils
@@ -754,7 +762,7 @@ export default class DaoCasino {
 	}
 
 	startChannelGame(game_code, deposit, callback, log){
-		this.channels_address = this.channels_address || '0x498bebe17f5c21a7e00e6e73d1fcfc45d1e8d7ce'
+		this.channels_address = this.channels_address || '0x6f75dd6ac184fd53cad23b6cf3527959aa5a5fdf'
 		this.game_code        = game_code
 
 		const rtc_room = 'game_channel_'+game_code
@@ -767,79 +775,106 @@ export default class DaoCasino {
 		log('Approve contract: '+this.ropstenLink(this.channels_address)+' ...')
 
 		// Approve
-		// this.setGameContract(this.channels_address, ()=>{
+		this.setGameContract(this.channels_address, ()=>{
 			log('Contract approved!')
 
 			log('Find bankrollers...')
 
-			// this.findGameChannelBankroller(deposit, (bankroller, bankroll_deposit)=>{
-				// log('Set bankroller '+this.ropstenLink(bankroller)+', max deposit: '+bankroll_deposit+' BET')
-				let bankroll_deposit = 3
-				this.openGameChannel(deposit, bankroll_deposit, open_result => {
-					console.log(open_result)
+			this.findGameChannelBankroller(deposit, (bankroller, bankroll_deposit)=>{
+				log('Set bankroller '+this.ropstenLink(bankroller)+', max deposit: '+bankroll_deposit+' BET')
+
+				this.openGameChannel(deposit, bankroller, bankroll_deposit, open_result => {
+					if (open_result) {
+						log('Channel opened <a target="_blank" href="https://ropsten.etherscan.io/tx/'+open_result+'">'+open_result+'</a>')
+					} else {
+						log('Channel opened')
+					}
+					callback(open_result, bankroll_deposit)
 				})
 
-			// })
+			})
 
-		// })
+		})
 	}
 
-	openGameChannel(player_deposit, bankroll_deposit, callback){
+	openGameChannel(player_deposit, bankroller, bankroll_deposit, callback){
 		this.game_channel_id = Utils.makeSeed()
 		this.channel_nonce   = 0
+		this.bankroller      = bankroller
 
 	 	// open(bytes32 id, address player, uint playerDeposit, uint bankrollDeposit, uint nonce, uint time, bytes sig) {
 		const args = {
 			channel_id       :  this.game_channel_id       ,
 			address_player   :  this.Account.get().openkey ,
-			player_deposit   : +player_deposit   * 10 ** 8 ,
-			bankroll_deposit : +bankroll_deposit * 10 ** 8 ,
-			nonce            : +this.channel_nonce         ,
-			time             :  100                        ,
+			player_deposit   :  Math.ceil(player_deposit) ,
+			bankroll_deposit :  Math.ceil(bankroll_deposit) ,
+			nonce            :  0,
+			time             :  100,
 		}
 
-		const msgHash = Casino.web3.utils.soliditySha3.apply(this, Object.values(args))
+		this.signMsg(Object.values(args), singnedMsgHash=>{
 
-		this.Account.signMsgHash(msgHash, singnedMsgHash=>{
-			console.log('signMsgHash: '+msgHash+' => '+singnedMsgHash)
+			this.RTCg.send({
+				action     : 'open_channel',
+				game_code  : this.game_code,
+				address    : this.channels_address,
+				args       : args,
+				sig        : singnedMsgHash,
+			}, delivered => {
 
-			var rec = Casino.web3.eth.accounts.recover(msgHash, singnedMsgHash)
-			console.log('recover', rec)
-		})
+				const listenRes = data=>{
+					if (data.action!=='channel_opened' || !data.result) return
 
-		return
+					_channels[this.channels_address] = {
+						player_deposit:   player_deposit,
+						bankroll_deposit: bankroll_deposit,
+					}
 
-		const types = ['bytes32', 'address', 'uint', 'uint', 'uint', 'uint']
-	 	const rawMsg  = ABI.rawEncode(types, Object.values(args)).toString('hex')
-
-
-		this.Account.signMsg(rawMsg, singnedMsg=>{
-			this.Account.signMsgHash(msgHash, singnedMsgHash=>{
-				console.log('rawMsg', rawMsg)
-				console.log('msgHash', msgHash)
-				console.log('singnedMsgHash', singnedMsgHash)
-
-				if (!this.Account.checkSIG(rawMsg, singnedMsg, this.Account.get().openkey )) {
-					setTimeout(()=>{
-						this.openGameChannel(player_deposit, bankroll_deposit, callback)
-					}, 2000)
-					return
+					callback( data.result )
+					this.RTCg.unsubscribe(this.channels_address, listenRes)
 				}
 
+				this.RTCg.subscribe(this.channels_address, listenRes)
 
-				this.RTCg.send({
-					action     : 'open_channel',
-					game_code  : this.game_code,
-					address    : this.channels_address,
-					singnedMsg : singnedMsg,
-					args       : args,
-					sig        : singnedMsgHash,
-				}, delivered => {
-
-				})
 			})
 		})
+	}
 
+	closeGameChannel(player_balance, callback){
+		let c = _channels[this.channels_address]
+		if (!c) return
+
+		const bankroll_balance = c.bankroll_deposit + (c.player_deposit - player_balance)
+
+		const args = {
+			channel_id       :  this.game_channel_id,
+			player_balance   :  Math.ceil(+player_balance),
+			bankroll_balance :  Math.ceil(+bankroll_balance),
+			nonce            :  0
+		}
+
+		this.signMsg(Object.values(args), singnedMsgHash=>{
+			this.RTCg.send({
+				action     : 'close_channel',
+				game_code  : this.game_code,
+				address    : this.channels_address,
+				args       : args,
+				sig        : singnedMsgHash,
+			}, delivered => {
+
+				const listenRes = data=>{
+					if (data.action!=='channel_closed' || !data.result) return
+
+					delete(_channels[this.channels_address])
+
+					callback( data.result )
+					this.RTCg.unsubscribe(this.channels_address, listenRes)
+				}
+
+				this.RTCg.subscribe(this.channels_address, listenRes)
+
+			})
+		})
 	}
 
 	findGameChannelBankroller(deposit, callback){
@@ -849,24 +884,74 @@ export default class DaoCasino {
 			if (data.deposit < 2*deposit) {
 				return
 			}
-			callback( data.user_id, 2*deposit )
+			callback( data.user_id, Math.floor(2*deposit) )
 			this.RTCg.unsubscribe(this.channels_address, listenRes)
 		}
 
 		this.RTCg.subscribe(this.channels_address, listenRes)
-
-
-		// this.RTC_game.send({
-		// 	action:    'callFunction',
-		// 	game_code: this.game_code,
-		// 	address:   this.contract_address,
-		// 	game_id:   this.game_id,
-		// 	name:      func_name,
-		// 	args:      args,
-		// }, delivered => {
-		// 	if (delivered && delivered_callback) delivered_callback()
-		// })
-
 	}
+
+	signMsg(data2sign, callback){
+		this.Account.getPwDerivedKey(pwDerivedKey=>{
+			const VRS = this.Account.lightWallet.signing.signMsgHash(
+				this.Account.getKs(),
+				pwDerivedKey,
+				this.web3.utils.soliditySha3.apply(this, data2sign),
+				this.Account.get().openkey.substr(2)
+			)
+
+			const singnedMsgHash = this.Account.lightWallet.signing.concatSig(VRS)
+			callback(singnedMsgHash)
+		})
+	}
+
+	checkMsg(check_data, sig, user_id){
+		const recover = this.web3.eth.accounts.recover((this.web3.utils.soliditySha3.apply(this, check_data)), sig)
+
+		return (recover.toLowerCase() == user_id.toLowerCase())
+	}
+
+	getChannelGameRandom(){
+		return 'confirm('+Utils.makeSeed()+')'
+	}
+
+	callChannelGameFunc(func_name, args, callback, log){
+		this.channel_nonce++
+
+		let send_data = {
+			action          : 'call_channelgame_function',
+			address         : this.channels_address,
+			bankroller      : this.bankroller,
+			channel_nonce   : this.channel_nonce,
+			game_channel_id : this.game_channel_id,
+			game_code       : this.game_code,
+			func_name       : func_name,
+			args            : args,
+			msg_seed        : Utils.makeSeed()
+		}
+
+		send_data.sign_data = [this.channels_address, this.channel_nonce, this.bankroller].concat(args)
+
+		log('Call function '+func_name+' with params '+JSON.stringify(args))
+
+		this.signMsg(send_data.sign_data, singnedMsgHash=>{
+			send_data.sig = singnedMsgHash
+			console.log('SEND')
+
+			this.RTCg.send(send_data, delivered => {
+				let subscribe_name = false
+				const listenRes = data => {
+					console.log(data)
+					if (data.result && data.msg_seed == send_data.msg_seed) {
+						this.RTCg.unsubscribe(this.channels_address, listenRes, subscribe_name)
+						console.log(data)
+						callback(data.result)
+					}
+				}
+				subscribe_name = this.RTCg.subscribe(this.channels_address, listenRes)
+			})
+		})
+	}
+
 
 }

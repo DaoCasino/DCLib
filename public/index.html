@@ -7,58 +7,54 @@
 		<title>Dice Game Channels</title>
 
 		<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/min/1.5/min.min.css">
-		<style>
-			html, body {
-				font-family: 'Roboto', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-				font-size: 14px;
-				text-align: left;
-				padding: 20px 30px;
-
-				user-select: none;
-			}
-
-			#user_balance {
-				display: inline-block; min-width: 20px;
-			}
-
-			.step {
-				margin-bottom: 40px;
-			}
-
-			#open_log  { margin: 10px 0;  }
-			#open_log > div {
-				font-size: 10px;
-				margin: 0px 0 2px 0;
-				border-bottom: 1px solid #f7f7f7;
-				padding: 3px 0 5px 3px;
-			}
-
-			.cur-step-0 .step-1 *, .cur-step-0 .step-2 * {
-				pointer-events: none; opacity: 0.5;
-			}
-			.cur-step-1 .step-0 h3 { color: green; }
-			.cur-step-1 .step-0 h3:before { content: '✔ '; margin: 10px 5px 10px -23px; }
-
-			.cur-step-1 .step-1 * {
-				pointer-events: auto; opacity: 1;
-			}
-
-			.cur-step-2 .step-1 h3 { color: green; }
-			.cur-step-2 .step-1 h3:before { content: '✔ '; margin: 10px 5px 10px -23px; }
-			.cur-step-2 .step-2 * {
-				pointer-events: auto; opacity: 1;
-			}
-
-			.disabled * {
-				pointer-events: none !important; opacity: 0.8 !important;
-			}
-
-		</style>
+		<link rel="stylesheet" type="text/css" href="./styles.css">
 
 		<!-- <script src="http://localhost:8888/static/js/bundle.js"></script> -->
 		<!-- <script src="https://platform.dao.casino/api/lib/DC.js?v=1.4"></script> -->
 
 		<script>
+			const GameLogic = function(deposit){
+				var balance = deposit*1
+				var history = []
+
+				if (!window.bigInt) { window.bigInt = Casino.bigInt }
+
+				var roll = function(user_bet, user_num, random_hash){
+					let profit = -user_bet
+					const random_num = bigInt(random_hash,16).divmod(65536).remainder.value
+					if (user_num > random_num) {
+						profit = (user_bet * (65536 - 1310) / user_num) - user_bet
+					}
+					if (user_num == random_num) {
+						profit = user_bet
+					}
+
+					balance += profit*1
+
+					const roll_item = {
+						timestamp   : new Date().getTime(),
+						user_bet    : user_bet,
+						profit      : profit,
+						user_num    : user_num,
+						balance     : balance,
+						random_hash : random_hash,
+						random_num  : random_num,
+					}
+
+					history.push(roll_item)
+
+					return roll_item
+				}
+
+				return {
+					history: history,
+					roll:    roll,
+					deposit: deposit,
+					balance: function(){ return balance },
+				}
+			}
+
+
 			var GAME_CODE = 'dice_gamechannel'
 
 			document.addEventListener("DOMContentLoaded", function(){
@@ -66,13 +62,16 @@
 			  window.lightwallet = Casino.Account.lightWallet;
 
 			  initGame()
+
+			  // renderGames(JSON.parse('[{"timestamp":1503315562306,"user_bet":"1","profit":0.8350285714285715,"user_num":"35000","random_hash":"0x05c4249206ef07585c4f61a9b8650965cad34b59f784a1c15aa58a5d826683764e1d7cac2311b4f4e814dcbb3b560caeabd1b8896a7484fbb5b3199582974b171c","random_num":5916},{"timestamp":1503317662163,"user_bet":"1","profit":0,"user_num":"35000","random_hash":"0xae65a3bab4e295682334804e446db1a08d827df577ddfdb778c21518993ff549758f63ba91cb84417422a4906d44faf05d57da5ed934e275e24a5601ae9dac971b","random_num":38683}]'))
+
 			});
 
 			function updBalance(){
 				document.getElementById('user_balance').innerText = '...'
 				Casino.Account.getBetsBalance(function(user_bets){
 					document.getElementById('user_balance').innerText = user_bets
-					setTimeout(updBalance, 3000)
+					setTimeout(updBalance, 5000)
 
 					if (user_bets>0) {
 						document.body.classList.add('cur-step-1')
@@ -81,7 +80,8 @@
 			}
 
 			function initGame(){
-				// updBalance()
+				updBalance()
+
 				document.body.classList.add('cur-step-1')
 				document.getElementById('loading').style.display = 'none'
 				document.getElementById('content').style.display = 'block'
@@ -94,15 +94,25 @@
 
 					e.target.classList.add('disabled')
 
+					var deposit = document.getElementById('user_deposit').value*100000000
 					Casino.startChannelGame(
 						GAME_CODE,
 
 						// user deposit
-						document.getElementById('user_deposit').value,
+						deposit,
 
 						// open result
 						function(result){
+
+							window.Game = new GameLogic(deposit)
+
 							console.log('openGamechannel res:', result)
+
+							document.getElementById('user_bet').max   = Math.ceil(deposit/100000000)
+							document.getElementById('user_bet').value = 1
+
+							document.body.classList.add('cur-step-2')
+							document.body.classList.add('cur-step-3')
 						},
 
 						// log
@@ -113,6 +123,68 @@
 						}
 					)
 				})
+
+
+
+				document.querySelector('form.step-2').addEventListener('submit', function(e){
+					e.preventDefault()
+					var form = e.target
+					form.classList.add('disabled')
+
+					var user_bet = document.getElementById('user_bet').value
+					var user_num = document.getElementById('user_num').value
+
+					Casino.callChannelGameFunc(
+						// function name and args
+						'roll', [user_bet*100000000, user_num, Casino.getChannelGameRandom()],
+
+						// result
+						function(res){
+							window.Game.roll(user_bet*100000000, user_num, res.random_hash)
+							renderGames()
+
+							var ubets = Game.balance()/100000000
+							document.getElementById('user_bet').max = ubets
+
+							if (ubets > 0.00005) {
+								form.classList.remove('disabled')
+							}
+						},
+
+						// log
+						function(log){
+							var d = document.createElement('div')
+								d.innerHTML = ' >> '+log
+							document.getElementById('play_log').appendChild(d)
+						}
+					)
+				})
+
+				document.querySelector('form.step-3').addEventListener('submit', function(e){
+					e.preventDefault()
+
+					Casino.closeGameChannel(Game.balance(), function(result){
+						console.log('result',result)
+					})
+				})
+			}
+
+
+			function renderGames(history){
+				if (typeof Game === 'undefined') {
+					window.Game = { balance: 11 }
+				}
+
+				history = history || Game.history
+				var ghtml = ''
+				for(var k in history){
+					var g = history[k]
+					ghtml += '<tr><td>'+g.user_bet+'</td><td>'+g.user_num+'</td><td><span class="hash">'+g.random_hash+'</span></td><td>'+g.random_num+'</td><td>'+g.profit+'</td></tr>'
+				}
+
+				ghtml = '<table><thead><tr><th>bet</th><th>num</th><th>hash</th><th>random</th><th>profit</th></tr></thead><tbody>'+ghtml+'</tbody><tfoot><tr><th colspan="5">Game Balance: '+Game.balance()+'</th></tr></tfoot></table>'
+
+				document.getElementById('games_list').innerHTML = ghtml
 			}
 		</script>
 	</head>
@@ -140,7 +212,7 @@
 				<form>
 					<label>
 						Set game deposit:
-						<input id="user_deposit" type="number" value="2" min="0" max="4" step="1">
+						<input id="user_deposit" type="number" value="2" min="0" max="4" step="0.1">
 					</label>
 					<input type="submit" value="Set">
 				</form>
@@ -150,11 +222,14 @@
 				</div>
 			</div>
 
-			<form onsubmit="sendNum"  class="step step-2">
+			<form class="step step-2">
 				<h3>2. Play</h3>
 				<label>
+					deposit: <span id="game_deposit"></span>
+				</label>
+				<label>
 					your bet:
-					<input id="user_bet" type="number" value="1" min="0" max="4" step="1">
+					<input id="user_bet" type="number" value="1" min="0" max="4" step="0.1">
 				</label>
 				<label>
 					your num:
@@ -163,7 +238,19 @@
 
 				<input type="submit" value="Roll">
 
+				<div id="play_log"></div>
+				<div id="games_list"></div>
 			</form>
+
+			<form class="step step-3">
+				<h3>3. Close game-channel</h3>
+
+				<div id="close_info"></div>
+				<input type="submit" value="Close">
+
+				<div id="close_log"></div>
+			</form>
+
 
 		</section>
 	</body>

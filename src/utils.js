@@ -3,7 +3,7 @@ const web3_sha3 = require('web3').utils.sha3
 export const sha3 = web3_sha3
 
 export const hashName = name =>{
-	return web3_sha3(name).substr(0,8)
+	return web3_sha3(name).substr(2,8)
 }
 
 export const toFixed = (value, precision) => {
@@ -64,5 +64,13 @@ export const makeSeed = () => {
 		}
 	}
 
-	return '0x' + web3_sha3(numToHex(str))
+	return web3_sha3(numToHex(str))
+}
+
+
+export const concatUint8Array = function(buffer1, buffer2) {
+	var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength)
+	tmp.set(new Uint8Array(buffer1), 0)
+	tmp.set(new Uint8Array(buffer2), buffer1.byteLength)
+	return tmp.buffer
 }
