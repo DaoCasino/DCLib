@@ -762,7 +762,7 @@ export default class DaoCasino {
 	}
 
 	startChannelGame(game_code, deposit, callback, log){
-		this.channels_address = this.channels_address || '0x6f75dd6ac184fd53cad23b6cf3527959aa5a5fdf'
+		this.channels_address = this.channels_address || '0xd7aa363a70866e6cf1f82089e4e2ec9a83c51c6a'
 		this.game_code        = game_code
 
 		const rtc_room = 'game_channel_'+game_code
