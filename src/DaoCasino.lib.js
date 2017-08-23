@@ -10,8 +10,8 @@ import bigInt  from 'big-integer'
 
 import RTC  from './rtc'
 
-const WEB3 = require('web3')
-
+// const WEB3 = require('../node_modules/web3/dist/web3.js')
+const WEB3 = require('../node_modules/web3/dist/web3.min.js')
 
 const approve_deposit = 1000
 
@@ -31,7 +31,7 @@ export default class DaoCasino {
 
 	initWeb3(){
 
-		this.web3 = new WEB3(new WEB3.providers.HttpProvider('https://ropsten.infura.io/alexp2ptoken '))
+		// this.web3 = new WEB3(new WEB3.providers.HttpProvider('https://ropsten.infura.io/alexp2ptoken '))
 
 
 	}

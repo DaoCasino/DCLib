@@ -201,6 +201,16 @@ let webpack_prod_config = {
     				] }
 			},
 
+			// {
+			// 	test: /\/web3.js$/,
+			// 	loader: 'babel-loader',
+			// 	options: { presets: [['env', {
+			// 		'targets': {
+			// 			uglify:true,
+			// 			'browsers': ['last 2 versions', 'safari >= 7'],
+			// 		}
+			// 	}]] }
+			// },
 			{
 				test: /\/ethereumjs-tx\/index.js$/,
 				loader: 'babel-loader',
