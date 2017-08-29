@@ -7,10 +7,8 @@ import ethRPC  from './RPC'
 import Channel from './Channel'
 import Api     from './Api'
 import bigInt  from 'big-integer'
+import RTC     from './rtc'
 
-import RTC  from './rtc'
-
-// const WEB3 = require('../node_modules/web3/dist/web3.js')
 const WEB3 = require('../node_modules/web3/dist/web3.min.js')
 
 const approve_deposit = 1000
@@ -21,19 +19,11 @@ let _active_bankrollers = {}
 
 export default class DaoCasino {
 	constructor(params) {
-		// this.web3 = _web3
 		params = params || {}
 
 		this.Init(params)
 
 		return this
-	}
-
-	initWeb3(){
-
-		// this.web3 = new WEB3(new WEB3.providers.HttpProvider('https://ropsten.infura.io/alexp2ptoken '))
-
-
 	}
 
 	Init(params, callback){
@@ -43,7 +33,7 @@ export default class DaoCasino {
 			_config[k] = params[k]
 		}
 
-		this.initWeb3()
+		this.web3   = new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
 
 		this.ABI    = ABI
 
