@@ -771,7 +771,7 @@ export default class DaoCasino {
 			log('Find bankrollers...')
 
 			this.findGameChannelBankroller(deposit, (bankroller, bankroll_deposit)=>{
-				log('Set bankroller '+this.ropstenLink(bankroller)+', max deposit: '+bankroll_deposit+' BET')
+				log('Setting bankroller '+this.ropstenLink(bankroller)+', max deposit: '+bankroll_deposit+' BET')
 
 				this.openGameChannel(deposit, bankroller, bankroll_deposit, open_result => {
 					if (open_result) {
