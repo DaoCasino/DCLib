@@ -1,5 +1,6 @@
 
 module.exports = {
+	upd_date : '14.09',
 	db_name:       'DaoCasino',
 	rtc_room:      'daocasino-room1',
 	rtc_store:     'rtc_msgs',

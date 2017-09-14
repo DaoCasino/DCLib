@@ -29,6 +29,8 @@ export default class DaoCasino {
 	Init(params, callback){
 		this.params = params
 
+		console.log('_config', _config)
+
 		for(let k in params){
 			_config[k] = params[k]
 		}
@@ -409,9 +411,6 @@ export default class DaoCasino {
 	}, 2000) }
 
 	getRandomBankroller(){
-		console.log( 'this.game_code', this.game_code )
-		console.log(Casino.getBankrollers(this.game_code))
-
 		let addresses = Object.keys(Casino.getBankrollers(this.game_code))
 		if (!addresses.length) {
 			return '0x'
@@ -514,7 +513,7 @@ export default class DaoCasino {
 
 		try {
 			this.RTC_game.subscribe(contract_address, listenRes)
-
+			console.log('this.RTC_game.subscribe')
 			this.RTC_game.send({
 				action:     'close_game_channel',
 				channel_id: _channels[contract_address].channel_id,
@@ -524,7 +523,7 @@ export default class DaoCasino {
 				address:    contract_address,
 				seed:       seed,
 			}, delivered => {
-
+				console.log('delivered', delivered)
 			})
 		} catch(e) {
 			console.error(e)
@@ -677,8 +676,6 @@ export default class DaoCasino {
 
 		let game_code        = this.game_code
 		let contract_address = this.contract_address
-
-		console.log('game_code',game_code)
 
 		let subscribe_name = false
 

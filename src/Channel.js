@@ -28,6 +28,12 @@ export default class Channel {
 			}
 			console.log('newChannel',this.channel_id)
 			this.callFunc('newChannel', [ deposit, this.channel_id ], response => {
+
+				if (response && response.error) {
+					this.open(deposit, callback, repeat)
+					return
+				}
+
 				if (!response || !response.result) {
 					repeat--
 					if (repeat > 0) {
@@ -111,7 +117,7 @@ export default class Channel {
 	callFunc(name, args, callback){
 		this.Account.signedContractFuncTx( this.address, channel_abi, name, args, 0,
 			signedTx => {
-				this.RPC.request('eth_sendRawTransaction', ['0x'+signedTx], 0).then( callback )
+				this.RPC.request('eth_sendRawTransaction', ['0x'+signedTx], 0).then( callback ).catch( callback )
 			}
 		)
 	}
