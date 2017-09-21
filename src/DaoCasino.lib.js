@@ -61,6 +61,7 @@ export default class DaoCasino {
 					localStorage.requestBets = true
 					this.Api.addBets( this.Account.get().openkey )
 				}
+
 				if (_subscribes['Account']) {
 					_subscribes['Account']({
 						address: this.Account.get().openkey,
@@ -334,13 +335,14 @@ export default class DaoCasino {
 			localStorage.contract_address = contract_address
 
 			// Create channel if not exist
-			if (!_channels[contract_address]) {
-				let channel_id = localStorage.channel_id || false
+			// if (!_channels[contract_address]) {
+				// let channel_id = localStorage.channel_id || false
+			let channel_id = false
 
-				_channels[contract_address] = new Channel(contract_address, channel_id, this.Account, this.RPC)
+			_channels[contract_address] = new Channel(contract_address, channel_id, this.Account, this.RPC)
 
-				localStorage.channel_id = _channels[contract_address].channel_id
-			}
+			localStorage.channel_id = _channels[contract_address].channel_id
+			// }
 
 			const channellOpened = result => {
 				this.game_status = 'channel_opened'
@@ -369,6 +371,9 @@ export default class DaoCasino {
 					})
 				}
 			}
+
+		// DEBUG!!!
+		// channellOpened(true); return
 
 			this.getAllowance(contract_address, res => {
 				if (deposit <= res) {

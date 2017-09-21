@@ -17,7 +17,7 @@ export default class Channel {
 		this.channel_id    = channel_id || Utils.makeSeed()
 	}
 
-	open(deposit, callback, repeat=2){
+	open(deposit, callback, repeat=4){
 		console.log('Check that channel is close')
 		this.waitClose( channel_closed=>{
 			console.log('channel_closed', channel_closed)
@@ -29,16 +29,13 @@ export default class Channel {
 			console.log('newChannel',this.channel_id)
 			this.callFunc('newChannel', [ deposit, this.channel_id ], response => {
 
-				if (response && response.error) {
-					this.open(deposit, callback, repeat)
-					return
-				}
-
-				if (!response || !response.result) {
+				if ((response && response.error) || (!response || !response.result)) {
 					repeat--
 					if (repeat > 0) {
 						this.open(deposit, callback, repeat)
 					}
+
+					callback({error:'channel_not_open', response:response})
 					return
 				}
 
