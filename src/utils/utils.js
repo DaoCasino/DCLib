@@ -1,9 +1,22 @@
-// const web3_sha3 = require('web3').utils.sha3
-const WEB3 = require('../node_modules/web3/dist/web3.min.js')
 
+export const ABI    = require('ethereumjs-abi')
+export const bigInt = require('big-integer')
+
+const WEB3 = require('web3/packages/web3')
 const web3_sha3 = WEB3.utils.sha3
 
 export const sha3 = web3_sha3
+
+export const clearcode = function(string){
+	return string.toString()
+		.split('\t').join('')
+		.split('\n').join('')
+		.split('  ').join(' ')
+}
+
+export const checksum = function(string){
+	return sha3(clearcode(string) )
+}
 
 export const hashName = name =>{
 	return web3_sha3(name).substr(2,8)

@@ -1,20 +1,22 @@
-import * as Utils from './utils'
+import * as Utils from 'utils/utils'
 
 import ethWallet from 'eth-lightwallet'
-import ethRPC    from './RPC'
+import ethRPC    from 'API/RPC'
 
 let _wallet = {}
 let _RPC    = {}
 let _config = {}
 
 export default class Account {
-	constructor(config, callback) {
+	constructor(config, callback=false) {
 		_config = config
 		_RPC    = new ethRPC( _config.rpc_url )
 
 		this.lightWallet = ethWallet
 
 		this.getPlatformWallet()
+
+		callback = callback || (()=>{})
 
 		if (localStorage.wallet) {
 			try {
@@ -96,6 +98,31 @@ export default class Account {
 		return _wallet
 	}
 
+	async info(address=false, callback=false){
+		if (!callback && typeof address === 'function') {
+			callback = address
+			address = _wallet.openkey
+		}
+		
+		address = address || _wallet.openkey
+
+		const [bet, eth] = await Promise.all([
+			this.getBetBalance( address ),
+			this.getEthBalance( address )
+		])
+
+		const res = {
+			openkey: address,
+			balance: {
+				eth:eth,
+				bet:bet,
+			}
+		}
+
+		if (callback) callback(res)
+		return res
+	}
+
 	getKs(){
 		if (this.keyStore) {
 			return this.keyStore
@@ -153,30 +180,43 @@ export default class Account {
 		})
 	}
 
-	getEthBalance(callback){
-		let address = this.get().openkey
-		_RPC.request('eth_getBalance', [address, 'latest']).then( response => {
-			callback( Utils.hexToNum(response.result) / 1000000000000000000 )
-		}).catch( err => {
-			console.error(err)
+	getEthBalance(address=false, callback=false){
+		return new Promise((resolve, reject) => {
+			let address = address || this.get().openkey
+			
+			_RPC.request('eth_getBalance', [address, 'latest']).then( response => {
+				const balance = Utils.hexToNum(response.result) / 1000000000000000000
+				resolve( balance )
+				if(callback) callback( balance )
+			}).catch( err => {
+				console.error(err)
+				reject(err)
+			})
 		})
 	}
 
-	getBetsBalance(callback){
-		let address = this.get().openkey
-		let data = '0x' + Utils.hashName('balanceOf(address)')
-				  		+ Utils.pad(Utils.numToHex(address.substr(2)), 64)
+	getBetsBalance(address=false, callback=false){
+		return this.getBetBalance(address, callback)
+	}
+	getBetBalance(address=false, callback=false){
+		return new Promise((resolve, reject) => {
+			let address = address || this.get().openkey
+			let data = '0x' + Utils.hashName('balanceOf(address)')
+					  		+ Utils.pad(Utils.numToHex(address.substr(2)), 64)
 
-
-		_RPC.request('eth_call', [{
-			'from': this.get().openkey,
-			'to':   _config.erc20_address,
-			'data': data
-		}, 'latest']
-		).then( response => {
-			callback( Utils.hexToNum(response.result) / 100000000 )
-		}).catch( err => {
-			console.error(err)
+			_RPC.request('eth_call', [{
+				'from' : this.get().openkey,
+				'to'   : _config.erc20_address,
+				'data' : data
+			}, 'latest']
+			).then( response => {
+				const balance = Utils.hexToNum(response.result) / 100000000
+				resolve( balance )
+				if(callback) callback( balance )
+			}).catch( err => {
+				console.error(err)
+				reject(balance)
+			})
 		})
 	}
 

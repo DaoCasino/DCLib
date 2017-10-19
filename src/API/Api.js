@@ -22,25 +22,5 @@ export default class Api {
 			return response.text()
 		})
 	}
-
-
-	getBankrollers(){
-		return this.request({
-			a:       'bankrolls',
-		}, 'proxy.php').then(r => {
-			return r.json()
-		}).then( )
-	}
-
-	sendSeed(address, seed, confirm){
-		return this.request({
-			a:       'confirm',
-			address: address,
-			vconcat: seed,
-			result:  confirm,
-		},'proxy.php').then( response => {
-			return response.text()
-		})
-	}
 }
 

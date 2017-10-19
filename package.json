@@ -1,14 +1,26 @@
 {
-  "name": "dao-casino-lib",
+  "name": "DClib",
   "description": "Eth lib",
-  "version": "0.1.1",
-  "author": "name <email@example.com>",
+  "version": "0.2.1",
+  "author": "name <to@alexstep.com>",
   "private": true,
   "homepage": "./",
   "scripts": {
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
-    "check_build": "serve -s build -p 9000"
+    "check_build": "serve -s build -p 9000",
+    "lint-staged": "lint-staged"
+  },
+  "pre-commit": [
+    "lint-staged"
+  ],
+  "lint-staged": {
+    "*.js": [
+      "eslint"
+    ],
+    "*.tag": [
+      "eslint"
+    ]
   },
   "jest": {
     "collectCoverageFrom": [
@@ -39,6 +51,7 @@
     "crdt": "^3.6.4",
     "eth-lightwallet": "^2.5.4",
     "ethereumjs-abi": "^0.6.4",
+    "event-emitter": "^0.3.5",
     "freeice": "^2.2.0",
     "riot": "^3.5.1",
     "riot-route": "^3.1.1",
@@ -46,7 +59,7 @@
     "rtc-quickconnect": "^5.8.0",
     "utf-8-validate": "^3.0.2",
     "uuid": "^3.1.0",
-    "web3": "github:ethereum/web3.js#1.0",
+    "web3": "git://github.com/ethereum/web3.js.git#1.0ES6",
     "ydn.db": "^1.3.0"
   },
   "devDependencies": {
@@ -81,9 +94,11 @@
     "jest": "20.0.3",
     "less": "^2.7.2",
     "less-loader": "^4.0.4",
+    "lint-staged": "^4.3.0",
     "object-assign": "4.1.1",
     "postcss-flexbugs-fixes": "3.0.0",
     "postcss-loader": "2.0.5",
+    "pre-commit": "^1.2.2",
     "promise": "7.1.1",
     "react-dev-utils": "^3.0.0",
     "riot-hot-reload": "^1.0.0",

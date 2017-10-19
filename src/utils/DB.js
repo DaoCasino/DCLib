@@ -1,4 +1,4 @@
-import _config from './config.js'
+import _config from 'config/config'
 import 'ydn.db'
 
 export default new ydn.db.Storage( _config.db_name )

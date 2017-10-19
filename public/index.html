@@ -10,18 +10,26 @@
 		<link rel="stylesheet" type="text/css" href="./styles.css">
 
 		<!-- <script src="http://localhost:8888/static/js/bundle.js"></script> -->
-		<!-- <script src="https://platform.dao.casino/api/lib/DC.js?v=1.4"></script> -->
+		<!-- <script src="https://platform.dao.casino/api/lib/DCLib.js?v=1.4"></script> -->
 
-		<script>
-			const GameLogic = function(deposit){
-				var balance = deposit*1
+		<script> 			
+			const GameLogic = function(){
+				var balance = 0
 				var history = []
 
-				if (!window.bigInt) { window.bigInt = Casino.bigInt }
+				var setBalance = function(deposit){
+					balance = deposit*1
+				}
 
-				var roll = function(user_bet, user_num, random_hash){
+				var getBalance = function(){ 
+					return balance 
+				}
+
+				var Roll = function(user_bet, user_num, random_hash){
 					let profit = -user_bet
-					const random_num = bigInt(random_hash,16).divmod(65536).remainder.value
+					
+					const random_num = DCLib().Utils.bigInt(random_hash,16).divmod(65536).remainder.value
+					
 					if (user_num > random_num) {
 						profit = (user_bet * (65536 - 1310) / user_num) - user_bet
 					}
@@ -47,47 +55,110 @@
 				}
 
 				return {
-					history: history,
-					roll:    roll,
-					deposit: deposit,
-					balance: function(){ return balance },
+					setBalance: setBalance,
+					getBalance: getBalance,
+					roll:       Roll,
+					history:    history,
 				}
 			}
 
 
-			var GAME_CODE = 'dice_gamechannel'
 
-			document.addEventListener("DOMContentLoaded", function(){
-			  window.Casino = new CasinoJS({network: 'ropsten'});
-			  window.lightwallet = Casino.Account.lightWallet;
-
-			  initGame()
-
-			  // renderGames(JSON.parse('[{"timestamp":1503315562306,"user_bet":"1","profit":0.8350285714285715,"user_num":"35000","random_hash":"0x05c4249206ef07585c4f61a9b8650965cad34b59f784a1c15aa58a5d826683764e1d7cac2311b4f4e814dcbb3b560caeabd1b8896a7484fbb5b3199582974b171c","random_num":5916},{"timestamp":1503317662163,"user_bet":"1","profit":0,"user_num":"35000","random_hash":"0xae65a3bab4e295682334804e446db1a08d827df577ddfdb778c21518993ff549758f63ba91cb84417422a4906d44faf05d57da5ed934e275e24a5601ae9dac971b","random_num":38683}]'))
-
-			});
-
-			function updBalance(){
-				document.getElementById('user_balance').innerText = '...'
-				Casino.Account.getBetsBalance(function(user_bets){
-					document.getElementById('user_balance').innerText = user_bets
-					setTimeout(updBalance, 5000)
-
-					if (user_bets>0) {
-						document.body.classList.add('cur-step-1')
-					}
+			document.addEventListener('DOMContentLoaded', function(){
+			
+				// Wait when DClib loaded
+				DCLib.on('ready', function(){	
+					
+					// Create our DApp
+					window.MyDApp = new DCLib.DApp({
+						code  : 'dicegame_v2' , // unique DApp code
+						logic : GameLogic     , // inject logic constructor in your DApp
+					})
+					
+					// console.log(MyDApp)
 				})
+
+				// Init interface
+				initView({
+					// Create DApp and open payment channel
+					onSetDeposit : startGame,
+				
+					// call DApp functions, and send res to bankroller 
+					onPlay       : callDAppFunc,
+				
+					// close payment channel, destroy DApp
+					onEndGame    : endGame,
+				})
+			})
+			
+
+	
+
+
+			function startGame(deposit){
+
+				MyDApp.connect({
+						bankroller : 'auto', // or bankroller address	
+						
+						// paychannel:{
+						// 	deposit : deposit,
+
+						// 	contract: {
+						// 		address: '0x...',
+						// 		abi: {}
+						// 	}
+						// }
+					},
+
+					// open result
+					function(result){
+						console.log('openGamechannel res:', result)
+
+						// set player balance in our game logic
+						MyDApp.call('setBalance', [deposit], function(result){
+							
+						})
+
+
+						document.getElementById('user_bet').max   = Math.ceil(deposit/100000000)
+						document.getElementById('user_bet').value = 1
+
+						document.body.classList.add('cur-step-2')
+						document.body.classList.add('cur-step-3')
+					}
+				)
 			}
 
-			function initGame(){
+			function callDAppFunc(){}
+			function endGame(){}
+
+
+			
+
+			
+			function initView(callbacks){
+				const updBalance = function(){
+					document.getElementById('user_balance').innerText = '...'
+					
+					DCLib.Account.info(function(info){
+						document.getElementById('user_balance').innerText = info.balance.bet
+						
+						setTimeout(updBalance, 7000)
+
+						if (info.balance.bet > 0) {
+							document.body.classList.add('cur-step-1')
+						}
+					})
+				}
 				updBalance()
+
 
 				document.body.classList.add('cur-step-1')
 				document.getElementById('loading').style.display = 'none'
 				document.getElementById('content').style.display = 'block'
 
-				document.getElementById('user_address').innerHTML = '<a target="_blank" href="https://ropsten.etherscan.io/address/'+Casino.Account.get().openkey+'">'+Casino.Account.get().openkey+'</a>'
-				document.getElementById('faucet').href = 'https://platform.dao.casino/faucet?to='+Casino.Account.get().openkey
+				document.getElementById('user_address').innerHTML = '<a target="_blank" href="https://ropsten.etherscan.io/address/'+DCLib.Account.get().openkey+'">'+DCLib.Account.get().openkey+'</a>'
+				document.getElementById('faucet').href = 'https://platform.dao.casino/faucet?to='+DCLib.Account.get().openkey
 
 				document.querySelector('.step-1 form').addEventListener('submit', function(e){
 					e.preventDefault()
@@ -95,33 +166,8 @@
 					e.target.classList.add('disabled')
 
 					var deposit = document.getElementById('user_deposit').value*100000000
-					Casino.startChannelGame(
-						GAME_CODE,
-
-						// user deposit
-						deposit,
-
-						// open result
-						function(result){
-
-							window.Game = new GameLogic(deposit)
-
-							console.log('openGamechannel res:', result)
-
-							document.getElementById('user_bet').max   = Math.ceil(deposit/100000000)
-							document.getElementById('user_bet').value = 1
-
-							document.body.classList.add('cur-step-2')
-							document.body.classList.add('cur-step-3')
-						},
-
-						// log
-						function(log){
-							var d = document.createElement('div')
-							d.innerHTML = ' >> '+log
-							document.getElementById('open_log').appendChild(d)
-						}
-					)
+					
+					callbacks.onSetDeposit( deposit )					
 				})
 
 
@@ -134,13 +180,16 @@
 					var user_bet = document.getElementById('user_bet').value
 					var user_num = document.getElementById('user_num').value
 
-					Casino.callChannelGameFunc(
+					callbacks.onRoll()
+
+					MyDApp.callChannelGameFunc(
 						// function name and args
-						'roll', [user_bet*100000000, user_num, Casino.getChannelGameRandom()],
+						'roll', [user_bet*100000000, user_num, MyDApp.getChannelGameRandom()],
 
 						// result
 						function(res){
 							window.Game.roll(user_bet*100000000, user_num, res.random_hash)
+							
 							renderGames()
 
 							var ubets = Game.balance()/100000000
@@ -163,7 +212,8 @@
 				document.querySelector('form.step-3').addEventListener('submit', function(e){
 					e.preventDefault()
 
-					Casino.closeGameChannel(Game.balance(), function(result){
+					callbacks.onEndGame()
+					MyDApp.closeGameChannel(Game.balance(), function(result){
 						console.log('result',result)
 					})
 				})

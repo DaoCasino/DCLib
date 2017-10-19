@@ -1,14 +1,12 @@
-import _config    from './config.js'
-import DB         from './DB.js'
-import * as Utils from './utils'
+import _config    from 'config/config'
+import DB         from 'utils/DB'
+import Event      from 'utils/event'
 
-
+import * as Utils from 'utils/utils'
 
 const signalserver = 'https://ws.dao.casino/mesh/'
-
 const delivery_timeout = 3000
 
-let _subscribes = {}
 
 export default class RTC {
 	constructor(user_id=false, room=false) {
@@ -30,7 +28,6 @@ export default class RTC {
 
 		this.channel.on('change', (key, value) => {
 			if (!key || !value) { return }
-
 			let data = {}
 
 			try {
@@ -43,27 +40,20 @@ export default class RTC {
 				return
 			}
 
-			// if (this.isAlreadyReceived(data)) {
-			// 	return
-			// }
-
 			this.acknowledgeReceipt(data)
 
-			if (_subscribes['all']) {
-				for(let k in _subscribes['all']){
-					_subscribes['all'][k](data)
-				}
+			Event.emit('all', data)
+
+			if (data.action) {
+				Event.emit('action::'+data.action, data)
 			}
 
-			if (!data.address || !_subscribes[data.address]) {
-				return
+			if (data.address) {
+				Event.emit('address::'+data.address, data)
 			}
 
-
-			for(let k in _subscribes[data.address]){
-				if (typeof _subscribes[data.address][k] === 'function') {
-					_subscribes[data.address][k](data)
-				}
+			if (data.user_id) {
+				Event.emit('user_id::'+data.user_id, data)
 			}
 		})
 	}
@@ -101,36 +91,21 @@ export default class RTC {
 		setTimeout(()=>{ this.clearOldSeeds() }, 10*1000 )
 	}
 
-	subscribe(address, callback, name=false){
-		if (!_subscribes[address]) { _subscribes[address] = {} }
 
-		if (name && _subscribes[address][name]) {
-			return
-		}
-
-		if (name===false) {
-			name = Utils.makeSeed()
-		};
-
-		_subscribes[address][name] = callback
-
-		return name
+	on(event, callback){
+		Event.on(event, callback)
 	}
 
-	unsubscribe(address, callback, name=false){
-		if (name!==false && _subscribes[address][name]) {
-			delete(_subscribes[address][name])
-			return
-		}
+	off(event, callback){
+		Event.off(event, callback)
+	}
 
-		let new_subs = {}
-		for(let k in _subscribes[address]){
-			if (_subscribes[address][k] && _subscribes[address][k].toString() == callback.toString()) {
-				continue
-			}
-			new_subs[k] = _subscribes[address][k]
-		}
-		_subscribes[address] = new_subs
+	subscribe(address, callback){
+		this.on('address::'+address, callback)
+	}
+
+	unsubscribe(address, callback){
+		this.off('address::'+address, callback)
 	}
 
 
@@ -163,7 +138,7 @@ export default class RTC {
 			}
 
 			if (this.equaMsgs(sended_data, data.acquired) ) {
-				this.unsubscribe(address, waitReceipt, subscribe_name)
+				this.unsubscribe(address, waitReceipt)
 
 				if (this.CheckReceiptsT[sended_data.seed]) {
 					clearTimeout(this.CheckReceiptsT[sended_data.seed])
@@ -173,15 +148,14 @@ export default class RTC {
 			}
 		}
 
-		subscribe_name = this.subscribe(address, waitReceipt)
-
+		this.subscribe(address, waitReceipt)
 
 		if (!this.CheckReceiptsT) {
 			this.CheckReceiptsT = {}
 		}
 
 		this.CheckReceiptsT[sended_data.seed] = setTimeout(()=>{
-			this.unsubscribe(address, waitReceipt, subscribe_name)
+			this.unsubscribe(address, waitReceipt)
 
 			callback(false)
 		}, delivery_timeout)
@@ -227,3 +201,4 @@ export default class RTC {
 		return data
 	}
 }
+

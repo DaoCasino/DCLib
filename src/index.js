@@ -1,3 +1,3 @@
-import DaoCasino from './DaoCasino.lib.js'
+import DCLib from './DC.lib.js'
 
-window.CasinoJS = DaoCasino
+window.DCLib = new DCLib()

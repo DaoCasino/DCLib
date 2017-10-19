@@ -1,9 +1,9 @@
 
 module.exports = {
-	upd : '14.09-2',
+	upd : '17.10.2017',
 
-	db_name:       'DaoCasino',
-	rtc_room:      'daocasino-room1',
+	db_name:       'DCLib',
+	rtc_room:      'dc-room1',
 	rtc_store:     'rtc_msgs',
 
 	network:       'ropsten',
