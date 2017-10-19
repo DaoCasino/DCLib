@@ -14,6 +14,8 @@ const ModuleScopePlugin       = require('react-dev-utils/ModuleScopePlugin')
 const paths                   = require('./paths')
 const getClientEnvironment    = require('./env')
 
+const rootdir = __dirname+'/../..'
+
 // Webpack uses `publicPath` to determine where the app is being served from.
 // It requires a trailing slash, or the file assets will get an incorrect path.
 const publicPath = paths.servedPath
@@ -71,8 +73,8 @@ let webpack_prod_config = {
 		// Generated JS file names (with nested folders).
 		// There will be one main bundle, and one file per asynchronous chunk.
 		// We don't currently advertise code splitting but Webpack supports it.
-		filename: '../api/lib/DC.js',
-		chunkFilename: '../api/lib/DC.[chunkhash:8].chunk.js',
+		filename: '../api/lib/v2/DC.js',
+		chunkFilename: '../api/lib/v2/DC.[chunkhash:8].chunk.js',
 
 		// We inferred the "public path" (such as / or /my-project) from homepage.
 		publicPath: publicPath,
@@ -86,7 +88,7 @@ let webpack_prod_config = {
 		// We placed these paths second because we want `node_modules` to "win"
 		// if there are any conflicts. This matches Node resolution mechanism.
 		// https://github.com/facebookincubator/create-react-app/issues/253
-		modules: ['node_modules', paths.appNodeModules].concat(
+		modules: [rootdir+'/src', 'node_modules', paths.appNodeModules].concat(
 	  		// It is guaranteed to exist because we tweak it in `env.js`
 	  		process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
 		),
