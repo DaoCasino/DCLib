@@ -9,12 +9,10 @@
 		<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/min/1.5/min.min.css">
 		<link rel="stylesheet" type="text/css" href="./styles.css">
 
-		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
-		
 		<!-- <script src="http://localhost:8888/static/js/bundle.js"></script> -->
-		<!-- <script src="https://platform.dao.casino/api/lib/v2/DC.js?v=2"></script> -->
+		<script src="https://platform.dao.casino/api/lib/v2/DC.js?v=2"></script>
 
-		<script>	
+		<script> 			
 			const GameLogic = function(){
 				var balance = 0
 				var history = []
@@ -24,7 +22,7 @@
 				}
 
 				var getBalance = function(){ 
-					return balance
+					return balance 
 				}
 
 				var Roll = function(user_bet, user_num, random_hash){
@@ -65,14 +63,20 @@
 			}
 
 
-			$(document).ready( function(){
+
+			document.addEventListener('DOMContentLoaded', function(){
+			
+				// Wait when DClib loaded
+				DCLib.on('ready', function(){	
 					
-				// Create our DApp
-				window.MyDApp = new DCLib.DApp({
-					code  : 'dicegame_v2' , // unique DApp code
-					logic : GameLogic     , // inject logic constructor in your DApp
+					// Create our DApp
+					window.MyDApp = new DCLib.DApp({
+						code  : 'dicegame_v2' , // unique DApp code
+						logic : GameLogic     , // inject logic constructor in your DApp
+					})
+					
+					// console.log(MyDApp)
 				})
-				
 
 				// Init interface
 				initView({
@@ -87,6 +91,9 @@
 				})
 			})
 			
+
+	
+
 
 			function startGame(deposit){
 
@@ -113,11 +120,11 @@
 						})
 
 
-						$('#user_bet').max   = Math.ceil(deposit/100000000)
-						$('#user_bet').val(1)
+						document.getElementById('user_bet').max   = Math.ceil(deposit/100000000)
+						document.getElementById('user_bet').value = 1
 
-						$('body').addClass('cur-step-2')
-						$('body').addClass('cur-step-3')
+						document.body.classList.add('cur-step-2')
+						document.body.classList.add('cur-step-3')
 					}
 				)
 			}
@@ -127,49 +134,51 @@
 
 
 			
+
+			
 			function initView(callbacks){
 				const updBalance = function(){
-					$('#user_balance').text('...')
+					document.getElementById('user_balance').innerText = '...'
 					
 					DCLib.Account.info(function(info){
-						$('#user_balance').text(info.balance.bet)
+						document.getElementById('user_balance').innerText = info.balance.bet
 						
 						setTimeout(updBalance, 7000)
 
 						if (info.balance.bet > 0) {
-							$('body').addClass('cur-step-1')
+							document.body.classList.add('cur-step-1')
 						}
 					})
 				}
 				updBalance()
 
 
-				$('body').addClass('cur-step-1')
-				$('#loading').hide()
-				$('#content').show()
+				document.body.classList.add('cur-step-1')
+				document.getElementById('loading').style.display = 'none'
+				document.getElementById('content').style.display = 'block'
 
-				$('#user_address').html('<a target="_blank" href="https://ropsten.etherscan.io/address/'+DCLib.Account.get().openkey+'">'+DCLib.Account.get().openkey+'</a>')
-				$('#faucet').attr('href', 'https://platform.dao.casino/faucet?to='+DCLib.Account.get().openkey)
+				document.getElementById('user_address').innerHTML = '<a target="_blank" href="https://ropsten.etherscan.io/address/'+DCLib.Account.get().openkey+'">'+DCLib.Account.get().openkey+'</a>'
+				document.getElementById('faucet').href = 'https://platform.dao.casino/faucet?to='+DCLib.Account.get().openkey
 
-				$('.step-1 form').on('submit', function(e){
-					let $this = $(this)
+				document.querySelector('.step-1 form').addEventListener('submit', function(e){
 					e.preventDefault()
 
-					$this.addClass('disabled')
+					e.target.classList.add('disabled')
 
-					var deposit = $('#user_deposit').val()*100000000
+					var deposit = document.getElementById('user_deposit').value*100000000
 					
 					callbacks.onSetDeposit( deposit )					
 				})
 
 
-				$('.form.step-2').on('submit', function(e){
-					e.preventDefault()
-					var form = $(this)
-					form.addClass('disabled')
 
-					var user_bet = $('#user_bet').val()
-					var user_num = $('#user_num').val()
+				document.querySelector('form.step-2').addEventListener('submit', function(e){
+					e.preventDefault()
+					var form = e.target
+					form.classList.add('disabled')
+
+					var user_bet = document.getElementById('user_bet').value
+					var user_num = document.getElementById('user_num').value
 
 					callbacks.onRoll()
 
@@ -184,21 +193,23 @@
 							renderGames()
 
 							var ubets = Game.balance()/100000000
-							$('#user_bet').max = ubets
+							document.getElementById('user_bet').max = ubets
 
 							if (ubets > 0.00005) {
-								form.removeClass('disabled')
+								form.classList.remove('disabled')
 							}
 						},
 
 						// log
 						function(log){
-							$('#play_log').append('<div> >> '+log+'</div>')
+							var d = document.createElement('div')
+								d.innerHTML = ' >> '+log
+							document.getElementById('play_log').appendChild(d)
 						}
 					)
 				})
 
-				$('.form.step-3').on('submit', function(e){
+				document.querySelector('form.step-3').addEventListener('submit', function(e){
 					e.preventDefault()
 
 					callbacks.onEndGame()
@@ -223,7 +234,7 @@
 
 				ghtml = '<table><thead><tr><th>bet</th><th>num</th><th>hash</th><th>random</th><th>profit</th></tr></thead><tbody>'+ghtml+'</tbody><tfoot><tr><th colspan="5">Game Balance: '+Game.balance()+'</th></tr></tfoot></table>'
 
-				$('#games_list').html(ghtml)
+				document.getElementById('games_list').innerHTML = ghtml
 			}
 		</script>
 	</head>
