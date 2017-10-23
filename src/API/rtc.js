@@ -18,6 +18,8 @@ export default class RTC {
 
 		this.channel = false
 		this.connect(room)
+
+		this.clearOldSeeds()
 	}
 
 	connect(room){
@@ -80,8 +82,10 @@ export default class RTC {
 	}
 
 	async clearOldSeeds(){
-		let seeds = await DB.values('groups')
-		console.log('clearOldSeeds',seeds)
+		let seeds = await DB.values(_config.rtc_store)
+		
+		if (seeds.length) console.log('clear old msgs seeds',seeds)
+		
 		for(let id in seeds){
 			if (!this.isFreshSeed(seeds[id].t)){
 				// DB.remove(_config.rtc_store, id)

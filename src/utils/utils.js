@@ -1,5 +1,4 @@
 
-export const ABI    = require('ethereumjs-abi')
 export const bigInt = require('big-integer')
 
 const WEB3 = require('web3/packages/web3')
