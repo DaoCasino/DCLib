@@ -1,19 +1,70 @@
 import _config    from 'config/config'
-import DB         from 'utils/DB'
-import Event      from 'utils/event'
+import EE         from 'event-emitter'
 
 import * as Utils from 'utils/utils'
 
-const signalserver = 'https://ws.dao.casino/mesh/'
+const signalserver     = 'https://ws.dao.casino/mesh/'
 const delivery_timeout = 3000
+const msg_ttl          = 10*60*1000
+
+
+const seedsDB = (function(){
+	const store_name = 'rtc_msgs_seeds'
+
+	let _seeds = {}
+	let w_time = false	
+	const read = function(){
+		if (!localStorage) { return }
+		try {
+			_seeds = JSON.parse( localStorage[store_name] )
+		} catch(e){
+			_seeds = {}
+		}
+	}
+	const write = function(){
+		if (!localStorage) { return }
+		
+		clearTimeout(w_time)
+		w_time = setTimeout(function(){
+			localStorage[store_name] = JSON.stringify(_seeds)
+		}, 500)
+	}
+
+	read()
+
+	return {	
+		add(data, id){
+			_seeds[id] = data
+			write()
+		},
+
+		get(id){
+			if (!_seeds[id]) read()
+
+			return _seeds[id] || null
+		},
+
+		getAll(){
+			return _seeds
+		},
+
+		remove(id){
+			delete _seeds[id]
+			write()
+		}
+	}
+})()
 
 
 export default class RTC {
 	constructor(user_id=false, room=false) {
-		if (!room) {
-			room = _config.rtc_room
-		}
+		room = room || _config.rtc_room
+		
+		const EC = function(){}
+		EE(EC.prototype)
+		this.Event = new EC()
 
+		this.room_id = room
 		this.user_id = user_id
 
 		this.channel = false
@@ -41,22 +92,35 @@ export default class RTC {
 			if (data.user_id && data.user_id==this.user_id) {
 				return
 			}
+			// if (data.room_id != this.room_id) {
+			// 	return
+			// }
 
 			this.acknowledgeReceipt(data)
 
-			Event.emit('all', data)
+
+			this.Event.emit('all', data)
+			
+			if (data.uiid) {
+				this.Event.emit('uiid::'+data.uiid, data)
+			}
+
+			if (data.type && data.action) {
+				this.Event.emit(data.type+'::'+data.action, data)
+			}
 
 			if (data.action) {
-				Event.emit('action::'+data.action, data)
+				this.Event.emit('action::'+data.action, data)
 			}
 
 			if (data.address) {
-				Event.emit('address::'+data.address, data)
+				this.Event.emit('address::'+data.address, data)
 			}
 
 			if (data.user_id) {
-				Event.emit('user_id::'+data.user_id, data)
+				this.Event.emit('user_id::'+data.user_id, data)
 			}
+
 		})
 	}
 
@@ -65,30 +129,30 @@ export default class RTC {
 			return false
 		}
 
-		const seed_exist = await DB.get(_config.rtc_store, data.seed)
-		console.log('seed_exist', seed_exist)
+		const seed_exist = await seedsDB.get(data.seed)
 		if (seed_exist && this.isFreshSeed(seed_exist.t) ) {
 			return true
 		}
-		console.log('add seed')
-		DB.put(_config.rtc_store, { t:(new Date().getTime()) }, data.seed)
+		
+		seedsDB.add({t:new Date().getTime()}, data.seed)
+		
 		return false
 	}
 
 	isFreshSeed(time){
-		let ttl = 2*60*1000
+		let ttl = msg_ttl || 7*1000
 		let livetime = (new Date().getTime()) - time*1
 		return ( livetime < ttl )
 	}
 
 	async clearOldSeeds(){
-		let seeds = await DB.values(_config.rtc_store)
+		let seeds = await seedsDB.getAll()
 		
 		if (seeds.length) console.log('clear old msgs seeds',seeds)
 		
 		for(let id in seeds){
 			if (!this.isFreshSeed(seeds[id].t)){
-				// DB.remove(_config.rtc_store, id)
+				seedsDB.remove(id)
 			}
 		}
 
@@ -97,11 +161,15 @@ export default class RTC {
 
 
 	on(event, callback){
-		Event.on(event, callback)
+		this.Event.on(event, callback)
+	}
+	
+	once(event, callback){
+		this.Event.once(event, callback)
 	}
 
 	off(event, callback){
-		Event.off(event, callback)
+		this.Event.off(event, callback)
 	}
 
 	subscribe(address, callback){
@@ -133,7 +201,6 @@ export default class RTC {
 
 	// Проверка получения сообщения
 	CheckReceipt(sended_data, callback){
-		let subscribe_name = false
 
 		let address = sended_data.address
 		let waitReceipt = data => {
@@ -176,14 +243,14 @@ export default class RTC {
 			return
 		}
 
-		data = this.sendMsg(data)
 
+		data = this.sendMsg(data)
 
 		if (!data.address) {
 			return
 		}
-		this.CheckReceipt(data, delivered=>{
 
+		this.CheckReceipt(data, delivered=>{
 			if (!delivered && repeat > 0) {
 				repeat--
 				this.send(data, callback, repeat)
@@ -196,12 +263,12 @@ export default class RTC {
 
 
 	sendMsg(data){
-		data.user_id = this.user_id
+		data.seed       = Utils.makeSeed()
+		data.user_id    = this.user_id
+		// data.room_id = this.room_id
 
-		if (!data.seed) {
-			data.seed = Utils.makeSeed()
-		}
 		this.channel.set(this.user_id, JSON.stringify(data))
+		
 		return data
 	}
 }

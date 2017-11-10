@@ -1,3 +1,4 @@
+
 let _config = {}
 export default class Api {
 	constructor(config){
@@ -12,7 +13,18 @@ export default class Api {
 		return fetch(_config.api_url + adv_path + '?' + query)
 	}
 
+	
 	// call faucet
+	/**
+	 * 
+	 * @example
+	 * const d = 1;
+	 * 
+	 * @param {any} address 
+	 * @returns 
+	 * 
+	 * @memberOf Api
+	 */
 	addBets(address){
 		return this.request({
 			a:       'faucet',

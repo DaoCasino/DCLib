@@ -1,12 +1,43 @@
 
 export const bigInt = require('big-integer')
 
-const WEB3 = require('web3/packages/web3')
-const web3_sha3 = WEB3.utils.sha3
+const web3_sha3 = require('web3/packages/web3-utils/src/soliditySha3.js')
 
 export const sha3 = web3_sha3
 
-export const clearcode = function(string){
+/**
+ * Convert BET from decimal, to "human" format, ex: 110000000 = 1.1BET 
+ * @param  {number} bets 
+ * @param  {number} toFixed - values after zero
+ * @return {number} - bet in human format
+ */
+export function bet2dec(val, r=2){
+	return +(val / 100000000).toFixed(r)
+}
+
+/**
+ * Conver decimal, to BET format
+ * 
+ * @export
+ * @param {number} val - value in decimal format 
+ * @returns {number} - value in BETS FIRMAT
+ * 
+ * @example
+ * DCLib.Utils.bet2dec(31024891841492)
+ * return: 310248.92
+ */
+export function bet4dec(val){
+	let b = ''+(val*100000000)
+	if (b.indexOf('.')>-1) {
+		b = b.split('.')[0]*1
+	}
+	return b*1
+}
+
+/**
+ * @ignore 
+ */
+export function clearcode(string){
 	return string.toString()
 		.split('\t').join('')
 		.split('\n').join('')
@@ -47,17 +78,6 @@ export const pad = (num, size) => {
 	return s
 }
 
-
-export const reverseForIn = (obj, f) => {
-	let arr = []
-	for (let key in obj) {
-		arr.push(key)
-	}
-	for (let i=arr.length-1; i>=0; i--) {
-		f.call(obj, arr[i])
-	}
-}
-
 export const buf2hex = buffer => {
 	return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('')
 }
@@ -65,7 +85,21 @@ export const buf2bytes32 = buffer => {
 	return '0x'+buf2hex(buffer)
 }
 
+export const remove0x = (str) => {
+	if (str.length > 2 && str.substr(0,2)=='0x') {
+		str = str.substr(2)
+		console.log('0x prefix removed from ', str)
+	}
+	return str
+}
 
+export const add0x = (str) => {
+	if (str.substr(0,2)!='0x') {
+		console.log('0x prefix added to', str)
+		str = '0x'+str
+	}
+	return str
+}
 
 export const makeSeed = () => {
 	var str = '0x'

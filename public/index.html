@@ -13,54 +13,53 @@
 		
 		<!-- <script src="http://localhost:8888/static/js/bundle.js"></script> -->
 		<!-- <script src="https://platform.dao.casino/api/lib/v2/DC.js?v=2"></script> -->
+		<!-- <script src="../api/lib/v2/DC.js?v=2"></script> -->
 
-		<script>	
+		<script>
 			const GameLogic = function(){
-				var balance = 0
-				var history = []
+				const _self = this
 
-				var setBalance = function(deposit){
-					balance = deposit*1
-				}
-
-				var getBalance = function(){ 
-					return balance
-				}
+				const MAX_RAND_NUM = 65536
+				const HOUSEEDGE    = 0.02 // 2%
+				
+				let history = []
 
 				var Roll = function(user_bet, user_num, random_hash){
+					// convert 1BET to 100000000
+					user_bet = DCLib.Utils.bet4dec(user_bet)
+
+					// generate random number
+					const random_num = DCLib.numFromHash(random_hash, 0, 65536)
+					
 					let profit = -user_bet
-					
-					const random_num = DCLib().Utils.bigInt(random_hash,16).divmod(65536).remainder.value
-					
-					if (user_num > random_num) {
-						profit = (user_bet * (65536 - 1310) / user_num) - user_bet
-					}
-					if (user_num == random_num) {
-						profit = user_bet
+					// if user win
+					if (user_num >= random_num) {
+						profit = (user_bet * (MAX_RAND_NUM - MAX_RAND_NUM*HOUSEEDGE) / user_num) - user_bet
 					}
 
-					balance += profit*1
+					// add result to paychannel
+					_self.payChannel.addTX( profit )
+					_self.payChannel.printLog()
 
+					// push all data to our log
+					// just for debug 
 					const roll_item = {
 						timestamp   : new Date().getTime(),
 						user_bet    : user_bet,
 						profit      : profit,
 						user_num    : user_num,
-						balance     : balance,
+						balance     : _self.payChannel.getBalance(),
 						random_hash : random_hash,
 						random_num  : random_num,
 					}
-
 					history.push(roll_item)
 
 					return roll_item
 				}
 
 				return {
-					setBalance: setBalance,
-					getBalance: getBalance,
-					roll:       Roll,
-					history:    history,
+					roll    : Roll,
+					history : history,
 				}
 			}
 
@@ -80,7 +79,7 @@
 					onSetDeposit : startGame,
 				
 					// call DApp functions, and send res to bankroller 
-					onPlay       : callDAppFunc,
+					onRoll       : callDAppFunc,
 				
 					// close payment channel, destroy DApp
 					onEndGame    : endGame,
@@ -91,53 +90,75 @@
 			function startGame(deposit){
 
 				MyDApp.connect({
-						bankroller : 'auto', // or bankroller address	
-						
-						// paychannel:{
-						// 	deposit : deposit,
+					bankroller : 'auto', 
+					paychannel:{deposit:deposit} 
+				},
+				function(connected, info){
+					console.log('connect result:', connected)
+					console.log('connect info:', info)
+					if (!connected) return 
 
-						// 	contract: {
-						// 		address: '0x...',
-						// 		abi: {}
-						// 	}
-						// }
-					},
+					let maxbet = DCLib.Utils.bet2dec( info.channel.player_deposit )
 
-					// open result
-					function(result){
-						console.log('openGamechannel res:', result)
+					$('#user_bet')[0].max = Math.ceil( maxbet )
+					$('#user_bet').val( (maxbet*0.1).toFixed(2) )
 
-						// set player balance in our game logic
-						MyDApp.call('setBalance', [deposit], function(result){
-							
-						})
-
-
-						$('#user_bet').max   = Math.ceil(deposit/100000000)
-						$('#user_bet').val(1)
-
-						$('body').addClass('cur-step-2')
-						$('body').addClass('cur-step-3')
-					}
-				)
+					$('body').addClass('cur-step-2').addClass('cur-step-3')
+				})
 			}
 
-			function callDAppFunc(){}
-			function endGame(){}
+			function callDAppFunc(user_bet, user_num){
+				MyDApp.call(
+					// function name and args
+					'roll', [user_bet, user_num, DCLib.randomHash() ],
+
+					// result
+					function(res, advanced){
+						console.log('result', res )
+						console.log('advanced', advanced )
+	
+						renderGames()
+
+						var ubets = Game.payChannel.getBalance()
+						$('#user_bet').max = ubets
+					},
+
+					// log
+					function(log){
+						$('#play_log').append('<div> >> '+log+'</div>')
+					}
+				)
+
+			}
+
+			function endGame(){
+				MyDApp.disconnect({}, function(res){
+					console.log('disconnect result', res)
+				})	
+			}
 
 
 			
 			function initView(callbacks){
+				let deposit_set = false
 				const updBalance = function(){
 					$('#user_balance').text('...')
 					
 					DCLib.Account.info(function(info){
 						$('#user_balance').text(info.balance.bet)
+						$('#user_balance_eth').text(info.balance.eth)
 						
-						setTimeout(updBalance, 7000)
+						setTimeout(updBalance, 30000)
 
 						if (info.balance.bet > 0) {
 							$('body').addClass('cur-step-1')
+
+							if (!deposit_set) {
+								deposit_set = true
+								d = (info.balance.bet*0.5).toFixed(2)
+								if (d>1) { d = 1 }
+								$('#user_deposit').val( d )
+							}
 						}
 					})
 				}
@@ -152,66 +173,38 @@
 				$('#faucet').attr('href', 'https://platform.dao.casino/faucet?to='+DCLib.Account.get().openkey)
 
 				$('.step-1 form').on('submit', function(e){
-					let $this = $(this)
 					e.preventDefault()
 
-					$this.addClass('disabled')
+					$(this).addClass('disabled')
 
-					var deposit = $('#user_deposit').val()*100000000
+					var deposit = $('#user_deposit').val()
 					
 					callbacks.onSetDeposit( deposit )					
 				})
 
 
-				$('.form.step-2').on('submit', function(e){
+				$('form.step-2').on('submit', function(e){
 					e.preventDefault()
-					var form = $(this)
-					form.addClass('disabled')
+
+					$(this).addClass('disabled')
 
 					var user_bet = $('#user_bet').val()
 					var user_num = $('#user_num').val()
 
-					callbacks.onRoll()
-
-					MyDApp.callChannelGameFunc(
-						// function name and args
-						'roll', [user_bet*100000000, user_num, MyDApp.getChannelGameRandom()],
-
-						// result
-						function(res){
-							window.Game.roll(user_bet*100000000, user_num, res.random_hash)
-							
-							renderGames()
-
-							var ubets = Game.balance()/100000000
-							$('#user_bet').max = ubets
-
-							if (ubets > 0.00005) {
-								form.removeClass('disabled')
-							}
-						},
-
-						// log
-						function(log){
-							$('#play_log').append('<div> >> '+log+'</div>')
-						}
-					)
+					callbacks.onRoll(user_bet, user_num)
 				})
 
-				$('.form.step-3').on('submit', function(e){
+				$('form.step-3').on('submit', function(e){
 					e.preventDefault()
 
 					callbacks.onEndGame()
-					MyDApp.closeGameChannel(Game.balance(), function(result){
-						console.log('result',result)
-					})
 				})
 			}
 
 
 			function renderGames(history){
 				if (typeof Game === 'undefined') {
-					window.Game = { balance: 11 }
+					window.Game = MyDApp.logic
 				}
 
 				history = history || Game.history
@@ -221,7 +214,7 @@
 					ghtml += '<tr><td>'+g.user_bet+'</td><td>'+g.user_num+'</td><td><span class="hash">'+g.random_hash+'</span></td><td>'+g.random_num+'</td><td>'+g.profit+'</td></tr>'
 				}
 
-				ghtml = '<table><thead><tr><th>bet</th><th>num</th><th>hash</th><th>random</th><th>profit</th></tr></thead><tbody>'+ghtml+'</tbody><tfoot><tr><th colspan="5">Game Balance: '+Game.balance()+'</th></tr></tfoot></table>'
+				ghtml = '<table><thead><tr><th>bet</th><th>num</th><th>hash</th><th>random</th><th>profit</th></tr></thead><tbody>'+ghtml+'</tbody><tfoot><tr><th colspan="5">Game Balance: '+Game.payChannel.getBalance()+'</th></tr></tfoot></table>'
 
 				$('#games_list').html(ghtml)
 			}
@@ -240,6 +233,7 @@
 					<br>
 					<br>
 					<b>BET</b>: &nbsp;<span id="user_balance"></span>
+					<b>ETH</b>: &nbsp;<span id="user_balance_eth"></span>
 					&nbsp;
 					<a id="faucet" target="_blank" href="">faucet</a>
 				</p>
@@ -251,7 +245,7 @@
 				<form>
 					<label>
 						Set game deposit:
-						<input id="user_deposit" type="number" value="2" min="0" max="4" step="0.1">
+						<input id="user_deposit" type="number" value="1.1" min="0" max="4" step="0.1">
 					</label>
 					<input type="submit" value="Set">
 				</form>
