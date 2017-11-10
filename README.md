@@ -27,7 +27,6 @@ https://github.com/DaoCasino/BankRollerApp/
 
 
 # Guides and documentation
-https://daocasino.readme.io/
 
 https://ipfs.infura.io/ipfs/Qmc4UYM8onBUxe14iahzKxX57F36c7jFaMD9hCtXStRwC4/
 
