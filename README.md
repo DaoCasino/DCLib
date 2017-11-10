@@ -22,8 +22,8 @@ https://github.com/DaoCasino/BankRollerApp/
 <script src="https://platform.dao.casino/api/lib/v2/DC.js"></script>
 
 ```
+Open it in browser
 
-Open it in browser:
 <img src="https://raw.githubusercontent.com/DaoCasino/DCLib/master/manual/asset/console.log.init.png">
 
 
