@@ -9,170 +9,202 @@
 		<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/min/1.5/min.min.css">
 		<link rel="stylesheet" type="text/css" href="./styles.css">
 
+		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
+		
 		<!-- <script src="http://localhost:8888/static/js/bundle.js"></script> -->
-		<!-- <script src="https://platform.dao.casino/api/lib/DC.js?v=1.4"></script> -->
+		<!-- <script src="https://platform.dao.casino/api/lib/v2/DC.js?v=2"></script> -->
+		<!-- <script src="../api/lib/v2/DC.js?v=2"></script> -->
 
 		<script>
-			const GameLogic = function(deposit){
-				var balance = deposit*1
-				var history = []
+			const GameLogic = function(){
+				const _self = this
 
-				if (!window.bigInt) { window.bigInt = Casino.bigInt }
+				const MAX_RAND_NUM = 65536
+				const HOUSEEDGE    = 0.02 // 2%
+				
+				let history = []
 
-				var roll = function(user_bet, user_num, random_hash){
+				var Roll = function(user_bet, user_num, random_hash){
+					// convert 1BET to 100000000
+					user_bet = DCLib.Utils.bet4dec(user_bet)
+
+					// generate random number
+					const random_num = DCLib.numFromHash(random_hash, 0, 65536)
+					
 					let profit = -user_bet
-					const random_num = bigInt(random_hash,16).divmod(65536).remainder.value
-					if (user_num > random_num) {
-						profit = (user_bet * (65536 - 1310) / user_num) - user_bet
-					}
-					if (user_num == random_num) {
-						profit = user_bet
+					// if user win
+					if (user_num >= random_num) {
+						profit = (user_bet * (MAX_RAND_NUM - MAX_RAND_NUM*HOUSEEDGE) / user_num) - user_bet
 					}
 
-					balance += profit*1
+					// add result to paychannel
+					_self.payChannel.addTX( profit )
+					_self.payChannel.printLog()
 
+					// push all data to our log
+					// just for debug 
 					const roll_item = {
 						timestamp   : new Date().getTime(),
 						user_bet    : user_bet,
 						profit      : profit,
 						user_num    : user_num,
-						balance     : balance,
+						balance     : _self.payChannel.getBalance(),
 						random_hash : random_hash,
 						random_num  : random_num,
 					}
-
 					history.push(roll_item)
 
 					return roll_item
 				}
 
 				return {
-					history: history,
-					roll:    roll,
-					deposit: deposit,
-					balance: function(){ return balance },
+					roll    : Roll,
+					history : history,
 				}
 			}
 
 
-			var GAME_CODE = 'dice_gamechannel'
+			$(document).ready( function(){
+					
+				// Create our DApp
+				window.MyDApp = new DCLib.DApp({
+					code  : 'dicegame_v2' , // unique DApp code
+					logic : GameLogic     , // inject logic constructor in your DApp
+				})
+				
 
-			document.addEventListener("DOMContentLoaded", function(){
-			  window.Casino = new CasinoJS({network: 'ropsten'});
-			  window.lightwallet = Casino.Account.lightWallet;
+				// Init interface
+				initView({
+					// Create DApp and open payment channel
+					onSetDeposit : startGame,
+				
+					// call DApp functions, and send res to bankroller 
+					onRoll       : callDAppFunc,
+				
+					// close payment channel, destroy DApp
+					onEndGame    : endGame,
+				})
+			})
+			
 
-			  initGame()
+			function startGame(deposit){
 
-			  // renderGames(JSON.parse('[{"timestamp":1503315562306,"user_bet":"1","profit":0.8350285714285715,"user_num":"35000","random_hash":"0x05c4249206ef07585c4f61a9b8650965cad34b59f784a1c15aa58a5d826683764e1d7cac2311b4f4e814dcbb3b560caeabd1b8896a7484fbb5b3199582974b171c","random_num":5916},{"timestamp":1503317662163,"user_bet":"1","profit":0,"user_num":"35000","random_hash":"0xae65a3bab4e295682334804e446db1a08d827df577ddfdb778c21518993ff549758f63ba91cb84417422a4906d44faf05d57da5ed934e275e24a5601ae9dac971b","random_num":38683}]'))
+				MyDApp.connect({
+					bankroller : 'auto', 
+					paychannel:{deposit:deposit} 
+				},
+				function(connected, info){
+					console.log('connect result:', connected)
+					console.log('connect info:', info)
+					if (!connected) return 
 
-			});
+					let maxbet = DCLib.Utils.bet2dec( info.channel.player_deposit )
 
-			function updBalance(){
-				document.getElementById('user_balance').innerText = '...'
-				Casino.Account.getBetsBalance(function(user_bets){
-					document.getElementById('user_balance').innerText = user_bets
-					setTimeout(updBalance, 5000)
+					$('#user_bet')[0].max = Math.ceil( maxbet )
+					$('#user_bet').val( (maxbet*0.1).toFixed(2) )
 
-					if (user_bets>0) {
-						document.body.classList.add('cur-step-1')
-					}
+					$('body').addClass('cur-step-2').addClass('cur-step-3')
 				})
 			}
 
-			function initGame(){
+			function callDAppFunc(user_bet, user_num){
+				MyDApp.call(
+					// function name and args
+					'roll', [user_bet, user_num, DCLib.randomHash() ],
+
+					// result
+					function(res, advanced){
+						console.log('result', res )
+						console.log('advanced', advanced )
+	
+						renderGames()
+
+						var ubets = Game.payChannel.getBalance()
+						$('#user_bet').max = ubets
+					},
+
+					// log
+					function(log){
+						$('#play_log').append('<div> >> '+log+'</div>')
+					}
+				)
+
+			}
+
+			function endGame(){
+				MyDApp.disconnect({}, function(res){
+					console.log('disconnect result', res)
+				})	
+			}
+
+
+			
+			function initView(callbacks){
+				let deposit_set = false
+				const updBalance = function(){
+					$('#user_balance').text('...')
+					
+					DCLib.Account.info(function(info){
+						$('#user_balance').text(info.balance.bet)
+						$('#user_balance_eth').text(info.balance.eth)
+						
+						setTimeout(updBalance, 30000)
+
+						if (info.balance.bet > 0) {
+							$('body').addClass('cur-step-1')
+
+							if (!deposit_set) {
+								deposit_set = true
+								d = (info.balance.bet*0.5).toFixed(2)
+								if (d>1) { d = 1 }
+								$('#user_deposit').val( d )
+							}
+						}
+					})
+				}
 				updBalance()
 
-				document.body.classList.add('cur-step-1')
-				document.getElementById('loading').style.display = 'none'
-				document.getElementById('content').style.display = 'block'
 
-				document.getElementById('user_address').innerHTML = '<a target="_blank" href="https://ropsten.etherscan.io/address/'+Casino.Account.get().openkey+'">'+Casino.Account.get().openkey+'</a>'
-				document.getElementById('faucet').href = 'https://platform.dao.casino/faucet?to='+Casino.Account.get().openkey
+				$('body').addClass('cur-step-1')
+				$('#loading').hide()
+				$('#content').show()
 
-				document.querySelector('.step-1 form').addEventListener('submit', function(e){
+				$('#user_address').html('<a target="_blank" href="https://ropsten.etherscan.io/address/'+DCLib.Account.get().openkey+'">'+DCLib.Account.get().openkey+'</a>')
+				$('#faucet').attr('href', 'https://platform.dao.casino/faucet?to='+DCLib.Account.get().openkey)
+
+				$('.step-1 form').on('submit', function(e){
 					e.preventDefault()
 
-					e.target.classList.add('disabled')
+					$(this).addClass('disabled')
 
-					var deposit = document.getElementById('user_deposit').value*100000000
-					Casino.startChannelGame(
-						GAME_CODE,
-
-						// user deposit
-						deposit,
-
-						// open result
-						function(result){
-
-							window.Game = new GameLogic(deposit)
-
-							console.log('openGamechannel res:', result)
-
-							document.getElementById('user_bet').max   = Math.ceil(deposit/100000000)
-							document.getElementById('user_bet').value = 1
-
-							document.body.classList.add('cur-step-2')
-							document.body.classList.add('cur-step-3')
-						},
-
-						// log
-						function(log){
-							var d = document.createElement('div')
-							d.innerHTML = ' >> '+log
-							document.getElementById('open_log').appendChild(d)
-						}
-					)
+					var deposit = $('#user_deposit').val()
+					
+					callbacks.onSetDeposit( deposit )					
 				})
 
 
-
-				document.querySelector('form.step-2').addEventListener('submit', function(e){
+				$('form.step-2').on('submit', function(e){
 					e.preventDefault()
-					var form = e.target
-					form.classList.add('disabled')
 
-					var user_bet = document.getElementById('user_bet').value
-					var user_num = document.getElementById('user_num').value
+					$(this).addClass('disabled')
 
-					Casino.callChannelGameFunc(
-						// function name and args
-						'roll', [user_bet*100000000, user_num, Casino.getChannelGameRandom()],
+					var user_bet = $('#user_bet').val()
+					var user_num = $('#user_num').val()
 
-						// result
-						function(res){
-							window.Game.roll(user_bet*100000000, user_num, res.random_hash)
-							renderGames()
-
-							var ubets = Game.balance()/100000000
-							document.getElementById('user_bet').max = ubets
-
-							if (ubets > 0.00005) {
-								form.classList.remove('disabled')
-							}
-						},
-
-						// log
-						function(log){
-							var d = document.createElement('div')
-								d.innerHTML = ' >> '+log
-							document.getElementById('play_log').appendChild(d)
-						}
-					)
+					callbacks.onRoll(user_bet, user_num)
 				})
 
-				document.querySelector('form.step-3').addEventListener('submit', function(e){
+				$('form.step-3').on('submit', function(e){
 					e.preventDefault()
 
-					Casino.closeGameChannel(Game.balance(), function(result){
-						console.log('result',result)
-					})
+					callbacks.onEndGame()
 				})
 			}
 
 
 			function renderGames(history){
 				if (typeof Game === 'undefined') {
-					window.Game = { balance: 11 }
+					window.Game = MyDApp.logic
 				}
 
 				history = history || Game.history
@@ -182,9 +214,9 @@
 					ghtml += '<tr><td>'+g.user_bet+'</td><td>'+g.user_num+'</td><td><span class="hash">'+g.random_hash+'</span></td><td>'+g.random_num+'</td><td>'+g.profit+'</td></tr>'
 				}
 
-				ghtml = '<table><thead><tr><th>bet</th><th>num</th><th>hash</th><th>random</th><th>profit</th></tr></thead><tbody>'+ghtml+'</tbody><tfoot><tr><th colspan="5">Game Balance: '+Game.balance()+'</th></tr></tfoot></table>'
+				ghtml = '<table><thead><tr><th>bet</th><th>num</th><th>hash</th><th>random</th><th>profit</th></tr></thead><tbody>'+ghtml+'</tbody><tfoot><tr><th colspan="5">Game Balance: '+Game.payChannel.getBalance()+'</th></tr></tfoot></table>'
 
-				document.getElementById('games_list').innerHTML = ghtml
+				$('#games_list').html(ghtml)
 			}
 		</script>
 	</head>
@@ -201,6 +233,7 @@
 					<br>
 					<br>
 					<b>BET</b>: &nbsp;<span id="user_balance"></span>
+					<b>ETH</b>: &nbsp;<span id="user_balance_eth"></span>
 					&nbsp;
 					<a id="faucet" target="_blank" href="">faucet</a>
 				</p>
@@ -212,7 +245,7 @@
 				<form>
 					<label>
 						Set game deposit:
-						<input id="user_deposit" type="number" value="2" min="0" max="4" step="0.1">
+						<input id="user_deposit" type="number" value="1.1" min="0" max="4" step="0.1">
 					</label>
 					<input type="submit" value="Set">
 				</form>

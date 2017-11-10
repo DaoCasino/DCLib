@@ -7,12 +7,15 @@ const webpack                 = require('webpack')
 const HtmlWebpackPlugin       = require('html-webpack-plugin')
 const ExtractTextPlugin       = require('extract-text-webpack-plugin')
 const ManifestPlugin          = require('webpack-manifest-plugin')
+const BundleSizeAnalyzer      = require('webpack-bundle-size-analyzer').WebpackBundleSizeAnalyzerPlugin
 const InterpolateHtmlPlugin   = require('react-dev-utils/InterpolateHtmlPlugin')
 const eslintFormatter         = require('react-dev-utils/eslintFormatter')
 const ModuleScopePlugin       = require('react-dev-utils/ModuleScopePlugin')
 
 const paths                   = require('./paths')
 const getClientEnvironment    = require('./env')
+
+const rootdir = __dirname+'/../..'
 
 // Webpack uses `publicPath` to determine where the app is being served from.
 // It requires a trailing slash, or the file assets will get an incorrect path.
@@ -71,8 +74,8 @@ let webpack_prod_config = {
 		// Generated JS file names (with nested folders).
 		// There will be one main bundle, and one file per asynchronous chunk.
 		// We don't currently advertise code splitting but Webpack supports it.
-		filename: '../api/lib/DC.js',
-		chunkFilename: '../api/lib/DC.[chunkhash:8].chunk.js',
+		filename: '../api/lib/v2/DC.js',
+		chunkFilename: '../api/lib/v2/DC.[chunkhash:8].chunk.js',
 
 		// We inferred the "public path" (such as / or /my-project) from homepage.
 		publicPath: publicPath,
@@ -86,7 +89,7 @@ let webpack_prod_config = {
 		// We placed these paths second because we want `node_modules` to "win"
 		// if there are any conflicts. This matches Node resolution mechanism.
 		// https://github.com/facebookincubator/create-react-app/issues/253
-		modules: ['node_modules', paths.appNodeModules].concat(
+		modules: [rootdir+'/src', 'node_modules', paths.appNodeModules].concat(
 	  		// It is guaranteed to exist because we tweak it in `env.js`
 	  		process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
 		),
@@ -285,6 +288,8 @@ let webpack_prod_config = {
 	},
 
 	plugins: [
+	 	new BundleSizeAnalyzer(rootdir+'/size-report.txt'),
+
 		// Makes some environment variables available in index.html.
 		// The public URL is available as %PUBLIC_URL% in index.html, e.g.:
 		// <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">

@@ -9,6 +9,8 @@
 # production
 /api
 /build
+/docs
+size-report.txt
 
 # misc
 .DS_Store

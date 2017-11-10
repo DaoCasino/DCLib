@@ -13,6 +13,8 @@ const ModuleScopePlugin             = require('react-dev-utils/ModuleScopePlugin
 const getClientEnvironment          = require('./env')
 const paths                         = require('./paths')
 
+const rootdir = __dirname+'/../..'
+
 // Webpack uses `publicPath` to determine where the app is being served from.
 // In development, we always serve from the root. This makes config easier.
 const publicPath = '/'
@@ -92,7 +94,7 @@ let webpack_dev_config = {
 		// We placed these paths second because we want `node_modules` to "win"
 		// if there are any conflicts. This matches Node resolution mechanism.
 		// https://github.com/facebookincubator/create-react-app/issues/253
-		modules: ['node_modules', paths.appNodeModules].concat(
+		modules: [rootdir+'/src', 'node_modules', paths.appNodeModules].concat(
 			// It is guaranteed to exist because we tweak it in `env.js`
 			process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
 		),
