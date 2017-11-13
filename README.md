@@ -3,8 +3,6 @@
 DCLib is javascript library for integrate [dao.casino blockchain protocol](https://github.com/DaoCasino/Whitepaper).
 Interact with [bankroller](https://github.com/DaoCasino/BankRollerApp), use [Signidice random algorithm](https://github.com/DaoCasino/Whitepaper/blob/master/DAO.Casino%20WP.md#35-algorithm-implemented-in-mvp-of-daocasino-protocol), and paymentchannels.
 
-For better understanding our protocol see short manuals (ТУТ ССЫЛКА НА МАНЫ)
-
 DCLib has two part:
   * browser/frontend library
   * bankroller side API
@@ -24,9 +22,13 @@ https://github.com/DaoCasino/BankRollerApp/
 <script src="https://platform.dao.casino/api/lib/v2/DC.js"></script>
 
 ```
+Open it in browser
+
+<img src="https://raw.githubusercontent.com/DaoCasino/DCLib/master/manual/asset/console.log.init.png">
 
 
-# Guides and documentation
+
+# Docs
 
 https://ipfs.infura.io/ipfs/Qmc4UYM8onBUxe14iahzKxX57F36c7jFaMD9hCtXStRwC4/
 
