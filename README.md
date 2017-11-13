@@ -11,7 +11,9 @@ DCLIb methods available inside bankroller application
 
 IMPORTANT: now lib work only in [ropsten](https://ropsten.etherscan.io/) test network.
 
-# Use
+# See short video
+https://www.youtube.com/watch?v=vD2kI_4IEFA
+
 
 ## Install BankRollerApp
 https://github.com/DaoCasino/BankRollerApp/
