@@ -25,7 +25,7 @@ const Eth     = new EthHelpers()
 /**
  * DApp interface to bankroller side
  *
- * @see https://daocasino.readme.io/
+ * [See readme](https://daocasino.readme.io/)
  *
  * @example
  *  const GameLogic = function(){
