@@ -54,15 +54,23 @@ export default class DApp {
 	 * @return {DApp}
 	 */
 	constructor(params) {
-		if (!params.code || !params.logic) {
+		if (!params.code) {
 			console.error('Create DApp error', params)
-			throw new Error('code and logic is required')
+			throw new Error('code option is required')
 			return 
 		}
 
+		if (!DAppsLogic[params.code] || !DAppsLogic[params.code]) {
+			console.log('First you need define your DApp logic');
+			console.log('Example DCLib.defineDAppLogic("'+params.code+'", function(){...})');
+			throw new Error('Cant find DApp logic')
+		}
+
+		let logic = DAppsLogic[params.code]
+
 		this.code  = params.code
-		this.hash  = Utils.checksum( params.logic )		
-		this.logic = payChannelWrap(params.logic)
+		this.hash  = Utils.checksum( logic )		
+		this.logic = payChannelWrap( logic )
 
 		this.Room = false 
 		this.sharedRoom = new Rtc( Account.get().openkey, 'dapp_room_'+this.hash )	
@@ -73,7 +81,7 @@ export default class DApp {
 		console.info('%c SHA3: %c' + this.hash , 'background:#333; padding:3px 0px 3px 3px;', 'color:orange; background:#333; padding:3px 10px 3px 3px;')
 		
 		console.groupCollapsed('Logic string')
-		console.log( Utils.clearcode( params.logic ) )
+		console.log( Utils.clearcode( DAppsLogic[params.code] ) )
 		console.groupEnd()
 
 		console.groupCollapsed('DApp.sharedRoom / messaging methods now available')

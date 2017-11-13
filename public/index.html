@@ -16,7 +16,7 @@
 		<!-- <script src="../api/lib/v2/DC.js?v=2"></script> -->
 
 		<script>
-			const GameLogic = function(){
+			DCLib.defineDAppLogic('dicedapp_v2', function(){
 				const _self = this
 
 				const MAX_RAND_NUM = 65536
@@ -61,15 +61,14 @@
 					roll    : Roll,
 					history : history,
 				}
-			}
+			})
 
 
 			$(document).ready( function(){
 					
 				// Create our DApp
 				window.MyDApp = new DCLib.DApp({
-					code  : 'dicegame_v2' , // unique DApp code
-					logic : GameLogic     , // inject logic constructor in your DApp
+					code  : 'dicedapp_v2' , // unique DApp code
 				})
 				
 
