@@ -32,5 +32,5 @@ Open it in browser
 
 # Docs
 
-https://ipfs.infura.io/ipfs/Qmc4UYM8onBUxe14iahzKxX57F36c7jFaMD9hCtXStRwC4/
+https://ipfs.infura.io/ipfs/QmXed6jCcGrRcoXLfGtQ2zukFBX6uPhACtN2fGdVb16FBQ
 
