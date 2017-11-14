@@ -61,8 +61,8 @@ export default class DApp {
 		}
 
 		if (!DAppsLogic[params.code] || !DAppsLogic[params.code]) {
-			console.log('First you need define your DApp logic');
-			console.log('Example DCLib.defineDAppLogic("'+params.code+'", function(){...})');
+			console.log('First you need define your DApp logic')
+			console.log('Example DCLib.defineDAppLogic("'+params.code+'", function(){...})')
 			throw new Error('Cant find DApp logic')
 		}
 

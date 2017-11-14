@@ -104,7 +104,7 @@ export default class DCLib {
 				address = this.Account.get().address
 			}
 			
-			address = address || _wallet.openkey
+			address = address || this.Account.get().address
 			
 			const [bet, eth] = await Promise.all([
 				this.Eth.getBetBalance( address ),
@@ -293,7 +293,7 @@ export default class DCLib {
 	 * 
 	 * @memberOf DCLib
 	 */
-	sigHashRecover(){
+	sigHashRecover(raw_msg, signed_msg){
 		return this.web3.eth.accounts.recover(raw_msg, signed_msg).toLowerCase()
 	}
 	
