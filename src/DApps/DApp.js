@@ -28,16 +28,17 @@ const Eth     = new EthHelpers()
  * [See readme](https://daocasino.readme.io/)
  *
  * @example
- *  const GameLogic = function(){
- *  	const play = function(a){
- *  		...
- *  	}
- *  	return { play:play }
- *  }
- *	const MyDApp = new DCLib.DApp({
- *		code  : 'dicegame_v2' , // unique DApp code
- *		logic : GameLogic     , // inject logic constructor in your DApp
- *	})
+ * const GameLogic = function(){
+ *    const play = function(a){
+ *      ...
+ *    }
+ *    return { play:play }
+ * }
+ * 
+ * const MyDApp = new DCLib.DApp({
+ *   code  : 'dicegame_v2' , // unique DApp code
+ *	 logic : GameLogic     , // inject logic constructor in your DApp
+ * })
  *
  *  
  * @export
@@ -46,12 +47,7 @@ const Eth     = new EthHelpers()
  */
 export default class DApp {
 	/**
-	 * DApp contructor
-	 *
-	 * @param  {Object} params - DApp settings
-	 * @param  {Object.string} code
-	 * @param  {Object.function} logic
-	 * @return {DApp}
+	 * @ignore
 	 */
 	constructor(params) {
 		if (!params.code) {
@@ -61,8 +57,8 @@ export default class DApp {
 		}
 
 		if (!DAppsLogic[params.code] || !DAppsLogic[params.code]) {
-			console.log('First you need define your DApp logic');
-			console.log('Example DCLib.defineDAppLogic("'+params.code+'", function(){...})');
+			console.log('First you need define your DApp logic')
+			console.log('Example DCLib.defineDAppLogic("'+params.code+'", function(){...})')
 			throw new Error('Cant find DApp logic')
 		}
 

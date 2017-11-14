@@ -14,18 +14,19 @@ let _wallet = { openkey:false }
 
 
 
-
 /**
  * Class for work with [Ethereum Account/Wallet](http://ethdocs.org/en/latest/account-management.html).
- * 
+ *
  * ETH **account creates automatically** when DCLib init, and stored in localStorage.
  * For creating account lib user [web3.eth.accounts](web3js.readthedocs.io/en/1.0/web3-eth-accounts.html)
  *
- * ## About accounts in ETH 
+ * ## About accounts in ETH
  * Accounts play a central role in Ethereum. There are two types of accounts: externally owned accounts (EOAs) and contract accounts. Here we focus on externally owned accounts, which will be referred to simply as accounts. Contract accounts will be referred to as contracts and are discussed in detail in Contracts. This generic notion of account subsuming both externally owned accounts and contracts is justified in that these entities are so called state objects. These entities have a state: accounts have balance and contracts have both balance and contract storage. The state of all accounts is the state of the Ethereum network which is updated with every block and which the network really needs to reach a consensus about. Accounts are essential for users to interact with the Ethereum blockchain via transactions.
  * If we restrict Ethereum to only externally owned accounts and allow only transactions between them, we arrive at an “altcoin” system that is less powerful than bitcoin itself and can only be used to transfer ether.
+ * 
  * @export
- * @class DCLib.Account
+ * @access public
+ * @class Account
  * @extends {DCLib}
  */
 export default class Account {
@@ -85,7 +86,7 @@ export default class Account {
 
 	/**
 	 * ## DCLib.Account.unlockAccount(password)
-	 * method need for recover user account on password
+	 * method recover user account on password
 	 * 
 	 * @example
 	 * > DCLib.Account.unlockAccount('1234') // '1234' - User Password
@@ -135,7 +136,7 @@ export default class Account {
 
 	/**
 	 * ## DCLib.Account.exportPrivateKey(password)
-	 * method need for get privateKey from account on user password 
+	 * method get privateKey from account on user password 
 	 * 
 	 * @example
 	 * > DCLib.Account.exportPrivateKey('1234') // '1234' user password for decrypt private key
@@ -156,13 +157,14 @@ export default class Account {
 
 	/**
 	 * ## DCLib.Account.get()
-	 * method need for getting account information
+	 * method getting account information
 	 * 
 	 * @example
 	 * > DCLib.Account.get()
 	 * 
 	 * @example
 	 * // method return
+	 * 
 	 * {
 	 *   address: "0xD4E9F60fc84b97080A1803CF2D4E1003313a2Ea2"
 	 *   encrypt: method
@@ -192,6 +194,7 @@ export default class Account {
 	 * 
 	 * @example
 	 * // method return
+	 * 
 	 * {
 	 *   message: "Hello world"
 	 *   messageHash: "0x25674ba4b416425b2ac42fdb33d0b0c20c59824a76e1ee4ecc04b8d48f8f6af7"
@@ -242,7 +245,8 @@ export default class Account {
 
 	/**
 	 * ## method init DCLib.Account.reset()
-	 * method need for delete account of localStorage
+	 * method delete account of localStorage
+	 * 
 	 * @example 
 	 * DCLib.Account.reset()
 	 * 
@@ -263,6 +267,7 @@ export default class Account {
 	 * ## DCLib.Account.sendBets(to, amount)
 	 * sendBets from current account to another account
 	 * you can use it with "await"
+	 * 
 	 * @example
 	 * const r = await DCLib.Account.sendBets('0xAb5', 10)
 	 * 
