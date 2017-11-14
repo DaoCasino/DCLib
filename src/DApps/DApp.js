@@ -28,16 +28,15 @@ const Eth     = new EthHelpers()
  * [See readme](https://daocasino.readme.io/)
  *
  * @example
- * const GameLogic = function(){
+ * DCLib.defineDAppLogic('dicegame_v2', function(){
  *    const play = function(a){
  *      ...
  *    }
  *    return { play:play }
- * }
+ * })
  * 
  * const MyDApp = new DCLib.DApp({
  *   code  : 'dicegame_v2' , // unique DApp code
- *	 logic : GameLogic     , // inject logic constructor in your DApp
  * })
  *
  *  
@@ -131,7 +130,7 @@ export default class DApp {
 
 		let deposit = (params.paychannel && params.paychannel.deposit) ? params.paychannel.deposit : 0 
 
-		deposit = Utils.bet4dec(deposit)
+		deposit = Utils.bet2dec(deposit)
 		if (params.paychannel && params.paychannel.deposit) {
 			params.paychannel.deposit = deposit
 		}
@@ -218,6 +217,19 @@ export default class DApp {
 		if(callback) callback(true, this.connection_info)
 	}
 
+
+	/**
+	 * Open channel for game for player and bankroller
+	 * 
+	 * @example
+	 * window.MyDApp.openChannel(0.15)
+	 * 
+	 * @param {Object} params - object for params open channel
+	 * @param {Object.number} deposit - quantity bets for game
+	 * @returns - none
+	 * 
+	 * @memberOf DApp
+	 */
 	openChannel(params){
 		console.group(' 🔐 Open channel with deposit', params.deposit)
 
@@ -227,7 +239,7 @@ export default class DApp {
 			const user_balance = await Eth.getBalances(Account.get().openkey)
 			
 			const mineth = 0.01
-			const minbet = Utils.bet2dec(params.deposit)
+			const minbet = Utils.dec2bet(params.deposit)
 			
 			if (mineth!==false && user_balance.eth*1 < mineth*1) {
 				console.error(user_balance.eth+' is very low, you need minimum '+mineth)
@@ -293,7 +305,7 @@ export default class DApp {
 
 			if (response.receipt && response.receipt.transactionHash) {
 				// Set deposit in logic
-				this.logic.payChannel.setDeposit( Utils.bet2dec(player_deposit) )
+				this.logic.payChannel.setDeposit( Utils.dec2bet(player_deposit) )
 
 				response.contract_address = response.receipt.to
 
@@ -310,6 +322,16 @@ export default class DApp {
 	}
 
 
+	/**
+	 * @todo write description and example
+	 * 
+	 * @param {any} function_name - name contract method
+	 * @param {any} [function_args=[]] 
+	 * @param {any} callback 
+	 * @returns 
+	 * 
+	 * @memberOf DApp
+	 */
 	call(function_name, function_args=[], callback){
 		if (!this.Room) {
 			console.warn('You need .connect() before call!')

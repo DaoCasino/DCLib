@@ -141,6 +141,12 @@ export default class DCLib {
 
 	/**
 	 * Define DApp logic constructor function
+	 * 
+	 * @example
+	 * DCLib.defineDAppLogic('game_name', function() {
+	 * 		...game_logic
+	 * })
+	 * 
 	 * @param {string} dapp_code         unique code of your dapp
 	 * @param {function} logic_constructor constructor Dapp logic
 	 */
@@ -307,11 +313,10 @@ export default class DCLib {
 	 * 
 	 * @memberOf DCLib
 	 */
-	sigHashRecover(){
+	sigHashRecover(raw_msg, signed_msg){
 		return this.web3.eth.accounts.recover(raw_msg, signed_msg).toLowerCase()
 	}
 	
-
 	/**
 	 * ## DCLib.checkSig(raw_msg, signed_msg, need_address)
 	 * Checks. whether this address refers to a signed message

@@ -284,7 +284,7 @@ export default class Account {
 	 */
 	async sendBets(to, amount, callback=false){
 		to     = Utils.add0x(to)
-		amount = Utils.bet4dec(amount)
+		amount = Utils.bet2dec(amount)
 
 		console.info('Send '+amount+' bets to '+to)
 

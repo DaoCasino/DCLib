@@ -136,7 +136,7 @@ export default class EthHelpers {
 		return new Promise((resolve, reject) => {
 			
 			this.ERC20.methods.balanceOf(address).call().then( value => {
-				const balance = Utils.bet2dec(value) 
+				const balance = Utils.dec2bet(value) 
 				resolve( balance )
 				if(callback) callback( balance )
 			}).catch( err => {
