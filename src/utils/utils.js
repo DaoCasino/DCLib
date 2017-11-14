@@ -11,7 +11,7 @@ export const sha3 = web3_sha3
  * @param  {number} toFixed - values after zero
  * @return {number} - bet in human format
  */
-export function bet2dec(val, r=2){
+export function dec2bet(val, r=2){
 	return +(val / 100000000).toFixed(r)
 }
 
@@ -26,7 +26,7 @@ export function bet2dec(val, r=2){
  * DCLib.Utils.bet2dec(31024891841492)
  * return: 310248.92
  */
-export function bet4dec(val){
+export function bet2dec(val){
 	let b = ''+(val*100000000)
 	if (b.indexOf('.')>-1) {
 		b = b.split('.')[0]*1
