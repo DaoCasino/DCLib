@@ -2,7 +2,13 @@ import _config    from 'config/config'
 import Acc        from 'Eth/Account'
 import * as Utils from 'utils/utils'
 
+/**
+ * @ignore
+ */
 const Account = new Acc( _config, ()=>{}, false )
+/**
+ * @ignore
+ */
 const web3    = Account.web3
 
 
@@ -14,6 +20,9 @@ const web3    = Account.web3
  * @extends {DCLib}
  */
 export default class EthHelpers {
+	/**
+	 * @ignore
+	 */
 	constructor() {
 		
 		/**
@@ -42,13 +51,14 @@ export default class EthHelpers {
 	 * @returns {Object} - return balance information  
 	 * 
 	 * @example
-	 * > DCLib.getBalances('0x4d750610062f1b3ce35117ee3e19cfb657ef6e59') // '0x4d75..' address account 
+	 * > DCLib.Eth.getBalances('0x4d750610062f1b3ce35117ee3e19cfb657ef6e59') // '0x4d75..' address account 
 	 *
 	 * @example
 	 * // method return
-	 * Object {
-	 * 		 bets : 992.21
-	 * 		 eth  : "1.748053851"
+	 * 
+	 * {
+	 *   bets : 992.21
+	 *   eth  : "1.748053851"
 	 * }
 	 * 
 	 * @memberOf DCLib
@@ -67,18 +77,16 @@ export default class EthHelpers {
 	
 
 	/**
-	 * ## DCLib.getBetBalance
+	 * ## DCLib.Eth.getBetBalance
 	 * method need for getting balance in ETH
 	 * 
 	 * @example
-	 * > DCLib.getEthBalance('0x4d750610062f1b3ce35117ee3e19cfb657ef6e59')
+	 * > DCLib.Eth.getEthBalance('0x4d750610062f1b3ce35117ee3e19cfb657ef6e59')
 	 * 
 	 * @example
 	 * // method return
 	 * 
-	 * Promise {[[PromiseStatus]]: "pending", [[PromiseValue]]: undefined}
-	 *   [[PromiseStatus]]: "resolved"
-	 *   [[PromiseValue]]: 1.692211283
+	 * > 1.692211283
 	 * 
 	 * @param {String} [address=false] - account addres for check balance
 	 * @param {Function} [callback=false] - access Ethereum balance promise  
@@ -103,20 +111,18 @@ export default class EthHelpers {
 	}
 
 	/**
-	 * ## DCLib.getBetBalance
+	 * ## DCLib.Eth.getBetBalance
 	 * method need for getting balance in BET
 	 * 
 	 * @example
 	 * // example for method initialization
 	 * 
-	 * > DCLib.getBetBalance('0x4d750610062f1b3ce35117ee3e19cfb657ef6e59')
+	 * > DCLib.Eth.getBetBalance('0x4d750610062f1b3ce35117ee3e19cfb657ef6e59')
 	 * 
 	 * @example
 	 * // example for method return Promise
 	 * 
-	 * Promise {[[PromiseStatus]]: "pending", [[PromiseValue]]: undefined}
-	 *   [[PromiseStatus]]: "resolved"
-	 *   [[PromiseValue]]: 977.61
+	 * > 977.61
 	 * 
 	 * @param {String} [address=false] - account addres for check balance
 	 * @param {Function} [callback=false] - access Ethereum balance promise  
@@ -130,7 +136,7 @@ export default class EthHelpers {
 		return new Promise((resolve, reject) => {
 			
 			this.ERC20.methods.balanceOf(address).call().then( value => {
-				const balance = Utils.bet2dec(value) 
+				const balance = Utils.dec2bet(value) 
 				resolve( balance )
 				if(callback) callback( balance )
 			}).catch( err => {
@@ -145,7 +151,8 @@ export default class EthHelpers {
 	 * 
 	 * @param {string} spender - bytes32 addres
 	 * @param {int} amount - amount of BETs
-	 * @param {callback} 
+	 * @param {callback} [callback=false] - callback function
+	 * @return {Promise} - Approve promise
 	 */
 	async ERC20approve(spender, amount, callback=false){
 		return new Promise(async (resolve, reject) => {

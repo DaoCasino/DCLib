@@ -14,26 +14,26 @@ describe('Utils', () => {
 
     describe('Convertation bets and dec', () => {
 
-        it('Decimal to bets: DCLib.Utils.bet2dec(val, r)', () => {
+        it('Decimal to bets: DCLib.Utils.dec2bet(val, r)', () => {
 
-            console.groupCollapsed('bet2dec')
+            console.groupCollapsed('dec2bet')
                 for (let i = 0; i < 5; i++) {
                     const val = Math.floor(Math.random(1000000000) * 1000000000)
                     const r = Math.floor(Math.random(5) * 10)
-                    const bet2dec = DCLib.Utils.bet2dec(val, r)
-                    console.log(`${val} Bets decimal format in human format: ${bet2dec}`)
+                    const dec2bet = DCLib.Utils.dec2bet(val, r)
+                    console.log(`${val} Bets decimal format in human format: ${dec2bet}`)
                 }
             console.groupEnd()
 
         })
 
-        it('Bets to decimal: DCLib.Utils.bet4dec(val)', () => {
+        it('Bets to decimal: DCLib.Utils.bet2dec(val)', () => {
 
-            console.groupCollapsed('bet4dec')
+            console.groupCollapsed('bet2dec')
                 for (let i = 0; i < 5; i++) {
                     const val = Math.floor(Math.random(100) * 10)
-                    const bet4dec = DCLib.Utils.bet4dec(val)
-                    console.log(`${val} Bets human format in decimal format: ${bet4dec}`)
+                    const bet2dec = DCLib.Utils.bet2dec(val)
+                    console.log(`${val} Bets human format in decimal format: ${bet2dec}`)
                 }
             console.groupEnd()
 

@@ -8,13 +8,27 @@ import Account    from 'Eth/Account'
 import DApp       from 'DApps/DApp'
 import printDocs  from './docs.js'
 
-
+/**
+ * @ignore
+ */
 const ourApi = new Api( _config )
+/**
+ * @ignore
+ */
 const Eth    = new EthHelpers()
 
+/**
+ * @ignore
+ */
 const EC     = function(){}; EE(EC.prototype)
+/**
+ * @ignore
+ */
 const Event  = new EC()
 
+/**
+ * @ignore
+ */
 let _ready = false
 
 
@@ -127,6 +141,12 @@ export default class DCLib {
 
 	/**
 	 * Define DApp logic constructor function
+	 * 
+	 * @example
+	 * DCLib.defineDAppLogic('game_name', function() {
+	 * 		...game_logic
+	 * })
+	 * 
 	 * @param {string} dapp_code         unique code of your dapp
 	 * @param {function} logic_constructor constructor Dapp logic
 	 */
@@ -293,11 +313,10 @@ export default class DCLib {
 	 * 
 	 * @memberOf DCLib
 	 */
-	sigHashRecover(){
+	sigHashRecover(raw_msg, signed_msg){
 		return this.web3.eth.accounts.recover(raw_msg, signed_msg).toLowerCase()
 	}
 	
-
 	/**
 	 * ## DCLib.checkSig(raw_msg, signed_msg, need_address)
 	 * Checks. whether this address refers to a signed message
@@ -337,6 +356,43 @@ export default class DCLib {
 		return ( need_address.toLowerCase() == this.web3.eth.accounts.recover(raw_msg, signed_msg).toLowerCase() )
 	}
 
+	/**
+	 * ## DCLib.checkHashSig(raw_msg, signed_msg, need_address)
+	 * 
+	 * the method checks the address for the signature property 
+	 * by means of the function web3.account.recover into which 
+	 * the hash message and signature are transferred, 
+	 * and if the returned result is equal to the transmitted address, 
+	 * it returns true otherwise false
+	 * 
+	 * @example
+	 * // if address valid
+	 * 
+	 * DCLib.checkHashSig("0x43ecd41650080ac1f83a0251c99851e81cb62896188a01fbbf6113b845145f8c", 
+	 * `0xf27efaf10b963b69fee76879424c70ace9c4d1b0d8f40ecf7680aa09a420bec473d5fa0b1ccdd17
+	 * 62f82f0eb4187637ffdda48b3d68ec71c1ce4f8aa4a28f2d41c`, 
+	 * '0xdd47ea2258e80d5596df09bec42d33c7553bb9ed')
+	 * 
+	 * > true
+	 * 
+	 * 
+	 * @example
+	 * // if address don't valid
+	 * 
+	 * DCLib.checkHashSig("0x43ecd41650080ac1f83a0251c99851e81cb62896188a01fbbf6113b845145f8c", 
+	 * `0xf27efaf10b963b69fee76879424c70ace9c4d1b0d8f40ecf7680aa09a420bec473d5fa0b1
+	 * ccdd1762f82f0eb4187637ffdda48b3d68ec71c1ce4f8aa4a28f2d41c`, 
+	 * '0xdd47ea2258e80d5596df09bec42d33c7553b2223')
+	 * 
+	 * > false
+	 * 
+	 * @param {any} raw_msg - message for check
+	 * @param {any} signed_msg - message signature for chek
+	 * @param {any} need_address - address which the need check
+	 * @returns {Bollean} - true/false
+	 * 
+	 * @memberOf DCLib
+	 */
 	checkHashSig(raw_msg, signed_msg, need_address){		
 		return ( need_address.toLowerCase() == this.web3.eth.accounts.recover(raw_msg, signed_msg).toLowerCase() )
 	}

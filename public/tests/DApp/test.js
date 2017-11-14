@@ -1,37 +1,38 @@
 const assert = chai.assert
 
-const GameLogic = function () {
-    var balance = 1
-    var history = []
+DCLib.defineDAppLogic('dicegame_v2', function () {
+    const _self = this
 
-    var setBalance = function (deposit) {
-        balance = deposit * 1
-    }
+    const MAX_RAND_NUM = 65536
+    const HOUSEEDGE = 0.02 // 2%
 
-    var getBalance = function () {
-        return balance
-    }
+    let history = []
 
     var Roll = function (user_bet, user_num, random_hash) {
+        // convert 1BET to 100000000
+        user_bet = DCLib.Utils.bet2dec(user_bet)
+
+        // generate random number
+        const random_num = DCLib.numFromHash(random_hash, 0, 65536)
+
         let profit = -user_bet
-
-        const random_num = DCLib.Utils.bigInt(random_hash, 16).divmod(65536).remainder.value
-
-        if (user_num > random_num) {
-            profit = (user_bet * (65536 - 1310) / user_num) - user_bet
-        }
-        if (user_num == random_num) {
-            profit = user_bet
+        // if user win
+        if (user_num >= random_num) {
+            profit = (user_bet * (MAX_RAND_NUM - MAX_RAND_NUM * HOUSEEDGE) / user_num) - user_bet
         }
 
-        balance += profit * 1
+        // add result to paychannel
+        _self.payChannel.addTX(profit)
+        _self.payChannel.printLog()
 
+        // push all data to our log
+        // just for debug 
         const roll_item = {
             timestamp: new Date().getTime(),
             user_bet: user_bet,
             profit: profit,
             user_num: user_num,
-            balance: balance,
+            balance: _self.payChannel.getBalance(),
             random_hash: random_hash,
             random_num: random_num,
         }
@@ -41,12 +42,10 @@ const GameLogic = function () {
     }
 
     return {
-        setBalance: setBalance,
-        getBalance: getBalance,
         roll: Roll,
         history: history,
     }
-}
+})
 
     
 describe('DApp', () => {
@@ -54,7 +53,6 @@ describe('DApp', () => {
     it('Create', () => {
         window.MyDApp = new DCLib.DApp({
             code: 'dicegame_v2', // unique DApp code
-            logic: GameLogic, // inject logic constructor in your DApp
         })
     })
     

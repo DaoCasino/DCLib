@@ -48,7 +48,7 @@ export default class PayChannel {
 			console.error('Deposit allready set')
 			return
 		}
-		_deposit = Utils.bet4dec(d)
+		_deposit = Utils.bet2dec(d)
 		_balance = (1*_deposit)
 		
 		console.log('PayChannel::User deposit set '+_deposit+', now user balance:', _balance)
@@ -57,17 +57,17 @@ export default class PayChannel {
 
 	getDeposit(){ 
 		console.log('PayChannel::getDeposit')
-		return Utils.bet2dec(_deposit) 
+		return Utils.dec2bet(_deposit) 
 	}
 
 	getBalance(){ 
 		console.log('PayChannel::getBalance')
-		return Utils.bet2dec(_balance) 
+		return Utils.dec2bet(_balance) 
 	}
 	
 	getProfit(){ 
 		console.log('PayChannel::getProfit')
-		return Utils.bet2dec(_profit)  
+		return Utils.dec2bet(_profit)  
 	}
 	
 	_getProfit(){ 
@@ -92,7 +92,7 @@ export default class PayChannel {
 	addTX(p, convert=true){
 		console.log('PayChannel::addTX')
 		if (convert) {
-			p = Utils.bet4dec(p)
+			p = Utils.bet2dec(p)
 			console.log('PayChannel::addTX - convert BET to minibet', p)
 		}
 		if ((''+p).indexOf('.') > -1) {
@@ -110,7 +110,7 @@ export default class PayChannel {
 
 		_history = _history.splice(-h_max)
 
-		return Utils.bet2dec(_profit)  
+		return Utils.dec2bet(_profit)  
 	}
 
 	/**
