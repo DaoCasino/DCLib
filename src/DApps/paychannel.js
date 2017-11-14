@@ -28,7 +28,7 @@ let _history = []
  * Payment Channel Contract is class of techniques designed to allow users to make multiple transactions without commiting all of the transactions to the block chain. In a payment channel, only two transactions are added to the block chain but an unlimited or nearly unlimted number of payments can be made between the participants. 
  * 
  * @export
- * @class PayChannle
+ * @class PayChannel
  * @extends {DApp}
  */
 export default class PayChannel {

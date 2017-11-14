@@ -15,7 +15,7 @@
 			  
 			  "accessor": {"access": ["public"], "autoPrivate": true},
 			  
-			  "undocumentIdentifier": {"enable": false },
+			  "undocumentIdentifier": {"enable": true },
 			  "unexportedIdentifier": {"enable": false },
 			  
 			  "typeInference": {"enable": false},
