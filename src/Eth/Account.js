@@ -5,7 +5,7 @@ import * as Utils from 'utils/utils'
 import WEB3    from 'web3/packages/web3'
 import {sign as signHash} from 'web3/packages/web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
-let _config, ERC20
+let _config, ERC20, NEWCON
 
 let _wallet = { openkey:false }
 

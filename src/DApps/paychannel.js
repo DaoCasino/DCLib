@@ -36,7 +36,7 @@ export default class PayChannel {
 	 * @ignore
 	 */
 	constructor() {
-		
+
 		console.groupCollapsed('payChannel injected in DApp logic')
 		console.log('Now your logic has methods for work with payment channel')
 		console.table({
