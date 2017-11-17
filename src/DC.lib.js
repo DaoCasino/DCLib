@@ -118,7 +118,7 @@ export default class DCLib {
 				address = this.Account.get().address
 			}
 			
-			address = address || _wallet.openkey
+			address = address || this.Account.get().address
 			
 			const [bet, eth] = await Promise.all([
 				this.Eth.getBetBalance( address ),
