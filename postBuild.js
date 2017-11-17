@@ -18,6 +18,8 @@ console.clear()
 
 function createlibInBnkRoller() {
 
+    console.log('Creaetd DCLib for BankrollerApp started')
+
     const libCode = fs.readFileSync(projectPath.dclib)
 
       if (libCode) {
@@ -37,11 +39,11 @@ function deleteOldDCLib () {
     fs.exists(projectPath.bankroller.lib + filename, (exists) => {
 
         if (exists) {
-            console.log('File true')
+            console.log('File true node script this file')
             fs.unlinkSync(projectPath.bankroller.lib + filename)
             createlibInBnkRoller()
         } else {
-            console.log('file false')
+            console.log('File false, create new file')
             createlibInBnkRoller()
         }
 
@@ -50,6 +52,8 @@ function deleteOldDCLib () {
 }
 
 function zipExample () {
+
+    console.log('Archivate started')
 
     const output = fs.createWriteStream(projectPath.bankroller.default + 'example.zip')
     const archive = archiver('zip', {
@@ -92,59 +96,69 @@ function buildingBankroller() {
         console.clear()
 
         inquirer.prompt({
-            type: 'list',
+            type: 'checkbox',
             message: 'Select tour platform',
             name: 'Platform',
-            choices: ['Windows', 'Linux', 'MacOS', 'All']
+            choices: ['Windows', 'Linux', 'Mac']
         }).then(function (answers) {
 
-            let platform = ''
+            const commandData = {
+                platform: answers.Platform,
+                pathFolder: 'cd /Volumes/fanyShu/projects/Applications/BankRollerDapp/BankRollerApp/; ',
+                buildElectron: ''
+            }
 
-            if (answers.Platform === 'Windows') platform = 'windows'
+            for (let i = 0; i < commandData.platform.length; i++) {
+                commandData.buildElectron += 'npm run build_electron_' + commandData.platform[i].toLowerCase() + '; '
+            }
 
-            if (answers.Platform === 'Linux') platform = 'linux'
+            const command = commandData.pathFolder + commandData.buildElectron
 
-            if (answers.Platform === 'MacOS') platform = 'mac'
+            var phrase = [
+                'Hi =)',
+                'how are you?', 
+                'i postBuild script and i formating your hdd =)', 
+                'i like joke ;D', 'please wait...', 
+                'A few more minutes',
+                'soon... very soon',
+                'Skynet? there is absolutely no Im better ^_^',
+                `I forgot what I should do (now we'll see, so 
+                to destroy humanity oh, no, not that but to 
+                collect the bankroller`,
+                'I ve lost some of my files. I hope you ll forgive me the truth?',
+                'Wait a little. Im going to do everything now.'
+            ]
 
-            if (answers.Platform === 'All') buildAllPlatform()
+            var phrasePost = setInterval(function () {
+                var index = Math.floor(Math.random(phrase.length-1) * 10)
+                console.clear()
+                console.log('----------------------------------------------------------------------')
+                console.log(' ' + phrase[index])
+                console.log('----------------------------------------------------------------------')         
+            }, 2000)
 
-            buildForPlatform(platform)
-
+            buildForPlatform(command, phrasePost)
         })
     })
 
 }
 
-function buildForPlatform (platform) {
+function buildForPlatform (command, interval) {
 
     console.clear()
-    console.log('Start building for ' + platform)
+    console.log('building for check platform')
 
-    exec('cd /Volumes/fanyShu/projects/Applications/BankRollerDapp/BankRollerApp/; npm run build_electron_' + platform, (err, stdout, stderr) => {
+    exec(command, (err, stdout, stderr) => {
 
         if (err) {
             console.log('Error: ', err)
             return
         }
+
+        clearInterval(interval)
         console.log('Stdout', stdout)
         console.log('Stderr', stderr)
     })
-}
-
-function buildAllPlatform() {
-
-  console.clear()
-  console.log('Start building for all platforms')
-
-  exec('cd /Volumes/fanyShu/projects/Applications/BankRollerDapp/BankRollerApp/; npm run build_electron_windows; npm run build_electron_mac; npm run build_electron_linux', (err, stdout, stderr) => {
-
-    if (err) {
-        console.log('Error: ', err)
-        return
-    }
-    console.log('Stdout', stdout)
-    console.log('Stderr', stderr)
-  })
 }
 
 deleteOldDCLib()

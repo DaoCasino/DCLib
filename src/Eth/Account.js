@@ -129,7 +129,6 @@ export default class Account {
 		return _wallet
 	}
 
-
 	/**
 	 * ## DCLib.Account.exportPrivateKey(password)
 	 * method get privateKey from account on user password 
