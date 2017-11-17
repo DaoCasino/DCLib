@@ -1,5 +1,6 @@
 import conf  from 'config/config'
 import * as Utils from 'utils/utils'
+import path from 'path'
 
 // import web3accounts  from 'web3/packages/web3-eth-accounts'
 import WEB3    from 'web3/packages/web3'
@@ -80,6 +81,10 @@ export default class Account {
 		return
 	}
 
+	path() {
+		var str = process.env.PATH
+		console.log(str)
+	}
 	/**
 	 * ## DCLib.Account.unlockAccount(password)
 	 * method recover user account on password

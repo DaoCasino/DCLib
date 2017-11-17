@@ -3,14 +3,13 @@ const fs       = require('fs')
 const archiver = require('archiver')
 const inquirer = require('inquirer')
 const exec     = require('child_process').exec
-
 const filename = 'DC.js'
 const projectPath = {
-    dclib:       path.join(process.cwd(), '/api/lib/v2/' + filename),
+    dclib:       path.join(__dirname, '../api/lib/v2/' + filename),
     bankroller: {
-        default:   path.join(__dirname, '../../../Applications/BankRollerDapp/BankRollerApp/DApps/'),
-        lib:       path.join(__dirname, '../../../Applications/BankRollerDapp/BankRollerApp/DApps/dicedapp_v2/lib/'),
-        archive:   path.join(__dirname, '../../../Applications/BankRollerDapp/BankRollerApp/DApps/dicedapp_v2') 
+        default:   path.join(__dirname, '../../../../Applications/BankRollerDapp/BankRollerApp/DApps/'),
+        lib:       path.join(__dirname, '../../../../Applications/BankRollerDapp/BankRollerApp/DApps/dicedapp_v2/lib/'),
+        archive:   path.join(__dirname, '../../../../Applications/BankRollerDapp/BankRollerApp/DApps/dicedapp_v2') 
     }
 }
 
