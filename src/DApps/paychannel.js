@@ -1,10 +1,15 @@
 import * as Utils from 'utils/utils'
 
-const h_max = 100 // mac items in history
+/** max items in history */
+const h_max = 100 
 
+/**@ignore */
 let _deposit = false
+/**@ignore */
 let _balance = 0
+/**@ignore */
 let _profit  = 0
+/** Game history  */
 let _history = []
 
 
@@ -23,12 +28,15 @@ let _history = []
  * Payment Channel Contract is class of techniques designed to allow users to make multiple transactions without commiting all of the transactions to the block chain. In a payment channel, only two transactions are added to the block chain but an unlimited or nearly unlimted number of payments can be made between the participants. 
  * 
  * @export
- * @class PayChannle
+ * @class PayChannel
  * @extends {DApp}
  */
 export default class PayChannel {
+	/**
+	 * @ignore
+	 */
 	constructor() {
-		
+
 		console.groupCollapsed('payChannel injected in DApp logic')
 		console.log('Now your logic has methods for work with payment channel')
 		console.table({
@@ -43,6 +51,20 @@ export default class PayChannel {
 		console.groupEnd()
 	}
 	
+	/**
+	 * Change deposit  for game
+	 * 
+	 * @example
+	 * window.MyDApp.logic.payChannel.setDeposit(1)
+	 * 
+	 * > PayChannel::User deposit set 100000000, now user balance: 100000000
+	 * > 100000000
+	 * 
+	 * @param {Number} d - number value to set deposit
+	 * @returns {Number} - New deposit
+	 * 
+	 * @memberOf PayChannel
+	 */
 	setDeposit(d){
 		if (_deposit!==false) {
 			console.error('Deposit allready set')
@@ -55,21 +77,60 @@ export default class PayChannel {
 		return _balance
 	}
 
+	/**
+	 * View deposit for game
+	 * 
+	 * @example
+	 * window.MyDApp.logic.payChannel.getDeposit()
+	 * 
+	 * > PayChannel::getDeposit: 1
+	 * 
+	 * @returns {Number} - Game deposit 
+	 * 
+	 * @memberOf PayChannel
+	 */
 	getDeposit(){ 
 		console.log('PayChannel::getDeposit')
 		return Utils.dec2bet(_deposit) 
 	}
 
+	/**
+	 * view game balance 
+	 * 
+	 * @example
+	 * window.MyDApp.logic.payChannel.getBalance()
+	 * 
+	 * > PayChannel::getBalance: 1
+	 * 
+	 * @returns {Number} - Game balance 
+	 * 
+	 * @memberOf PayChannel
+	 */
 	getBalance(){ 
 		console.log('PayChannel::getBalance')
 		return Utils.dec2bet(_balance) 
 	}
 	
+	/**
+	 * View game proffit 
+	 * 
+	 * @example
+	 * window.MyDApp.logic.payChannel.getProfit()
+	 * 
+	 * > PayChannel::getProfit: 0
+	 * 
+	 * @returns {Number} - Game proffit 
+	 * 
+	 * @memberOf PayChannel
+	 */
 	getProfit(){ 
 		console.log('PayChannel::getProfit')
 		return Utils.dec2bet(_profit)  
 	}
 	
+	/**
+	 * @ignore 
+	 */
 	_getProfit(){ 
 		console.log('PayChannel::_getProfit')
 		return _profit 
@@ -116,7 +177,10 @@ export default class PayChannel {
 	/**
 	 * Print log in console
 	 * 
-	 * @return {array) - history array
+	 * @example
+	 * window.MyDApp.logic.payChannel.printLog()
+	 * 
+	 * @return {Array} - history array
 	 */
 	printLog(){
 		console.groupCollapsed('Paychannel state:')
@@ -133,6 +197,15 @@ export default class PayChannel {
 		return _history
 	}
 
+	/**
+	 * Reset balance, depot and proffit game
+	 * @example
+	 * window.MyDApp.logic.payChannel.reset()
+	 * 
+	 * > 'PayChannel::reset, set deposit balance profit to 0'
+	 * 
+	 * @memberOf PayChannel
+	 */
 	reset(){
 		console.log('PayChannel::reset, set deposit balance profit to 0')
 		_deposit = false

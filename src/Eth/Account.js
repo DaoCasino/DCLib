@@ -5,11 +5,8 @@ import * as Utils from 'utils/utils'
 import WEB3    from 'web3/packages/web3'
 import {sign as signHash} from 'web3/packages/web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
-let _config, ERC20
+let _config, ERC20, NEWCON
 
-/**
- * @ignore
- */
 let _wallet = { openkey:false }
 
 
@@ -25,7 +22,6 @@ let _wallet = { openkey:false }
  * If we restrict Ethereum to only externally owned accounts and allow only transactions between them, we arrive at an “altcoin” system that is less powerful than bitcoin itself and can only be used to transfer ether.
  * 
  * @export
- * @access public
  * @class Account
  * @extends {DCLib}
  */
@@ -132,7 +128,6 @@ export default class Account {
 
 		return _wallet
 	}
-
 
 	/**
 	 * ## DCLib.Account.exportPrivateKey(password)

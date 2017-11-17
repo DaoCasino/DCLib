@@ -17,7 +17,7 @@
 
 		<script>
 			$(document).ready( function(){
-			
+
 				DCLib.defineDAppLogic('dicedapp_v2', function(){
 					const _self = this
 
@@ -31,7 +31,7 @@
 						user_bet = DCLib.Utils.bet4dec(user_bet)
 
 						// generate random number
-						const random_num = DCLib.numFromHash(random_hash, 0, 65536)
+						const random_num = DCLib.numFromHash(random_hash, 0, MAX_RAND_NUM)
 						
 						let profit = -user_bet
 						// if user win
@@ -41,6 +41,7 @@
 
 						// add result to paychannel
 						_self.payChannel.addTX( profit )
+
 						_self.payChannel.printLog()
 
 						// push all data to our log
@@ -66,11 +67,8 @@
 				})
 
 				// Create our DApp
-				window.MyDApp = new DCLib.DApp({
-					code  : 'dicedapp_v2' , // unique DApp code
-				})
+				window.MyDApp = new DCLib.DApp({code  : 'dicedapp_v2'})
 				
-
 				// Init interface
 				initView({
 					// Create DApp and open payment channel

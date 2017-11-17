@@ -5,6 +5,13 @@ import Acc        from 'Eth/Account'
 import * as Utils from 'utils/utils'
 
 import paychannelLogic from './paychannel'
+
+/**
+ * 
+ * @todo write description
+ * 
+ * @param {Function} logic - DApp logic 
+ */
 const payChannelWrap = function(logic){
 	let payChannel             = new paychannelLogic()
 	logic.prototype.payChannel = payChannel
@@ -13,8 +20,11 @@ const payChannelWrap = function(logic){
 	return modifiedLogic
 }
 
+/**@ignore */
 const Account = new Acc( _config, ()=>{}, false )
+/**@ignore */
 const web3    = Account.web3
+/**@ignore */
 const Eth     = new EthHelpers()
 
 /*
@@ -62,12 +72,16 @@ export default class DApp {
 		}
 
 		let logic = DAppsLogic[params.code]
-
+		/** DApp name */
 		this.code  = params.code
-		this.hash  = Utils.checksum( logic )		
+		/** @ignore */
+		this.hash  = Utils.checksum( logic )
+		/** DApp logic */		
 		this.logic = payChannelWrap( logic )
 
-		this.Room = false 
+		/** @ignore */
+		this.Room = false
+		/** @ignore */ 
 		this.sharedRoom = new Rtc( Account.get().openkey, 'dapp_room_'+this.hash )	
 
 		console.groupCollapsed('DApp %c'+this.code+' %ccreated','color:orange','color:default')
@@ -155,6 +169,7 @@ export default class DApp {
 			return
 		}, 7777)
 
+		/**	Ifomation fromconnection(id, room_name, bankroller_address) */
 		this.connection_info = {
 			bankroller_address : bankroller_address
 		}
@@ -382,7 +397,18 @@ export default class DApp {
 	}
 
 
-
+	/**
+	 * which produces a trip from the game and bankroller
+	 * 
+	 * @example
+	 * window.MyDApp.disconnect({...})
+	 * 
+	 * @param {Object} params
+	 * @param {Object.object} params.paychannel - 
+	 * @param {boolean} [callback=false] 
+	 * 
+	 * @memberOf DApp
+	 */
 	async disconnect(params, callback=false){
 		let result = {}
 		
@@ -397,7 +423,16 @@ export default class DApp {
 		if (callback) callback(result)
 	}
 
-
+	/**
+	 * Closin game channel and distribution balance
+	 * 
+	 * @todo write description and example
+	 * 
+	 * @param {Object} params 
+	 * @returns
+	 * 
+	 * @memberOf DApp
+	 */
 	closeChannel(params){
 		const profit = this.logic.payChannel._getProfit()
 
@@ -455,10 +490,21 @@ export default class DApp {
 		})
 	}
 
-	/*
-		Отправка сообщения банкролеру с запросом
-		и ожидание ответа, типа коллбэка
-	*/
+	/**
+	 * Send message to bankroller with query and 
+	 * waiting response type callback
+	 * 
+	 * @example
+	 * window.MyDApp.request({address: '0x1e05eb5aaa235403177552c07ff4588ea9cbdf87'})
+	 * 
+	 * @param {Object} params
+	 * @param {Object.string} params.address - bankroller address 
+	 * @param {Function} [callback=false] - callback function
+	 * @param {boolean} [Room=false] - info on room
+	 * @returns {Promise}
+	 * 
+	 * @memberOf DApp
+	 */
 	request(params, callback=false, Room=false){
 		Room = Room || this.Room || this.sharedRoom
 		
@@ -495,6 +541,17 @@ export default class DApp {
 		})
 	}
 
+	/**
+	 * Кeceiving a response from bankroller
+	 * 
+	 * @todo write to example
+	 * 
+	 * @param {Object} request_data - the object in which data from response
+	 * @param {Object} response - answer from bankroller 
+	 * @param {boolean} [Room=false] - info on room
+	 * 
+	 * @memberOf DApp
+	 */
 	response(request_data, response, Room=false){
 		Room = Room || this.Room || this.sharedRoom
 
@@ -504,6 +561,19 @@ export default class DApp {
 		Room.send(request_data)
 	}
 
+
+	/**
+	 * Find to bankroller for game
+	 * 
+	 * @example
+	 * window.MyDApp.findBankroller(1)
+	 * > 0x6e9bf3f9612d7099aee7c3895ba09b9c4b9474e2
+	 * 
+	 * @param {Number} [deposit=false] - bets for game 
+	 * @returns {String} - bankroller openkey
+	 * 
+	 * @memberOf DApp
+	 */
 	findBankroller(deposit=false){
 		console.info(' 🔎 Find bankrollers in shared Dapp room...')
 		return new Promise((resolve, reject) => {
