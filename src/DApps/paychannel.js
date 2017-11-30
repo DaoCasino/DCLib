@@ -4,9 +4,15 @@ import * as Utils from 'utils/utils'
 const h_max = 100 
 
 /**@ignore */
-let _deposit = false
+const deposit = {
+ 	player_deposit: false,
+	bankroller_deposit: false
+}
 /**@ignore */
-let _balance = 0
+const balance = {
+	player_balance: 0,
+	bankroller_balanceB: 0
+}
 /**@ignore */
 let _profit  = 0
 /** Game history  */
@@ -35,7 +41,8 @@ export default class PayChannel {
 	/**
 	 * @ignore
 	 */
-	constructor() {
+	constructor(bankroller_deposit) {
+		deposit.bankroller_deposit = bankroller_deposit
 
 		console.groupCollapsed('payChannel injected in DApp logic')
 		console.log('Now your logic has methods for work with payment channel')
@@ -66,15 +73,19 @@ export default class PayChannel {
 	 * @memberOf PayChannel
 	 */
 	setDeposit(d){
-		if (_deposit!==false) {
+
+		if (deposit.player_deposit!==false) {
 			console.error('Deposit allready set')
 			return
 		}
-		_deposit = Utils.bet2dec(d)
-		_balance = (1*_deposit)
+
+		deposit.player_deposit = Utils.bet2dec(d)
+
+		balance.player_balance = (1*deposit.player_deposit)
+		balance.bankroller_balance = (1*deposit.bankroller_deposit)
 		
-		console.log('PayChannel::User deposit set '+_deposit+', now user balance:', _balance)
-		return _balance
+		console.log('PayChannel::User deposit set '+deposit.player_deposit+' bankroller deposit set' + deposit.bankroller_deposit +', now user balance:', deposit.player_balance)
+		return balance
 	}
 
 	/**
@@ -90,8 +101,8 @@ export default class PayChannel {
 	 * @memberOf PayChannel
 	 */
 	getDeposit(){ 
-		console.log('PayChannel::getDeposit')
-		return Utils.dec2bet(_deposit) 
+		console.log('PayChannel::getDeposit', deposit.player_deposit)
+		return Utils.dec2bet(deposit.player_deposit) 
 	}
 
 	/**
@@ -107,8 +118,13 @@ export default class PayChannel {
 	 * @memberOf PayChannel
 	 */
 	getBalance(){ 
-		console.log('PayChannel::getBalance')
-		return Utils.dec2bet(_balance) 
+		console.log('PayChannel::getBalance', balance.player_balance)
+		return Utils.dec2bet(balance.player_balance) 
+	}
+
+	getBankrollBalance() {
+		console.log('PayChannel::getBankrollBalance', balance.bankroller_balance)
+		return Utils.dec2bet(balance.bankroller_balance)
 	}
 	
 	/**
@@ -136,6 +152,7 @@ export default class PayChannel {
 		return _profit 
 	}
 
+
 	/**
 	 * Add BET transaction to channel
 	 *
@@ -161,16 +178,16 @@ export default class PayChannel {
 		}
 
 		_profit += p*1
-		_balance = _deposit + _profit
-		
+		balance.player_balance = deposit.player_deposit + _profit
+		balance.bankroller_balance = deposit.bankroller_deposit - _profit
+
 		_history.push({
 			profit    : p,
-			balance   : _balance,
+			balance   : balance.player_balance,
 			timestamp : new Date().getTime(),
 		})
 
 		_history = _history.splice(-h_max)
-
 		return Utils.dec2bet(_profit)  
 	}
 
@@ -188,6 +205,7 @@ export default class PayChannel {
 			Deposit : this.getDeposit() ,
 			Balance : this.getBalance() ,
 			Profit  : this.getProfit()  ,
+			Bankroll: this.getBankrollBalance()
 		})
 		console.groupCollapsed('TX History, last '+h_max+' items '+_history.length)
 		console.log(_history)
@@ -208,8 +226,10 @@ export default class PayChannel {
 	 */
 	reset(){
 		console.log('PayChannel::reset, set deposit balance profit to 0')
-		_deposit = false
-		_balance = 0
+		deposit.player_deposit = false
+		deposit.bankroller_deposit = false
+		balance.player_balance = 0
+		balance.bankroller_balance = 0
 		_profit  = 0
 		_history.push({reset:true, timestamp:new Date().getTime()})
 	}

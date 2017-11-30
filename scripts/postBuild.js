@@ -7,9 +7,9 @@ const filename = 'DC.js'
 const projectPath = {
     dclib:       path.join(__dirname, '../api/lib/v2/' + filename),
     bankroller: {
-        default:   path.join(__dirname, '../../../../Applications/BankRollerDapp/BankRollerApp/DApps/'),
-        lib:       path.join(__dirname, '../../../../Applications/BankRollerDapp/BankRollerApp/DApps/dicedapp_v2/lib/'),
-        archive:   path.join(__dirname, '../../../../Applications/BankRollerDapp/BankRollerApp/DApps/dicedapp_v2') 
+        default:   path.join(__dirname, '../../../../Applications/BankRollerApp/DApps/'),
+        lib:       path.join(__dirname, '../../../../Applications/BankRollerApp/DApps/dicedapp_v2/lib/'),
+        archive:   path.join(__dirname, '../../../../Applications/BankRollerApp/DApps/dicedapp_v2') 
     }
 }
 
@@ -79,7 +79,7 @@ function buildingBankroller() {
 
     return new Promise((resolve, reject) => {
         
-        exec('cd /Volumes/fanyShu/projects/Applications/BankRollerDapp/BankRollerApp/; npm run build', (err, stdout, stderr) => {
+        exec('cd /Volumes/fanyShu/projects/Applications/BankRollerApp/; npm run build', (err, stdout, stderr) => {
 
             if (err) {
                 console.log('Error: ', err)
@@ -103,7 +103,7 @@ function buildingBankroller() {
 
             const commandData = {
                 platform: answers.Platform,
-                pathFolder: 'cd /Volumes/fanyShu/projects/Applications/BankRollerDapp/BankRollerApp/; ',
+                pathFolder: 'cd /Volumes/fanyShu/projects/Applications/BankRollerApp/; ',
                 buildElectron: ''
             }
 
@@ -127,13 +127,13 @@ function buildingBankroller() {
                 'Wait a little. I"m going to do everything now.'
             ]
 
-            var phrasePost = setInterval(function () {
-                var index = Math.floor(Math.random(phrase.length-1) * 10)
-                console.clear()
-                console.log(' ' + phrase[index])
-            }, 2000)
+            // var phrasePost = setInterval(function () {
+            //     var index = Math.floor(Math.random(phrase.length-1) * 10)
+            //     console.clear()
+            //     console.log(' ' + phrase[index])
+            // }, 2000)
 
-            buildForPlatform(command, phrasePost)
+            buildForPlatform(command)//, phrasePost)
         })
     })
 
