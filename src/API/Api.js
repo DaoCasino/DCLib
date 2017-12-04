@@ -27,9 +27,9 @@ export default class Api {
 	 */
 	addBets(address){
 		return this.request({
-			a:       'faucet',
-			to:      address,
-			network: _config.network,
+			a       :       'faucet'  ,
+			to      :      address    ,
+			network : _config.network
 		}).then( response => {
 			return response.text()
 		})

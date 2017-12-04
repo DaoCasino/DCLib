@@ -8,6 +8,8 @@ import Account    from 'Eth/Account'
 import DApp       from 'DApps/DApp'
 import printDocs  from './docs.js'
 
+
+
 /**
  * @ignore
  */
@@ -59,12 +61,12 @@ export default class DCLib {
 		/**
 		 * DApp constructor
 		 */
-		this.DApp = DApp
+		this.DApp  = DApp
 
 		/**
 		 * Some helpers, such as getBetsBalance()
 		 */
-		this.Eth = Eth
+		this.Eth   = Eth
 		
 		Event.on('_ready', ()=>{
 			if (typeof localStorage.requestBets === 'undefined') {
@@ -115,7 +117,7 @@ export default class DCLib {
 		this.Account.info = async (address=false, callback=false)=>{
 			if (!callback && typeof address === 'function') {
 				callback = address
-				address = this.Account.get().address
+				address  = this.Account.get().address
 			}
 			
 			address = address || this.Account.get().address
@@ -151,9 +153,7 @@ export default class DCLib {
 	 * @param {function} logic_constructor constructor Dapp logic
 	 */
 	defineDAppLogic(dapp_code, logic_constructor){
-		if (!window.DAppsLogic) {
-			window.DAppsLogic = {}
-		}
+		if (!window.DAppsLogic) { window.DAppsLogic = {} }
 		window.DAppsLogic[dapp_code] = logic_constructor
 	}
 
@@ -191,10 +191,7 @@ export default class DCLib {
 	 * 
 	 * @memberOf DCLib
 	 */
-	randomHash(){
-		return 'confirm('+Utils.makeSeed()+')'
-	}
-
+	randomHash() { return 'confirm('+Utils.makeSeed()+')' }
 
 	/**
 	 * ## DCLib.numFromHash(random_hash, min=0, max=10)
@@ -227,32 +224,30 @@ export default class DCLib {
 		return Utils.bigInt(random_hash,16).divmod(max-min).remainder.value + min
 	}
 
+    /**
+     * ## DCLib.fauset(address=false)
+     * method need for add free bets on account
+     *
+     * @example
+     * // example for method initialization without param
+     *
+     * DCLib.faucet()
+     *
+     * @example
+     * // example for method initialization with param
+     *
+     * DCLib.faucet('0xd4e9f60fc84b97080a1803cf2d4e1003313a2ea2')
+     *
+     * @param {String} [address=false] - account address
+     * @returns - none
+     *
+     * @memberOf DCLib
+     */
 
-	/**
-	 * ## DCLib.fauset(address=false)
-	 * method need for add free bets on account
-	 * 
-	 * @example
-	 * // example for method initialization without param
-	 * 
-	 * DCLib.faucet()
-	 * 
-	 * @example
-	 * // example for method initialization with param
-	 * 
-	 * DCLib.faucet('0xd4e9f60fc84b97080a1803cf2d4e1003313a2ea2')
-	 * 
-	 * @param {String} [address=false] - account address
-	 * @returns - none
-	 * 
-	 * @memberOf DCLib
-	 */
 	async faucet(address=false){
 		address = address || this.Account.get().openkey
-
 		return await ourApi.addBets( address )
 	}
-
 
 	/**
 	 * ## DCLib.sigRecover(raw_msg, signed_msg)
@@ -313,7 +308,7 @@ export default class DCLib {
 	 * 
 	 * @memberOf DCLib
 	 */
-	sigHashRecover(raw_msg, signed_msg){
+	sigHashRecover(raw_msg, signed_msg){ 
 		return this.web3.eth.accounts.recover(raw_msg, signed_msg).toLowerCase()
 	}
 	
