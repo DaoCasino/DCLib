@@ -75,8 +75,8 @@ export default class RTC {
 
 	connect(room){
 		this.channel = require('rtc-mesh')(require('rtc-quickconnect')(signalserver, {
-			room:       room,
-			iceServers: require('freeice')()
+			room       : room                 ,
+			iceServers : require('freeice')()
 		}))
 
 		this.channel.on('change', (key, value) => {
@@ -89,9 +89,7 @@ export default class RTC {
 				return
 			}
 
-			if (data.user_id && data.user_id==this.user_id) {
-				return
-			}
+			if (data.user_id && data.user_id==this.user_id) { return }
 			// if (data.room_id != this.room_id) {
 			// 	return
 			// }
@@ -125,9 +123,7 @@ export default class RTC {
 	}
 
 	async isAlreadyReceived(data){
-		if (!data.seed || data.action == 'delivery_confirmation') {
-			return false
-		}
+		if (!data.seed || data.action == 'delivery_confirmation') { return false }
 
 		const seed_exist = await seedsDB.get(data.seed)
 		if (seed_exist && this.isFreshSeed(seed_exist.t) ) {
@@ -176,7 +172,7 @@ export default class RTC {
 		this.on('address::'+address, callback)
 	}
 
-	unsubscribe(address, callback){
+	unsubscribe(address, callback) {
 		this.off('address::'+address, callback)
 	}
 
@@ -187,15 +183,15 @@ export default class RTC {
 			|| acquired_data.user_id == this.user_id
 			|| acquired_data.action  == 'delivery_confirmation'
 			|| acquired_data.action  == 'bankroller_active') {
-
+			
 			return
 		}
 
 		this.sendMsg({
-			address:  acquired_data.address,
-			seed:     Utils.makeSeed(),
-			action:   'delivery_confirmation',
-			acquired: acquired_data,
+			address  : acquired_data.address   ,
+			seed     : Utils.makeSeed()        ,
+			action   : 'delivery_confirmation' ,
+			acquired : acquired_data
 		})
 	}
 
@@ -221,9 +217,7 @@ export default class RTC {
 
 		this.subscribe(address, waitReceipt)
 
-		if (!this.CheckReceiptsT) {
-			this.CheckReceiptsT = {}
-		}
+		if (!this.CheckReceiptsT) { this.CheckReceiptsT = {} }
 
 		this.CheckReceiptsT[sended_data.seed] = setTimeout(()=>{
 			this.unsubscribe(address, waitReceipt)
@@ -232,9 +226,7 @@ export default class RTC {
 		}, delivery_timeout)
 	}
 
-	equaMsgs(msg1, msg2){
-		return (JSON.stringify(msg1) == JSON.stringify(msg2))
-	}
+	equaMsgs(msg1, msg2) { return (JSON.stringify(msg1) == JSON.stringify(msg2)) }
 
 	// Отправка сообщения с ожидание подтверждения получения
 	send(data, callback=false, repeat=5){
@@ -246,9 +238,7 @@ export default class RTC {
 
 		data = this.sendMsg(data)
 
-		if (!data.address) {
-			return
-		}
+		if (!data.address) { return }
 
 		this.CheckReceipt(data, delivered=>{
 			if (!delivered && repeat > 0) {

@@ -34,9 +34,7 @@ export default class ethRPC {
 	}
 
 	callMethod(method_name=false, params=[], id=1, callback=false){
-		if (!method_name) {
-			return false
-		}
+		if (!method_name) { return false }
 
 		fetch(this.provider_url, {
 			method: 'POST',
@@ -44,10 +42,10 @@ export default class ethRPC {
 				'Content-Type': 'application/x-www-form-urlencoded'
 			},
 			body: JSON.stringify({
-				'id':      id,
-				'jsonrpc': '2.0',
-				'method':  method_name,
-				'params':  params
+				'id'      : id          ,
+				'jsonrpc' : '2.0'       ,
+				'method'  : method_name ,
+				'params'  : params
 			})
 		}).then( response => {
 			return response.json()

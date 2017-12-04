@@ -11,64 +11,22 @@
 
 		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha256-k2WSCIexGzOj3Euiig+TlR8gA0EmPjuc79OEeY5L45g=" crossorigin="anonymous"></script>
 		
-		<!-- <script src="http://localhost:8888/static/js/bundle.js"></script> -->
-		<!-- <script src="https://platform.dao.casino/api/lib/v2/DC.js?v=2"></script> -->
-		<!-- <script src="../api/lib/v2/DC.js?v=2"></script> -->
+
+		<!-- DCLib https://github.com/DaoCasino/DCLib -->
+		<!-- <script src="./lib/DC.js"></script> -->
+		
+		<!-- our Dapp core logic -->
+		<script src="./dapp_logic.js" defer></script>
 
 		<script>
 			$(document).ready( function(){
 
-				DCLib.defineDAppLogic('dicedapp_v2', function(){
-					const _self = this
-
-					const MAX_RAND_NUM = 65536
-					const HOUSEEDGE    = 0.02 // 2%
-					
-					let history = []
-
-					var Roll = function(user_bet, user_num, random_hash){
-						// convert 1BET to 100000000
-						user_bet = DCLib.Utils.bet4dec(user_bet)
-
-						// generate random number
-						const random_num = DCLib.numFromHash(random_hash, 0, MAX_RAND_NUM)
-						
-						let profit = -user_bet
-						// if user win
-						if (user_num >= random_num) {
-							profit = (user_bet * (MAX_RAND_NUM - MAX_RAND_NUM*HOUSEEDGE) / user_num) - user_bet
-						}
-
-						// add result to paychannel
-						_self.payChannel.addTX( profit )
-
-						_self.payChannel.printLog()
-
-						// push all data to our log
-						// just for debug 
-						const roll_item = {
-							timestamp   : new Date().getTime(),
-							user_bet    : user_bet,
-							profit      : profit,
-							user_num    : user_num,
-							balance     : _self.payChannel.getBalance(),
-							random_hash : random_hash,
-							random_num  : random_num,
-						}
-						history.push(roll_item)
-
-						return roll_item
-					}
-
-					return {
-						roll    : Roll,
-						history : history,
-					}
-				})
-
 				// Create our DApp
-				window.MyDApp = new DCLib.DApp({code  : 'dicedapp_v2'})
+				DCLib.on('ready', function(){
+					window.MyDApp = new DCLib.DApp({code : 'dicedapp_v2'})
+				})
 				
+
 				// Init interface
 				initView({
 					// Create DApp and open payment channel
@@ -84,17 +42,17 @@
 			
 
 			function startGame(deposit){
-
 				MyDApp.connect({
-					bankroller : 'auto', 
-					paychannel:{deposit:deposit} 
+					bankroller : '0x146c5e3b9395738eb67feceb5e37cd5a56d63342', 
+					paychannel : { deposit : deposit },
+					gamedata   : {type:'uint', value:[1, 2, 3]}
 				},
 				function(connected, info){
 					console.log('connect result:', connected)
 					console.log('connect info:', info)
 					if (!connected) return 
 
-					let maxbet = DCLib.Utils.dec2bet( info.channel.player_deposit )
+					let maxbet = DCLib.Utils.bet2dec( info.channel.player_deposit )
 
 					$('#user_bet')[0].max = Math.ceil( maxbet )
 					$('#user_bet').val( (maxbet*0.1).toFixed(2) )
@@ -241,7 +199,7 @@
 				<form>
 					<label>
 						Set game deposit:
-						<input id="user_deposit" type="number" value="1.1" min="0" max="4" step="0.1">
+						<input id="user_deposit" type="number" value="1.1" min="0" max="4" step="0.001">
 					</label>
 					<input type="submit" value="Set">
 				</form>
@@ -255,7 +213,7 @@
 				<h3>2. Play</h3>
 				<label>
 					your bet:
-					<input id="user_bet" type="number" value="1" min="0" max="4" step="0.1">
+					<input id="user_bet" type="number" value="1" min="0" max="4" step="0.001">
 				</label>
 				<label>
 					your num:

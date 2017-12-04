@@ -1,8 +1,8 @@
-import conf  from 'config/config'
-import * as Utils from 'utils/utils'
+import conf               from 'config/config'
+import * as Utils         from 'utils/utils'
 
 // import web3accounts  from 'web3/packages/web3-eth-accounts'
-import WEB3    from 'web3/packages/web3'
+import WEB3               from 'web3/packages/web3'
 import {sign as signHash} from 'web3/packages/web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
 let _config, ERC20, NEWCON
@@ -46,7 +46,7 @@ export default class Account {
 		if (localStorage && localStorage.web3wallet) {		
 			try {
 				_wallet.openkey = '0x'+JSON.parse(localStorage.web3wallet).address
-			} catch(e) { }
+			} catch(e) { console.log('Error!', e) }
 		}
 
 		// Create new
@@ -106,7 +106,7 @@ export default class Account {
 	unlockAccount(password=false){
 		password = password || _config.wallet_pass
 		
-		_wallet = this.web3.eth.accounts.decrypt(
+		_wallet  = this.web3.eth.accounts.decrypt(
 			localStorage.web3wallet,
 			password
 		)
@@ -254,9 +254,7 @@ export default class Account {
 	 * @returns - none
 	 * @memberOf {Account}
 	 */
-	reset(){
-		localStorage.web3wallet = ''
-	}
+	reset(){ localStorage.web3wallet = '' }
 
 
 	/**
@@ -292,8 +290,8 @@ export default class Account {
 		return ERC20.methods
 			.transfer(to, amount)
 			.send({
-				from     : this.get().openkey,
-				gasPrice : _config.gasPrice,
+				from     : this.get().openkey ,
+				gasPrice : _config.gasPrice   ,
 				gas      : (await ERC20.methods.transfer(to, amount).estimateGas({from : this.get().openkey})),
 			})
 			.on('transactionHash', transactionHash=>{ console.info('transactionHash:',transactionHash) })

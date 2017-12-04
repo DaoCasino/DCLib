@@ -171,14 +171,13 @@ export default class EthHelpers {
 				const approve_amount = amount * 9
 				
 				const gasLimit = await this.ERC20.methods.approve(spender, approve_amount).estimateGas({from : Account.get().openkey})
-				
-				const receipt = await this.ERC20.methods.approve( 
+				const receipt  = await this.ERC20.methods.approve( 
 					spender,
 					approve_amount
 				).send({
-					from     : Account.get().openkey,
-					gasPrice : 1.2 * _config.gasPrice,
-					gas      : gasLimit,
+					from     : Account.get().openkey  ,
+					gasPrice : 1.2 * _config.gasPrice ,
+					gas      : gasLimit
 				}).on('transactionHash', transactionHash=>{
 					console.log('# approve TX pending', transactionHash)
 					console.log('https://ropsten.etherscan.io/tx/'+transactionHash)
@@ -193,7 +192,6 @@ export default class EthHelpers {
 	
 				console.log('💸💸💸 allowance:', allowance)
 
-				
 				console.groupEnd()
 				
 			}
