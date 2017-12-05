@@ -45,7 +45,7 @@ let _ready = false
  * 
  * @export
  * @class DCLib
- * @version 0.2.1
+ * @version 0.2.2
  */
 export default class DCLib {
 
@@ -53,6 +53,8 @@ export default class DCLib {
 	 * @ignore
 	 */
 	constructor() {
+		this.version = '0.2.2'
+
 		/**
 		 * little utilities
 		 */
