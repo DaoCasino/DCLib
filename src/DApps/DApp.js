@@ -485,7 +485,7 @@ export default class DApp {
 			const session            = params.session                                            // uint session=0px
 			const bool               = true
 
-
+			console.log('@@@@@@@@', player_balance, bankroller_balance)
             // Sign hash from args
 			const signed_args = Account.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool))
 

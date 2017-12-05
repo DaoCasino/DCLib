@@ -4,12 +4,14 @@ const archiver = require('archiver')
 const inquirer = require('inquirer')
 const exec     = require('child_process').exec
 const filename = 'DC.js'
+
+
 const projectPath = {
-    dclib:       path.join(__dirname, '../api/lib/v2/' + filename),
-    bankroller: {
-        default:   path.join(__dirname, '../../../../Applications/BankRollerApp/DApps/'),
-        lib:       path.join(__dirname, '../../../../Applications/BankRollerApp/DApps/dicedapp_v2/lib/'),
-        archive:   path.join(__dirname, '../../../../Applications/BankRollerApp/DApps/dicedapp_v2') 
+    dclib       : path.join(__dirname, '../api/lib/v2/' + filename)                                     ,
+    bankroller  : {
+        default : path.join(__dirname, '../../../../Applications/BankRollerApp/DApps/')                 ,
+        lib     : path.join(__dirname, '../../../../Applications/BankRollerApp/DApps/dicedapp_v2/lib/') ,
+        archive : path.join(__dirname, '../../../../Applications/BankRollerApp/DApps/dicedapp_v2') 
     }
 }
 
@@ -55,18 +57,14 @@ function zipExample () {
     console.log('Archivate started')
 
     const output = fs.createWriteStream(projectPath.bankroller.default + 'example.zip')
-    const archive = archiver('zip', {
-        zlib: { level: 9 }
-    })
+    const archive = archiver('zip', { zlib: { level: 9 } })
 
     output.on('close', function () {
         console.log(archive.pointer() + ' total bytes')
         console.log('archiver has been finalized and the output file descriptor has closed.')
     })
 
-    archive.on('error', function (err) {
-        throw err
-    })
+    archive.on('error', function (err) { throw err })
 
     archive.pipe(output)
     archive.directory(projectPath.bankroller.archive, 'dicedapp_v2')
@@ -86,9 +84,9 @@ function buildingBankroller() {
                 return
             }
 
-                console.log('Stdout', stdout)
-                console.log('Stderr', stderr)
-                resolve()
+            console.log('Stdout', stdout)
+            console.log('Stderr', stderr)
+            resolve()
         })
     }).then(() => {
       
@@ -127,13 +125,13 @@ function buildingBankroller() {
                 'Wait a little. I"m going to do everything now.'
             ]
 
-            // var phrasePost = setInterval(function () {
-            //     var index = Math.floor(Math.random(phrase.length-1) * 10)
-            //     console.clear()
-            //     console.log(' ' + phrase[index])
-            // }, 2000)
+            var phrasePost = setInterval(function () {
+                var index = Math.floor(Math.random(phrase.length-1) * 10)
+                console.clear()
+                console.log(' ' + phrase[index])
+            }, 2000)
 
-            buildForPlatform(command)//, phrasePost)
+            buildForPlatform(command, phrasePost)
         })
     })
 

@@ -6,7 +6,7 @@
   "private": true,
   "homepage": "./",
   "scripts": {
-    "postBuild" : "node ./scripts/postBuild.js",
+    "postBuild": "node ./scripts/postBuild.js",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "check_build": "serve -s build -p 9000",
@@ -60,6 +60,7 @@
     "bufferutil": "^3.0.1"
   },
   "devDependencies": {
+    "archiver": "^2.1.0",
     "autoprefixer": "7.1.0",
     "babel-core": "6.24.1",
     "babel-eslint": "7.2.3",
@@ -92,6 +93,7 @@
     "file-loader": "0.11.1",
     "fs-extra": "3.0.1",
     "html-webpack-plugin": "2.28.0",
+    "inquirer": "^4.0.1",
     "install": "^0.10.1",
     "jest": "20.0.3",
     "less": "^2.7.2",
