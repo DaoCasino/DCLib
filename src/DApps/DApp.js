@@ -241,10 +241,6 @@ export default class DApp {
 			this.connection_info.channel         = await this.openChannel(params.paychannel, params.gamedata)
 		}
 
-		if (this.connection_info.channel) {
-			this.Room.on('timeout', this.responseOnline)
-		}
-
 		if (callback) callback(true, this.connection_info)
 		this.updateState()
 	}
@@ -424,7 +420,11 @@ export default class DApp {
 		})
 	}
 
-	// responseOnline() { this.response(params, {msg: 'msg'}) }
+	// responseOnline(params) { 
+	
+	// 	console.log('PARAMS@@@',params)
+	// 	this.response(params, {msg: 'msg'}) 
+	// }
 
 
     /**
