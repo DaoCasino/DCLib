@@ -43,7 +43,7 @@ export default class PayChannel {
 
 	    console.groupCollapsed('payChannel injected in DApp logic')
 	    console.log('Now your logic has methods for work with payment channel')
-	    console.table({
+		console.table({
 			getDeposit: 'for get start deposit',
 			getBalance: 'current user balance',
 			getProfit: 'How many user up, balance-deposit',
@@ -52,7 +52,7 @@ export default class PayChannel {
 
 			printLog: 'console.log channel state'
 		})
-	    console.groupEnd()
+		console.groupEnd()
 	}
 
     /**
@@ -71,9 +71,9 @@ export default class PayChannel {
      */
 	setDeposit(d) {
 
-	    if (deposit.player!=false) {
-	        console.error('Deposit allready set')
-	        return
+		if (deposit.player!=false) {
+			console.error('Deposit allready set')
+			return
 		}
 
 	    deposit.player     = Utils.bet2dec(d)

@@ -23,7 +23,7 @@
 
 				// Create our DApp
 				DCLib.on('ready', function(){
-					window.MyDApp = new DCLib.DApp({code : 'dicedapp_v2'})
+					window.MyDApp = new DCLib.DApp({slug : 'dicegame_v3'})
 				})
 				
 
@@ -43,7 +43,7 @@
 
 			function startGame(deposit){
 				MyDApp.connect({
-					bankroller : '0x146c5e3b9395738eb67feceb5e37cd5a56d63342', 
+					// bankroller : '0x146c5e3b9395738eb67feceb5e37cd5a56d63342', 
 					paychannel : { deposit : deposit },
 					gamedata   : {type:'uint', value:[1, 2, 3]}
 				},
