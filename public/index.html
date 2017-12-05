@@ -146,6 +146,10 @@
 					var user_num = $('#user_num').val()
 
 					callbacks.onRoll(user_bet, user_num)
+
+					setTimeout(function(){
+						$('form.step-2').removeClass('disabled')
+					},1500)
 				})
 
 				$('form.step-3').on('submit', function(e){
