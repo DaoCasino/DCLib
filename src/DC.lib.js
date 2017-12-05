@@ -149,12 +149,12 @@ export default class DCLib {
 	 * 		...game_logic
 	 * })
 	 * 
-	 * @param {string} dapp_code         unique code of your dapp
+	 * @param {string} dapp_slug         unique slug of your dapp
 	 * @param {function} logic_constructor constructor Dapp logic
 	 */
-	defineDAppLogic(dapp_code, logic_constructor){
+	defineDAppLogic(dapp_slug, logic_constructor){
 		if (!window.DAppsLogic) { window.DAppsLogic = {} }
-		window.DAppsLogic[dapp_code] = logic_constructor
+		window.DAppsLogic[dapp_slug] = logic_constructor
 	}
 
 	/**

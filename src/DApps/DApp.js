@@ -47,7 +47,7 @@ const Eth     = new EthHelpers()
  * })
  *
  * const MyDApp = new DCLib.DApp({
- *   code  : 'dicegame_v2' , // unique DApp code
+ *   slug  : 'dicegame_v2' , // unique DApp slug
  * })
  *
  *
@@ -60,21 +60,22 @@ export default class DApp {
      * @ignore
      */
 	constructor(params) {
-		if (!params.code) {
+		if (!params.slug) {
 		    console.error('Create DApp error', params)
-		    throw new Error('code option is required')
+		    throw new Error('slug option is required')
 		    return
 	    }
 
-		if (!DAppsLogic[params.code] || !DAppsLogic[params.code]) {
+		if (!DAppsLogic[params.slug] || !DAppsLogic[params.slug]) {
 			console.log('First you need define your DApp logic')
-			console.log('Example DCLib.defineDAppLogic("' + params.code + '", function(){...})')
+			console.log('Example DCLib.defineDAppLogic("' + params.slug + '", function(){...})')
 			throw new Error('Cant find DApp logic')
 	    }
 
-		let logic  = DAppsLogic[params.code]
+		let logic  = DAppsLogic[params.slug]
         /** DApp name */
-		this.code  = params.code
+		this.slug  = params.slug
+		this.code  = params.slug
         /** @ignore */
 		this.hash  = Utils.checksum(logic)
         /** DApp logic */
@@ -96,13 +97,13 @@ export default class DApp {
         /** @ignore */
 		this.sharedRoom = new Rtc(Account.get().openkey, 'dapp_room_' + this.hash)
 
-		console.groupCollapsed('DApp %c' + this.code + ' %ccreated', 'color:orange', 'color:default')
+		console.groupCollapsed('DApp %c' + this.slug + ' %ccreated', 'color:orange', 'color:default')
 		console.info(params)
 		console.info(' >>> Unique DApp logic checksum/hash would be used for connect to bankrollers:')
 		console.info('%c SHA3: %c' + this.hash, 'background:#333; padding:3px 0px 3px 3px;', 'color:orange; background:#333; padding:3px 10px 3px 3px;')
 
 		console.groupCollapsed('Logic string')
-		console.log(Utils.clearcode(DAppsLogic[params.code]))
+		console.log(Utils.clearcode(DAppsLogic[params.slug]))
 		console.groupEnd()
 
 		console.groupCollapsed('DApp.sharedRoom / messaging methods now available')
@@ -137,7 +138,7 @@ export default class DApp {
      */
 	async connect(params = {}, callback = false) {
 
-		console.group('DApp %c' + this.code + ' %cconnecting...', 'color:orange', 'color:default')
+		console.group('DApp %c' + this.slug + ' %cconnecting...', 'color:orange', 'color:default')
 
 		let def_params = {bankroller: 'auto'}
 
@@ -187,7 +188,11 @@ export default class DApp {
 		}
 
 		try {
-			const connection = await this.request({action: 'connect', address: bankroller_address})
+			const connection = await this.request({
+				action  : 'connect',
+				slug    : this.slug,
+				address : bankroller_address
+			})
 
 			if (!connection.id) {
 				cosole.error('😓 Cant establish connection....')
