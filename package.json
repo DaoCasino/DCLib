@@ -6,9 +6,9 @@
   "private": true,
   "homepage": "./",
   "scripts": {
-    "postBuild": "node ./scripts/postBuild.js",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
+    "postbuild": "node scripts/postBuild.js",
     "check_build": "serve -s build -p 9000",
     "eslint": "eslint --ext=.js,.tag ./src",
     "lint-staged": "lint-staged",
