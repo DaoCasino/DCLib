@@ -21,17 +21,16 @@ export default class Api {
 	 * const d = 1;
 	 * 
 	 * @param {any} address 
-	 * @returns 
+	 * @returns Promise
 	 * 
 	 * @memberOf Api
 	 */
-	addBets(address){
-		return this.request({
-			a       :       'faucet'  ,
-			to      :      address    ,
-			network : _config.network
-		}).then( response => {
-			return response.text()
+	addBets(address, callback=false){
+		return fetch('https://platform.dao.casino/faucet?to='+address).then(r=>{
+			return r.json()
+		}).then(json=>{
+			if (callback) callback(json)
+			return json
 		})
 	}
 }
