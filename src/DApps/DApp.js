@@ -382,6 +382,10 @@ export default class DApp {
      * @memberOf DApp
      */
 	call(function_name, function_args = [], callback) {
+		if (typeof this.logic[function_name] !== 'function') {
+			throw new Error(function_name+' not exist')
+			return false
+		}
 		if (!this.Room) {
 			console.warn('You need .connect() before call!')
 			return
