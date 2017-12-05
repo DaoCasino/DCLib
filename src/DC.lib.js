@@ -244,7 +244,7 @@ export default class DCLib {
      * @memberOf DCLib
      */
 
-	async faucet(address=false){
+	async faucet(address=false, callback=false){
 		address = address || this.Account.get().openkey
 		return await ourApi.addBets( address )
 	}
