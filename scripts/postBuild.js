@@ -77,7 +77,8 @@ function rebuildBankroller() {
 				name    : 'Platform',
 				choices : ['Windows', 'Linux', 'Mac']
 			}).then(function (answers) {
-				console.log('answer', answers)
+
+				if (!answers.Platform.length) return
 
 				const commandData = {
 					platform: answers.Platform,
@@ -158,10 +159,10 @@ async function RUN(){
 		message : 'Choose need actions',
 		name    : 'actions',
 		choices : Object.keys( scripts )
-	}).then(actions => {
-		if (!actions || !actions.length) return
+	}).then(answer => {
+		if (!answer.actions || !answer.actions.length) return
 
-		actions.forEach(a=>{ scripts[a]() })
+		answer.actions.forEach(a=>{ scripts[a]() })
 	})
 }
 

@@ -52,14 +52,15 @@
     ]
   },
   "dependencies": {
-    "web3": "git://github.com/ethereum/web3.js.git#1.0ES6",
-    "event-emitter": "^0.3.5",
     "big-integer": "^1.6.23",
+    "bufferutil": "^3.0.1",
+    "event-emitter": "^0.3.5",
+    "freeice": "^2.2.0",
     "rtc-mesh": "^1.0.0",
     "rtc-quickconnect": "^5.8.0",
-    "freeice": "^2.2.0",
+    "socket.io": "^2.0.4",
     "utf-8-validate": "^3.0.2",
-    "bufferutil": "^3.0.1"
+    "web3": "git://github.com/ethereum/web3.js.git#1.0ES6"
   },
   "devDependencies": {
     "archiver": "^2.1.0",
