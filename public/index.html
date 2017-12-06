@@ -13,7 +13,7 @@
 		
 
 		<!-- DCLib https://github.com/DaoCasino/DCLib -->
-		<!-- <script src="./lib/DC.js"></script> -->
+		<script src="./lib/DC.js"></script>
 		
 		<!-- our Dapp core logic -->
 		<script src="./dapp_logic.js" defer></script>
@@ -43,9 +43,9 @@
 
 			function startGame(deposit){
 				MyDApp.connect({
-					// bankroller : '0x146c5e3b9395738eb67feceb5e37cd5a56d63342', 
+					bankroller : '0x146c5e3b9395738eb67feceb5e37cd5a56d63342', 
 					paychannel : { deposit : deposit },
-					// gamedata   : {type:'uint', value:[1, 2, 3]}
+					gamedata   : {type:'uint', value:[1, 2, 3]}
 				},
 				function(connected, info){
 					console.log('connect result:', connected)

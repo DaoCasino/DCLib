@@ -1,9 +1,9 @@
 {
-  "name": "DClib",
+  "name": "dclib",
   "description": "Eth lib",
-  "version": "0.2.1",
+  "version": "0.2.34",
   "author": "name <to@alexstep.com>",
-  "private": true,
+  "private": false,
   "homepage": "./",
   "scripts": {
     "start": "node scripts/start.js",
@@ -18,6 +18,10 @@
   "pre-commit": [
     "lint-staged"
   ],
+  "keywards": [
+    "DCLib"
+  ],
+  "main": "api/lib/v2/DC.js",
   "lint-staged": {
     "*.js": [
       "eslint"

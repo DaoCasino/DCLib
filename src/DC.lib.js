@@ -1,11 +1,11 @@
-import _config    from 'config/config'
-import * as Utils from 'utils/utils'
+import _config    from './config/config'
+import * as Utils from './utils/utils'
 import EE         from 'event-emitter'
-import Api        from 'API/Api'
+import Api        from './API/Api'
 
-import EthHelpers from 'Eth/helpers'
-import Account    from 'Eth/Account'
-import DApp       from 'DApps/DApp'
+import EthHelpers from './Eth/helpers'
+import Account    from './Eth/Account'
+import DApp       from './DApps/DApp'
 import printDocs  from './docs.js'
 
 
