@@ -1,17 +1,18 @@
-import _config    from 'config/config'
-import * as Utils from 'utils/utils'
+import _config    from './config/config'
+import * as Utils from './utils/utils'
 import EE         from 'event-emitter'
-import Api        from 'API/Api'
+import Api        from './API/Api'
 
-import EthHelpers from 'Eth/helpers'
-import Account    from 'Eth/Account'
-import DApp       from 'DApps/DApp'
+import EthHelpers from './Eth/helpers'
+import Account    from './Eth/Account'
+import DApp       from './DApps/DApp'
 import printDocs  from './docs.js'
 
 /**
  * Reload page if this is bankroller server
  */
 import io from 'socket.io-client'
+
 if (window && window.location.host.indexOf('localhost:')>-1 ) {
 	const socket = io('http://localhost:9997')
 	socket.on('reload_page', data=>{

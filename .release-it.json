@@ -5,8 +5,9 @@
     "preRelease":true,
     "assets":"dist/*.zip"
   },
-
   "npm":{
-  	"publish":false
+  	"publish":true,
+  	"tag": "latest",
+  	"private": false
   }
 }

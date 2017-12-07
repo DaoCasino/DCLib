@@ -246,10 +246,6 @@ export default class DApp {
 			this.connection_info.channel         = await this.openChannel(params.paychannel, params.gamedata)
 		}
 
-		if (this.connection_info.channel) {
-			this.Room.on('timeout', this.responseOnline)
-		}
-
 		if (callback) callback(true, this.connection_info)
 		this.updateState()
 	}
@@ -299,6 +295,7 @@ export default class DApp {
 			const approve = await Eth.ERC20approve(contract_address, params.deposit)
 
             // Open channel args
+
 			const channel_id           = Utils.makeSeed()
 			const player_address       = Account.get().openkey
 			const bankroller_address   = params.bankroller_address
@@ -335,15 +332,18 @@ export default class DApp {
 				open_args  : {
 					channel_id         : channel_id         ,
 					player_address     : player_address     ,
-					bankroller_address : bankroller_address ,
 					player_deposit     : player_deposit     ,
-					bankroller_deposit : bankroller_deposit ,
+					bankroller_address : bankroller_address ,
 					session            : session            ,
 					ttl_blocks         : ttl_blocks         ,
 					gamedata           : gamedata           ,
 					signed_args        : signed_args
 				}
 			})
+
+			if (response.more) {
+				console.log('the previous transaction was not completed')
+			}
 
 			clearInterval(dots_i)
 
@@ -433,7 +433,11 @@ export default class DApp {
 		})
 	}
 
-	// responseOnline() { this.response(params, {msg: 'msg'}) }
+	// responseOnline(params) { 
+	
+	// 	console.log('PARAMS@@@',params)
+	// 	this.response(params, {msg: 'msg'}) 
+	// }
 
 
     /**
@@ -489,7 +493,7 @@ export default class DApp {
 			const session            = params.session                                            // uint session=0px
 			const bool               = true
 
-
+			// console.log('@@@@@@@@', player_balance, bankroller_balance)
             // Sign hash from args
 			const signed_args = Account.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool))
 
@@ -545,14 +549,14 @@ export default class DApp {
 		let session
 
 		if (typeof params.player_balance!='undefined' && typeof params.bankroller_balance!='undefined' && typeof params.session!='undefined') {
-			player_balance     = params.player_balance
-			bankroller_balance = params.bankroller_balance
 			session            = params.session
 		} else {
-			player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance())
-			bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance())
 			session            = 0
 		}
+
+		player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance())
+		bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance())
+
 
 		const hash        = DCLib.Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool)
 		const signed_args = Account.signHash(hash)
@@ -601,6 +605,7 @@ export default class DApp {
     /** TODO -  Доделывать */
 	async updateChannel(params, callback = false) {
 
+		// console.log('PARAMS_UPDATE_CHANNEL@', params)
 		const channel_id         = this.connection_info.channel.channel_id
 		const player_balance     = params.player_balance
 		const bankroller_balance = params.bankroller_balance
@@ -705,7 +710,7 @@ export default class DApp {
 		this.response(params, {receipt: receipt})
 		if (callback) callback(receipt)
 	}
-
+	
     /** TODO -  Доделывать */
 	async openDispute(params, callback = false) {
 
@@ -714,11 +719,15 @@ export default class DApp {
 		const round        = params.round
 		const dispute_seed = params.dispute_seed
 		const game_data    = params.gamedata
+		const session      = params.session
 
+
+		// console.log('PARAMS', channel_id, round, dispute_seed, game_data)
 		const gasLimit = 900000
 		const receipt  = this.PayChannel().methods
-			.updateGame(
+			.openDispute(
 			    channel_id      ,
+			    session         ,
 			    round           ,
 			    dispute_seed    ,
 			    game_data.value 
