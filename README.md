@@ -28,8 +28,18 @@ Open it in browser
 
 <img src="https://raw.githubusercontent.com/DaoCasino/DCLib/master/manual/asset/console.log.init.png">
 
+## Use npm
+```
+npm install --save dclib
+```
+```
+import 'dclib' // or require('dclib')
+
+console.log(DCLib.version)
+```
 
 
-# Docs
+# Documentation and tutorials
+https://daocasino.readme.io/v2.0/docs/overview
 
 https://ipfs.infura.io/ipfs/QmRYB24gqeuYHqFm2q48BmnFejL6P2mJtsjzvcjLB6MDm4
