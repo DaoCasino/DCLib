@@ -39,6 +39,14 @@ export default class Account {
 		 */
 		this.web3 = new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
 
+		this.initAccount(log)
+				
+		callback()
+		return
+	}
+
+	async initAccount(log=true){
+		if(log) console.groupEnd()
 		if(log) console.group('Init Account')
 		
 		// Try to restore 
@@ -51,9 +59,11 @@ export default class Account {
 
 		// Create new
 		if (!_wallet.openkey) {
+			const privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
+
 			localStorage.web3wallet = JSON.stringify(
 				this.web3.eth.accounts.encrypt(
-					this.web3.eth.accounts.create().privateKey, 
+					privateKey, 
 					_config.wallet_pass
 				)
 			)
@@ -73,11 +83,38 @@ export default class Account {
 		}
 
 		this.unlockAccount()
-		
-		if(log) console.groupEnd()
-		
-		callback()
-		return
+	}
+	/**
+	 * @ignore
+	 */
+	getAccountFromServer(){
+		if (localStorage.account_from_server) {
+			if (localStorage.account_from_server=='wait') {
+				return new Promise((resolve, reject) => {
+					let waitTimer = ()=>{ setTimeout(()=>{
+						if (localStorage.account_from_server.privateKey) {
+							resolve(localStorage.account_from_server)
+						} else {
+							waitTimer()
+						}
+					}, 1000) }
+					waitTimer()
+				})
+			}
+			return
+		}
+
+		localStorage.account_from_server = 'wait'
+		return fetch('https://platform.dao.casino/faucet?get=account').then(res=>{
+			return res.json()
+		}).then(acc=>{
+			console.log('Server account data:', acc)
+			localStorage.account_from_server = acc
+			_wallet.openkey = acc.address
+			return acc.privateKey
+		}).catch(e=>{
+			return false
+		})
 	}
 
 	/**
@@ -128,6 +165,7 @@ export default class Account {
 
 		return _wallet
 	}
+
 
 	/**
 	 * ## DCLib.Account.exportPrivateKey(password)
