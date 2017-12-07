@@ -1,0 +1,23 @@
+#editor settings
+.idea
+
+#folders
+build
+public
+scripts
+manual
+docs
+contracts
+
+#file
+size-report.txt
+ipscend.json
+.esdoc.json
+.env
+.editorconfig
+.babelrc
+
+
+#linters
+.eslintignore
+.eslintrc.js
