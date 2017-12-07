@@ -21,123 +21,153 @@ const projectPath = {
 
 console.clear()
 
-function createlibInBnkRoller() {
 
-	console.log('Creaetd DCLib for BankrollerApp started')
-
-	const libCode = fs.readFileSync(projectPath.dclib)
-
-	if (libCode) {
-		try {
-			console.log('New lib created to BankRoller DApp')
-			fs.writeFileSync(projectPath.bankroller.lib + filename, libCode)
-			zipExample()
-		} catch (error) {
-			console.log('Error: ', error)
-		}
-	}
-
-}
-
-function deleteOldDCLib () {
-
-	fs.exists(projectPath.bankroller.lib + filename, (exists) => {
-
-		if (exists) {
-			console.log('File true node script this file')
-			fs.unlinkSync(projectPath.bankroller.lib + filename)
-			createlibInBnkRoller()
-		} else {
-			console.log('File false, create new file')
-			createlibInBnkRoller()
-		}
-
-	})
-  
-}
-
-function zipExample () {
-
-	console.log('Archivate started')
-	console.log(' ')
-	console.log(' ')
-
-    const output = fs.createWriteStream(projectPath.bankroller.default + 'example.zip')
-    const archive = archiver('zip', { zlib: { level: 9 } })
-
-	output.on('close', function () {
-		// console.log(archive.pointer() + ' total bytes')
-		// console.log('archiver has been finalized and the output file descriptor has closed.')
-	})
-
-    archive.on('error', function (err) { throw err })
-
-	archive.pipe(output)
-	archive.directory(projectPath.bankroller.archive, 'dicedapp_v2')
-	archive.finalize()
-
-	buildingBankroller()
-}
-
-function buildingBankroller() {
-	console.log(' ')
-	console.log(' ')
-	console.log('Building Bankroller...')
+function createZip(foldername, folderpath, to) {
 
 	return new Promise((resolve, reject) => {
-		console.log('cd '+process.env.BAPath+' && npm run build')
-		exec('cd '+process.env.BAPath+'; npm run build', (err, stdout, stderr) => {
-			
-			if (err) {
-				console.log('Error: ', err)
-				reject()
-				return
-			}
+		const output  = fs.createWriteStream(to)
+		const archive = archiver('zip', {zlib: { level: 9 }})
 
-			console.log('Stdout', stdout)
-			console.log('Stderr', stderr)
-			resolve()
-		}).stdout.on('data', console.log )
-	}).then(() => {
-		inquirer.prompt({
-			type    : 'checkbox',
-			message : 'Select tour platform',
-			name    : 'Platform',
-			choices : ['Windows', 'Linux', 'Mac']
-		}).then(function (answers) {
-			console.log('answer', answers)
+		archive.on('error',  err=>{ 
+			console.log('Compress ERROR: '+err) 
+			reject( err )
+		})
 
-			const commandData = {
-				platform: answers.Platform,
-				pathFolder: 'cd '+process.env.BAPath,
-				buildElectron: ''
-			}
+		archive.pipe(output)
+		archive.directory(folderpath, foldername)
+		archive.finalize()
 
-			for (let i = 0; i < commandData.platform.length; i++) {
-				commandData.buildElectron += 'npm run build_electron_' + commandData.platform[i].toLowerCase() + '; '
-			}
-
-			const command = commandData.pathFolder +' && '+commandData.buildElectron
-
-			buildForPlatform(command)
-		}).catch(err=>{
-			console.log('answer error', err)
+		output.on('close', ()=>{
+		  // console.log(archive.pointer() + ' total bytes');
+		  // console.log('archiver has been finalized and the output file descriptor has closed.');
+		  resolve()
 		})
 	})
 }
 
-function buildForPlatform (command) {
-	console.log('Building for checked platforms...')
-	console.log(command)
 
-	exec(command, (err, stdout, stderr) => {
-		if (err) {
-			console.log('Error: ', err)
-			return
+
+
+function rebuildBankroller() {
+
+	const buildingBankroller = function(){
+		console.log(' ')
+		console.log(' ')
+		console.log('Building Bankroller...')
+
+
+		return new Promise((resolve, reject) => {
+			console.log('cd '+process.env.BAPath+' && npm run build')
+			exec('cd '+process.env.BAPath+'; npm run build', (err, stdout, stderr) => {
+				if (err) {
+					console.log('Error: ', err)
+					reject()
+					return
+				}
+
+				console.log('Stdout', stdout)
+				console.log('Stderr', stderr)
+				resolve()
+			}).stdout.on('data', console.log )
+		}).then(() => {
+
+			inquirer.prompt({
+				type    : 'checkbox',
+				message : 'Select tour platform',
+				name    : 'Platform',
+				choices : ['Windows', 'Linux', 'Mac']
+			}).then(function (answers) {
+
+				if (!answers.Platform.length) return
+
+				const commandData = {
+					platform: answers.Platform,
+					pathFolder: 'cd '+process.env.BAPath,
+					buildElectron: ''
+				}
+
+				commandData.buildElectron = ()=>{
+					let commands = []
+					commandData.platform.forEach(p=>{
+						commands.push('npm run build_electron_' + p.toLowerCase() )	
+					})
+					return commands.join(' && ')
+				}
+
+				const command = commandData.pathFolder +' && '+commandData.buildElectron
+			
+				console.log('Building for checked platforms...')
+				console.log(command)
+
+				exec(command, (err, stdout, stderr) => {
+					if (err) {
+						console.log('Error: ', err)
+						return
+					}
+					if(stderr) console.log('Stderr', stderr)
+				}).stdout.on('data', console.log )
+
+			}).catch(err=>{
+				console.log('answer error', err)
+			})
+		})
+	}
+
+	const createlibInBnkRoller = async function() {
+		console.log('Creaetd DCLib for BankrollerApp started')
+
+		const libCode = fs.readFileSync(projectPath.dclib)
+
+		if (!libCode) return
+
+		console.log('New lib created to BankRoller DApp')
+		fs.writeFileSync(projectPath.bankroller.lib + filename, libCode)
+
+		await createZip('dicedapp_v2', projectPath.bankroller.archive, projectPath.bankroller.default + 'example.zip')
+
+		buildingBankroller()
+	}
+
+
+	fs.exists(projectPath.bankroller.lib + filename, exists => {
+		if (exists) {
+			fs.unlinkSync(projectPath.bankroller.lib + filename)
 		}
 
-		if(stderr) console.log('Stderr', stderr)
-	}).stdout.on('data', console.log )
+		console.log('File true node script this file')
+		createlibInBnkRoller()
+	})
 }
 
-deleteOldDCLib()
+
+async function RUN(){
+
+	console.clear()
+	console.log('')
+	console.log('Compress DC.js to ./dist/DC.zip ...')
+	console.log('')
+	await createZip('DCLib',  __dirname+'/../api/lib/v2/', __dirname+'/../dist/DC.zip')
+	console.log('')
+
+	const scripts = {
+		'(Re)Build bankroller':()=>{
+			rebuildBankroller()
+		},
+	}
+	inquirer.prompt({
+		type    : 'checkbox',
+		message : 'Choose need actions',
+		name    : 'actions',
+		choices : Object.keys( scripts )
+	}).then(answer => {
+		if (!answer.actions || !answer.actions.length) return
+
+		answer.actions.forEach(a=>{ scripts[a]() })
+	})
+}
+
+
+
+
+
+RUN()

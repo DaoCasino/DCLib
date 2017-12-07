@@ -493,7 +493,7 @@ export default class DApp {
 			const session            = params.session                                            // uint session=0px
 			const bool               = true
 
-			console.log('@@@@@@@@', player_balance, bankroller_balance)
+			// console.log('@@@@@@@@', player_balance, bankroller_balance)
             // Sign hash from args
 			const signed_args = Account.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool))
 
@@ -605,7 +605,7 @@ export default class DApp {
     /** TODO -  Доделывать */
 	async updateChannel(params, callback = false) {
 
-		console.log('PARAMS_UPDATE_CHANNEL@', params);
+		// console.log('PARAMS_UPDATE_CHANNEL@', params)
 		const channel_id         = this.connection_info.channel.channel_id
 		const player_balance     = params.player_balance
 		const bankroller_balance = params.bankroller_balance
@@ -719,13 +719,15 @@ export default class DApp {
 		const round        = params.round
 		const dispute_seed = params.dispute_seed
 		const game_data    = params.gamedata
+		const session      = params.session
 
 
-		console.log('PARAMS', channel_id, round, dispute_seed, game_data);
+		// console.log('PARAMS', channel_id, round, dispute_seed, game_data)
 		const gasLimit = 900000
 		const receipt  = this.PayChannel().methods
 			.openDispute(
 			    channel_id      ,
+			    session         ,
 			    round           ,
 			    dispute_seed    ,
 			    game_data.value 

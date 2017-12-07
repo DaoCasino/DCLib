@@ -8,6 +8,19 @@ import Account    from './Eth/Account'
 import DApp       from './DApps/DApp'
 import printDocs  from './docs.js'
 
+/**
+ * Reload page if this is bankroller server
+ */
+import io from 'socket.io-client'
+
+if (window && window.location.host.indexOf('localhost:')>-1 ) {
+	const socket = io('http://localhost:9997')
+	socket.on('reload_page', data=>{
+		console.log('socket_event', data)
+		window.location.reload()
+	})
+}
+
 
 
 /**
@@ -45,7 +58,7 @@ let _ready = false
  * 
  * @export
  * @class DCLib
- * @version 0.2.1
+ * @version 0.2.2
  */
 export default class DCLib {
 
@@ -53,6 +66,8 @@ export default class DCLib {
 	 * @ignore
 	 */
 	constructor() {
+		this.version = '0.2.2'
+
 		/**
 		 * little utilities
 		 */
