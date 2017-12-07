@@ -86,13 +86,13 @@ function rebuildBankroller() {
 					buildElectron: ''
 				}
 
-				commandData.buildElectron = ()=>{
+				commandData.buildElectron = (()=>{
 					let commands = []
 					commandData.platform.forEach(p=>{
 						commands.push('npm run build_electron_' + p.toLowerCase() )	
 					})
 					return commands.join(' && ')
-				}
+				})()
 
 				const command = commandData.pathFolder +' && '+commandData.buildElectron
 			
