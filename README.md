@@ -7,28 +7,25 @@ DCLib has two part:
   * browser/frontend library
   * bankroller side API
 
-DCLIb methods available inside bankroller application 
+DCLIb methods available inside bankroller application. 
 
 IMPORTANT: now lib work only in [ropsten](https://ropsten.etherscan.io/) test network.
 
-# See short video
-https://www.youtube.com/watch?v=vD2kI_4IEFA
+# Get startted
+[See short video](https://www.youtube.com/watch?v=vD2kI_4IEFA)
+
+[Download and install last BankRollerApp](https://github.com/DaoCasino/BankRollerApp/releases)
+
+[See DApp example](https://github.com/DaoCasino/BankRollerApp/blob/master/DApps/example.zip)
 
 
-## Install BankRollerApp
-https://github.com/DaoCasino/BankRollerApp/
-
+# Use
 
 ## Include JS in your DApp
 ```
 <script src="https://platform.dao.casino/api/lib/v2/DC.js"></script>
-
 ```
-Open it in browser
-
-<img src="https://raw.githubusercontent.com/DaoCasino/DCLib/master/manual/asset/console.log.init.png">
-
-## Use npm
+or use npm 
 ```
 npm install --save dclib
 ```
@@ -38,8 +35,16 @@ import 'dclib' // or require('dclib')
 console.log(DCLib.version)
 ```
 
+Open it in browser and see console.
+<img src="https://raw.githubusercontent.com/DaoCasino/DCLib/master/manual/asset/console.log.init.png">
 
-# Documentation and tutorials
-https://daocasino.readme.io/v2.0/docs/overview
 
-https://ipfs.infura.io/ipfs/QmRYB24gqeuYHqFm2q48BmnFejL6P2mJtsjzvcjLB6MDm4
+# Docs
+[Tutorials](https://daocasino.readme.io/v2.0/docs/overview)
+
+[More about DApps](https://github.com/DaoCasino/BankRollerApp/tree/master/DApps)
+
+[[RU] Minimal Game](https://daocasino.readme.io/v2.0/docs/minimum-viable-game)
+
+[DCLib References](https://ipfs.infura.io/ipfs/QmRYB24gqeuYHqFm2q48BmnFejL6P2mJtsjzvcjLB6MDm4)
+
