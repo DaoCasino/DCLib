@@ -47,5 +47,9 @@ Open it in browser and see console.
 
 [[RU] Minimal Game](https://daocasino.readme.io/v2.0/docs/minimum-viable-game)
 
+
+[[RU] Game with PayChannels](https://daocasino.readme.io/v2.1/docs/game-with-paychannels)
+
+
 [DCLib References](https://ipfs.infura.io/ipfs/QmRYB24gqeuYHqFm2q48BmnFejL6P2mJtsjzvcjLB6MDm4)
 
