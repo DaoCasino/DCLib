@@ -19,7 +19,7 @@ IMPORTANT: now lib work only in [ropsten](https://ropsten.etherscan.io/) test ne
 [See DApp example](https://github.com/DaoCasino/BankRollerApp/blob/master/DApps/example.zip)
 
 
-# Use
+# Usage
 
 ## Include JS in your DApp
 ```
