@@ -36,6 +36,7 @@ console.log(DCLib.version)
 ```
 
 Open it in browser and see console.
+
 <img src="https://raw.githubusercontent.com/DaoCasino/DCLib/master/manual/asset/console.log.init.png">
 
 
