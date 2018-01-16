@@ -265,9 +265,13 @@ export default class DApp {
 	openChannel(params, game_data=false) {
 		console.group(' 🔐 Open channel with deposit', params.deposit)
 		return new Promise(async (resolve, reject) => {
+			let gamedata = {}
 
-			let signed_args
 			let contract_address
+			this.contract_address
+				? contract_address = this.contract_address
+				: contract_address = params.contract.address
+
             // Check user balance
 			const user_balance = await Eth.getBalances(Account.get().openkey)
 
@@ -288,10 +292,7 @@ export default class DApp {
 				return false
 			}
 
-			this.contract_address
-                ? contract_address = this.contract_address
-                : contract_address = params.contract.address
-
+			
 			const approve = await Eth.ERC20approve(contract_address, params.deposit)
 
             // Open channel args
@@ -301,18 +302,14 @@ export default class DApp {
 			const bankroller_address   = params.bankroller_address
 			const player_deposit       = params.deposit
 			const bankroller_deposit   = params.deposit * 2
-			const gamedata             = game_data
 			const session              = 0
 			const ttl_blocks           = 120
 			const paychannel           = new paychannelLogic(parseInt(bankroller_deposit))
 
-            // console.info(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks)
+			console.info(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks)
+            
             // Sign hash from args
-            // const signed_args = Account.signHash( Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks) )
-
-			gamedata
-                ? signed_args = Account.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, gamedata))
-                : signed_args = Account.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks))
+			const signed_args = Account.signHash( Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks) )
 
 
 			console.log(bankroller_deposit)
