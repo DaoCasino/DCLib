@@ -112,7 +112,7 @@ export default class RTC {
 		this.channel = Channel(ipfs, room)
 		this.channel.on('message', rawmsg => {
 			let data = {}
-			console.log(rawmsg)
+
 			try {
 				data = JSON.parse( rawmsg.data.toString() )
 			} catch(e) {
