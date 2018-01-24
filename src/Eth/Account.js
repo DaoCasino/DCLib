@@ -337,7 +337,7 @@ export default class Account {
 			// .on('confirmation', (confirmationNumber, receipt)=>{ 
 			// 	console.info('confirmation:',confirmationNumber, receipt) 
 			// })
-			.on('error', err=>{ console.log(err) })
+			// .on('error', err=>{ console.log(err) })
 			.then(receipt=>{
 				console.log('Send bets receipt', receipt)
 				if (callback) callback(receipt)

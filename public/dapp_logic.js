@@ -2,7 +2,7 @@
  * Define our DApp logic constructor, 
  * for use it in frontend and bankroller side
  */
-DCLib.defineDAppLogic('dicegame_v3', function(){
+DCLib.defineDAppLogic('dicegame_v10', function(){
 	const _self = this
 
 	const MAX_RAND_NUM = 65535
@@ -24,7 +24,7 @@ DCLib.defineDAppLogic('dicegame_v3', function(){
 		}
 
 		// add result to paychannel
-		_self.payChannel.addTX( profit )
+		_self.payChannel.addTX( DCLib.Utils.dec2bet(profit) )
 		_self.payChannel.printLog()
 
 		// push all data to our log
