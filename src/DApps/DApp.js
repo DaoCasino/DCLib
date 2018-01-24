@@ -309,7 +309,7 @@ export default class DApp {
 			console.info(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks)
             
             // Sign hash from args
-			const signed_args = Account.signHash( Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks) )
+			const signed_args = Account.signHash( Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data) )
 
 
 			console.log(bankroller_deposit)
@@ -333,7 +333,7 @@ export default class DApp {
 					bankroller_address : bankroller_address ,
 					session            : session            ,
 					ttl_blocks         : ttl_blocks         ,
-					gamedata           : gamedata           ,
+					gamedata           : game_data           ,
 					signed_args        : signed_args
 				}
 			})
@@ -473,7 +473,7 @@ export default class DApp {
      *
      * @memberOf DApp
      */
-	closeChannel(params) {
+	closeChannel(params=false) {
 		const profit = this.logic.payChannel._getProfit()
 		if (this.connection_info.channel === false) return
 
@@ -487,7 +487,7 @@ export default class DApp {
 			const channel_id         = open_data.channel_id                                      // bytes32 id,
 			const player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance())         //profit + open_data.player_deposit // uint playerBalance,
 			const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance()) //-profit + open_data.bankroller_deposit // uint bankrollBalance,
-			const session            = params.session                                            // uint session=0px
+			const session            = params.session  || 0                                       // uint session=0px
 			const bool               = true
 
 			// console.log('@@@@@@@@', player_balance, bankroller_balance)

@@ -1,6 +1,6 @@
 {
 	"name" : "DiceDAppExample2",
-	"slug" : "dicegame_v3",
+	"slug" : "dicegame_v10",
 
 	"index" : "./index.html",
 	"logic" : "./dapp_logic.js",

@@ -1,7 +1,7 @@
 {
   "name": "dclib",
   "description": "Eth lib",
-  "version": "0.2.35",
+  "version": "0.2.405",
   "author": "name <to@alexstep.com>",
   "private": false,
   "homepage": "./",
@@ -23,7 +23,7 @@
   "keywords": [
     "DCLib"
   ],
-  "main": "api/lib/v2/DC.js",
+  "main": "./src/index.js",
   "lint-staged": {
     "*.js": [
       "eslint"
@@ -100,6 +100,7 @@
     "inquirer": "^4.0.1",
     "install": "^0.10.1",
     "jest": "20.0.3",
+    "lerna": "^2.8.0",
     "less": "^2.7.2",
     "less-loader": "^4.0.4",
     "lint-staged": "^4.3.0",
