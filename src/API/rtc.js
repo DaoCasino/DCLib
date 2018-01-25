@@ -1,308 +1,297 @@
+/* global localStorage */
+
 import _config    from 'config/config'
 import EE         from 'event-emitter'
 
 import * as Utils from 'utils/utils'
 
-import IPFS from 'ipfs'
+import IPFS    from 'ipfs'
 import Channel from 'ipfs-pubsub-room'
 
 const delivery_timeout = 3000
-const msg_ttl          = 10*60*1000
+const msg_ttl          = 10 * 60 * 1000
 
+const seedsDB = (function () {
+  const store_name = 'rtc_msgs_seeds'
 
-const seedsDB = (function(){
-	const store_name = 'rtc_msgs_seeds'
+  let _seeds = {}
+  let w_time = false
+  const read = function () {
+    if (!localStorage) { return }
+    try {
+      _seeds = JSON.parse(localStorage[store_name])
+    } catch (e) {
+      _seeds = {}
+    }
+  }
+  const write = function () {
+    if (!localStorage) { return }
 
-	let _seeds = {}
-	let w_time = false	
-	const read = function(){
-		if (!localStorage) { return }
-		try {
-			_seeds = JSON.parse( localStorage[store_name] )
-		} catch(e){
-			_seeds = {}
-		}
-	}
-	const write = function(){
-		if (!localStorage) { return }
-		
-		clearTimeout(w_time)
-		w_time = setTimeout(function(){
-			localStorage[store_name] = JSON.stringify(_seeds)
-		}, 500)
-	}
+    clearTimeout(w_time)
+    w_time = setTimeout(function () {
+      localStorage[store_name] = JSON.stringify(_seeds)
+    }, 500)
+  }
 
-	read()
+  read()
 
-	return {	
-		add(data, id){
-			_seeds[id] = data
-			write()
-		},
+  return {
+    add (data, id) {
+      _seeds[id] = data
+      write()
+    },
 
-		get(id){
-			if (!_seeds[id]) read()
+    get (id) {
+      if (!_seeds[id]) read()
 
-			return _seeds[id] || null
-		},
+      return _seeds[id] || null
+    },
 
-		getAll(){
-			return _seeds
-		},
+    getAll () {
+      return _seeds
+    },
 
-		remove(id){
-			delete _seeds[id]
-			write()
-		}
-	}
+    remove (id) {
+      delete _seeds[id]
+      write()
+    }
+  }
 })()
-
-
-
 
 let ipfs_connected = false
 const ipfs = new IPFS({
-	repo: '../database',
-	EXPERIMENTAL: {
-		pubsub: true
-	},
-	config: {
-		Addresses: {
-			Swarm: [
-				'/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
-				// '/ip4/127.0.0.1/tcp/4001'
-			]
-		}
-	}
+  repo: '../database',
+  EXPERIMENTAL: {
+    pubsub: true
+  },
+  config: {
+    Addresses: {
+      Swarm: [
+        '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
+        // '/ip4/127.0.0.1/tcp/4001'
+      ]
+    }
+  }
 })
 ipfs.on('ready', () => {
-	ipfs_connected = true
+  ipfs_connected = true
 })
 
 export default class RTC {
-	constructor(user_id=false, room=false) {
-		room = room || _config.rtc_room
-		
-		const EC = function(){}
-		EE(EC.prototype)
-		this.Event = new EC()
+  constructor (user_id = false, room = false) {
+    room = room || _config.rtc_room
 
-		if (!room) {
-			console.error('empty room name')
-			return
-		}
+    const EC = function () {}
+    EE(EC.prototype)
+    this.Event = new EC()
 
-		this.room_id = ''+room
-		this.user_id = user_id
+    if (!room) {
+      console.error('empty room name')
+      return
+    }
 
-		this.channel = false
-		this.connect(room)
+    this.room_id = '' + room
+    this.user_id = user_id
 
-		this.clearOldSeeds()
-	}
+    this.channel = false
+    this.connect(room)
 
-	connect(room){
-		if (!ipfs_connected) {
-			setTimeout(()=>{
-				this.connect(room)
-			}, 999)
-			return
-		}
+    this.clearOldSeeds()
+  }
 
-		this.channel = Channel(ipfs, room)
-		this.channel.on('message', rawmsg => {
-			let data = {}
+  connect (room) {
+    if (!ipfs_connected) {
+      setTimeout(() => {
+        this.connect(room)
+      }, 999)
+      return
+    }
 
-			try {
-				data = JSON.parse( rawmsg.data.toString() )
-			} catch(e) {
-				return
-			}
+    this.channel = Channel(ipfs, room)
+    this.channel.on('message', rawmsg => {
+      let data = {}
 
-			if (data.user_id && data.user_id==this.user_id) { return }
-			// if (data.room_id != this.room_id) {
-			// 	return
-			// }
+      try {
+        data = JSON.parse(rawmsg.data.toString())
+      } catch (e) {
+        return
+      }
 
-			this.acknowledgeReceipt(data)
+      if (data.user_id && data.user_id === this.user_id) { return }
+      // if (data.room_id != this.room_id) {
+      //  return
+      // }
 
+      this.acknowledgeReceipt(data)
 
-			this.Event.emit('all', data)
-			
-			if (data.uiid) {
-				this.Event.emit('uiid::'+data.uiid, data)
-			}
+      this.Event.emit('all', data)
 
-			if (data.type && data.action) {
-				this.Event.emit(data.type+'::'+data.action, data)
-			}
+      if (data.uiid) {
+        this.Event.emit('uiid::' + data.uiid, data)
+      }
 
-			if (data.action) {
-				this.Event.emit('action::'+data.action, data)
-			}
+      if (data.type && data.action) {
+        this.Event.emit(data.type + '::' + data.action, data)
+      }
 
-			if (data.address) {
-				this.Event.emit('address::'+data.address, data)
-			}
+      if (data.action) {
+        this.Event.emit('action::' + data.action, data)
+      }
 
-			if (data.user_id) {
-				this.Event.emit('user_id::'+data.user_id, data)
-			}
-		})
+      if (data.address) {
+        this.Event.emit('address::' + data.address, data)
+      }
 
-		this.channel.on('peer joined', (peer) => {
-			console.log('Peer joined the room', peer)
-		})
-		
-		this.channel.on('peer left', (peer) => {
-			console.log('Peer left...', peer)
-		})
-		
-		// now started to listen to room
-		this.channel.on('subscribed', () => {
-			console.log('Now connected!')
-		})
+      if (data.user_id) {
+        this.Event.emit('user_id::' + data.user_id, data)
+      }
+    })
 
-	}
+    this.channel.on('peer joined', (peer) => {
+      console.log('Peer joined the room', peer)
+    })
 
-	async isAlreadyReceived(data){
-		if (!data.seed || data.action == 'delivery_confirmation') { return false }
+    this.channel.on('peer left', (peer) => {
+      console.log('Peer left...', peer)
+    })
 
-		const seed_exist = await seedsDB.get(data.seed)
-		if (seed_exist && this.isFreshSeed(seed_exist.t) ) {
-			return true
-		}
-		
-		seedsDB.add({t:new Date().getTime()}, data.seed)
-		
-		return false
-	}
+    // now started to listen to room
+    this.channel.on('subscribed', () => {
+      console.log('Now connected!')
+    })
+  }
 
-	isFreshSeed(time){
-		let ttl = msg_ttl || 7*1000
-		let livetime = (new Date().getTime()) - time*1
-		return ( livetime < ttl )
-	}
+  async isAlreadyReceived (data) {
+    if (!data.seed || data.action === 'delivery_confirmation') { return false }
 
-	async clearOldSeeds(){
-		let seeds = await seedsDB.getAll()
-		
-		if (seeds.length) console.log('clear old msgs seeds',seeds)
-		
-		for(let id in seeds){
-			if (!this.isFreshSeed(seeds[id].t)){
-				seedsDB.remove(id)
-			}
-		}
+    const seed_exist = await seedsDB.get(data.seed)
+    if (seed_exist && this.isFreshSeed(seed_exist.t)) {
+      return true
+    }
 
-		setTimeout(()=>{ this.clearOldSeeds() }, 10*1000 )
-	}
+    seedsDB.add({t: new Date().getTime()}, data.seed)
 
+    return false
+  }
 
-	on(event, callback){
-		this.Event.on(event, callback)
-	}
-	
-	once(event, callback){
-		this.Event.once(event, callback)
-	}
+  isFreshSeed (time) {
+    let ttl = msg_ttl || 7 * 1000
+    let livetime = (new Date().getTime()) - time * 1
+    return (livetime < ttl)
+  }
 
-	off(event, callback){
-		this.Event.off(event, callback)
-	}
+  async clearOldSeeds () {
+    let seeds = await seedsDB.getAll()
 
-	subscribe(address, callback){
-		this.on('address::'+address, callback)
-	}
+    if (seeds.length) console.log('clear old msgs seeds', seeds)
 
-	unsubscribe(address, callback) {
-		this.off('address::'+address, callback)
-	}
+    for (let id in seeds) {
+      if (!this.isFreshSeed(seeds[id].t)) {
+        seedsDB.remove(id)
+      }
+    }
 
+    setTimeout(() => { this.clearOldSeeds() }, 10 * 1000)
+  }
 
-	// Подтверждение получения принятого сообщения
-	acknowledgeReceipt(acquired_data){
-		if (!acquired_data.user_id  || !acquired_data.action
-			|| acquired_data.user_id == this.user_id
-			|| acquired_data.action  == 'delivery_confirmation'
-			|| acquired_data.action  == 'bankroller_active') {
-			
-			return
-		}
+  on (event, callback) {
+    this.Event.on(event, callback)
+  }
 
-		this.sendMsg({
-			address  : acquired_data.address   ,
-			seed     : Utils.makeSeed()        ,
-			action   : 'delivery_confirmation' ,
-			acquired : acquired_data
-		})
-	}
+  once (event, callback) {
+    this.Event.once(event, callback)
+  }
 
-	// Проверка получения сообщения
-	CheckReceipt(sended_data, callback){
+  off (event, callback) {
+    this.Event.off(event, callback)
+  }
 
-		let address = sended_data.address
-		let waitReceipt = data => {
-			if (!data.action || data.action != 'delivery_confirmation') {
-				return
-			}
+  subscribe (address, callback) {
+    this.on('address::' + address, callback)
+  }
 
-			if (this.equaMsgs(sended_data, data.acquired) ) {
-				this.unsubscribe(address, waitReceipt)
+  unsubscribe (address, callback) {
+    this.off('address::' + address, callback)
+  }
 
-				if (this.CheckReceiptsT[sended_data.seed]) {
-					clearTimeout(this.CheckReceiptsT[sended_data.seed])
-				}
+  // Подтверждение получения принятого сообщения
+  acknowledgeReceipt (acquired_data) {
+    if (!acquired_data.user_id  || !acquired_data.action ||
+      acquired_data.user_id === this.user_id ||
+      acquired_data.action  === 'delivery_confirmation' ||
+      acquired_data.action  === 'bankroller_active') {
+      return
+    }
 
-				callback(true)
-			}
-		}
+    this.sendMsg({
+      address: acquired_data.address,
+      seed: Utils.makeSeed(),
+      action: 'delivery_confirmation',
+      acquired: acquired_data
+    })
+  }
 
-		this.subscribe(address, waitReceipt)
+  // Проверка получения сообщения
+  CheckReceipt (sended_data, callback) {
+    let address = sended_data.address
+    let waitReceipt = data => {
+      if (!data.action || data.action !== 'delivery_confirmation') {
+        return
+      }
 
-		if (!this.CheckReceiptsT) { this.CheckReceiptsT = {} }
+      if (this.equaMsgs(sended_data, data.acquired)) {
+        this.unsubscribe(address, waitReceipt)
 
-		this.CheckReceiptsT[sended_data.seed] = setTimeout(()=>{
-			this.unsubscribe(address, waitReceipt)
+        if (this.CheckReceiptsT[sended_data.seed]) {
+          clearTimeout(this.CheckReceiptsT[sended_data.seed])
+        }
 
-			callback(false)
-		}, delivery_timeout)
-	}
+        callback(true)
+      }
+    }
 
-	equaMsgs(msg1, msg2) { return (JSON.stringify(msg1) == JSON.stringify(msg2)) }
+    this.subscribe(address, waitReceipt)
 
-	// Отправка сообщения с ожидание подтверждения получения
-	send(data, callback=false, repeat=5){
-		if (!this.channel) {
-			setTimeout(()=>{ this.send(data, callback) },1000)
-			return
-		}
+    if (!this.CheckReceiptsT) { this.CheckReceiptsT = {} }
 
+    this.CheckReceiptsT[sended_data.seed] = setTimeout(() => {
+      this.unsubscribe(address, waitReceipt)
 
-		data = this.sendMsg(data)
+      callback(false)
+    }, delivery_timeout)
+  }
 
-		if (!data.address) { return }
+  equaMsgs (msg1, msg2) { return (JSON.stringify(msg1) === JSON.stringify(msg2)) }
 
-		this.CheckReceipt(data, delivered=>{
-			if (!delivered && repeat > 0) {
-				repeat--
-				this.send(data, callback, repeat)
-				return
-			}
+  // Отправка сообщения с ожидание подтверждения получения
+  send (data, callback = false, repeat = 5) {
+    if (!this.channel) {
+      setTimeout(() => { this.send(data, callback) }, 1000)
+      return
+    }
 
-			if(callback) callback(delivered)
-		})
-	}
+    data = this.sendMsg(data)
 
+    if (!data.address) { return }
 
-	sendMsg(data){
-		data.seed       = Utils.makeSeed()
-		data.user_id    = this.user_id
-		// data.room_id = this.room_id
+    this.CheckReceipt(data, delivered => {
+      if (!delivered && repeat > 0) {
+        repeat--
+        this.send(data, callback, repeat)
+        return
+      }
 
-		this.channel.broadcast(JSON.stringify(data))
-		
-		return data
-	}
+      if (callback) callback(delivered)
+    })
+  }
+
+  sendMsg (data) {
+    data.seed       = Utils.makeSeed()
+    data.user_id    = this.user_id
+    // data.room_id = this.room_id
+
+    this.channel.broadcast(JSON.stringify(data))
+
+    return data
+  }
 }
-
