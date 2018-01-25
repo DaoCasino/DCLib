@@ -6,6 +6,7 @@ module.exports = {
         'key-spacing'                  : ['off'],
         'camelcase'                    : ['off'],
         'standard/no-callback-literal' : ['off'],
+        'semi'                         : ['warn'],
         'no-tabs'                      : ['warn'],
         'no-irregular-whitespace'      : ['warn'],
         'new-cap'                      : ['warn'],

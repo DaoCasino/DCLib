@@ -3,6 +3,7 @@ export default function (DCLib) {
   console.log('\n')
   console.log('%c DCLib (DApps API) v ' + DCLib.version + ' - initialized', 'background:#333; color:#d99736; padding:5px 10px; ')
   console.log('\n')
+
   console.groupCollapsed(' >>> README <<< ')
 
   console.log('\n')
