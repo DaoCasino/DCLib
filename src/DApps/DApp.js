@@ -77,7 +77,7 @@ export default class DApp {
     this.slug = params.slug
     this.code = params.slug
     /** @ignore */
-    this.hash = Utils.checksum(logic)
+    this.hash = Utils.checksum(this.slug)
     /** DApp logic */
     this.logic = payChannelWrap(logic)
 

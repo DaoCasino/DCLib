@@ -9,7 +9,7 @@ module.exports = {
   rtc_store : 'rtc_msgs',
 
   network   : 'ropsten',
-  rpc_url   : 'https      : //ropsten.infura.io/JCnK5ifEPH9qcQkX0Ahl',
+  rpc_url   : 'https://ropsten.infura.io/JCnK5ifEPH9qcQkX0Ahl',
 
   contracts: {
     erc20      : require('./contracts/erc20.js'),

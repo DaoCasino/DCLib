@@ -1,9 +1,9 @@
 {
-	"name" : "DiceDAppExample2",
-	"slug" : "dicegame_v10",
+  "name" : "Dice Game v.2",
+  "slug" : "dicetest_v1",
 
-	"index" : "./index.html",
-	"logic" : "./dapp_logic.js",
+  "index" : "./index.html",
+  "logic" : "./dapp_logic.js",
 
-	"run"   : "./bankroller.js"
+  "run"   : "./bankroller.js"
 }

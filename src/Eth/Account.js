@@ -270,7 +270,7 @@ export default class Account {
    */
   signHash (hash) {
     hash = Utils.add0x(hash)
-    if (this.web3.utils.isHexStrict(hash)) {
+    if (!this.web3.utils.isHexStrict(hash)) {
       console.log(hash + ' is not correct hex')
       console.log('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash')
     }

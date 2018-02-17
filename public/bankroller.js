@@ -1,11 +1,9 @@
+/* global DCLib */
+(function () {
+  var myDApp = new DCLib.DApp({slug : 'dicetest_v1'})
 
-//(function(){
-window.MyDApp_debug = (function(){
-	var myDApp = new DCLib.DApp({slug : 'dicegame_v10'})
+  // Banroller side code
+  console.log(myDApp)
 
-	// Banroller side code
-	console.log(myDApp)
-
-	return myDApp
+  return myDApp
 })()
-
