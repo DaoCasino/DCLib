@@ -75,9 +75,11 @@ export default class PayChannel {
     }
 
     deposit.player     = Utils.bet2dec(d)
+    deposit.bankroller = Utils.bet2dec(d * 2)
+    console.log('__deposit__',deposit)
     balance.player     = (1 * deposit.player)
     balance.bankroller = (1 * deposit.bankroller)
-
+    console.log('__balance__',balance)
     console.log('PayChannel::User deposit set ' + deposit.player + ' bankroller deposit set' + deposit.bankroller + ', now user balance:', deposit.player)
     return balance
   }
@@ -176,7 +178,8 @@ export default class PayChannel {
 
     balance.player     = deposit.player     + _profit
     balance.bankroller = deposit.bankroller - _profit
-
+    console.log(_profit)
+    console.log(balance)
     _history.push({
       profit    : p,
       balance   : balance.player,
