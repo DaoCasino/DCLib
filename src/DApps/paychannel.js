@@ -79,7 +79,7 @@ export default class PayChannel {
     console.log('__deposit__',deposit)
     balance.player     = (1 * deposit.player)
     balance.bankroller = (1 * deposit.bankroller)
-    console.log('__balance__',balance)
+    console.log('___balance___',balance)
     console.log('PayChannel::User deposit set ' + deposit.player + ' bankroller deposit set' + deposit.bankroller + ', now user balance:', deposit.player)
     return balance
   }
