@@ -9,19 +9,6 @@ import DApp       from './DApps/DApp'
 import printDocs  from './docs.js'
 
 /**
- * Reload page if this is bankroller server
- */
-// import io from 'socket.io-client'
-
-// if (window && window.location.host.indexOf('localhost:') > -1) {
-//   const socket = io('http://localhost:9997')
-//   socket.on('reload_page', data => {
-//     console.log('socket_event', data)
-//     window.location.reload()
-//   })
-// }
-
-/**
  * @ignore
  */
 const ourApi = new Api(_config)

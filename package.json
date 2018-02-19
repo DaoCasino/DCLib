@@ -6,7 +6,7 @@
   "private": false,
   "homepage": "./",
   "scripts": {
-    "preinstall": "npm i -D lerna",
+    "preinstall": "cd ./packages/dc-messaging/ && npm i",
     "start": "node scripts/start.js",
     "eslint": "eslint --ext=.js,.tag ./src",
     "lint-staged": "lint-staged",
@@ -59,10 +59,7 @@
   "dependencies": {
     "big-integer": "^1.6.23",
     "event-emitter": "^0.3.5",
-    "ipfs": "^0.27.7",
-    "ipfs-pubsub-room": "^1.1.5",
-    "socket.io": "^2.0.4",
-    "web3": "git://github.com/ethereum/web3.js.git#1.0ES6"
+    "web3": "^1.0.0-beta.30"
   },
   "devDependencies": {
     "archiver": "^2.1.0",

@@ -1,7 +1,7 @@
 /* global DCLib */
 
 import _config         from 'config/config'
-import Rtc             from 'API/rtc'
+import Rtc             from 'dc-messaging'
 import EthHelpers      from 'Eth/helpers'
 import Acc             from 'Eth/Account'
 import * as Utils      from 'utils/utils'

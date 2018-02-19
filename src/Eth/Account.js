@@ -2,8 +2,8 @@ import conf from 'config/config'
 import * as Utils from 'utils/utils'
 
 // import web3accounts  from 'web3/packages/web3-eth-accounts'
-import WEB3 from 'web3/packages/web3'
-import {sign as signHash} from 'web3/packages/web3-eth-accounts/node_modules/eth-lib/lib/account.js'
+import WEB3 from 'web3'
+import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
 let _config, ERC20
 
