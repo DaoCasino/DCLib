@@ -7,6 +7,7 @@ ratings:
   - "src/**.js"
 
 exclude_paths:
+  - "public/tests/**"
   - "scripts/**"
   - "manual/**"
   - "contracts/**"
