@@ -291,7 +291,7 @@ export default class DApp {
       const bankroller_deposit = params.deposit * 2
       const session            = 0
       const ttl_blocks         = 120
-      // const paychannel         = new paychannelLogic(parseInt(bankroller_deposit))
+      // window.paychannel         = new PaychannelLogic(parseInt(bankroller_deposit))
 
       console.info(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks)
 
@@ -335,10 +335,9 @@ export default class DApp {
       response.bankroller_deposit = params.deposit * 2
       response.session            = 0
 
+      this.logic.payChannel.setDeposit(Utils.dec2bet(player_deposit))
       if (response.receipt && response.receipt.transactionHash) {
         // Set deposit in logic
-        this.logic.payChannel.setDeposit(Utils.dec2bet(player_deposit))
-
         response.contract_address = response.receipt.to
 
         console.log('🎉 Channel opened https://ropsten.etherscan.io/tx/' + response.receipt.transactionHash)
@@ -487,6 +486,7 @@ export default class DApp {
         paychannel : open_data.contract_address,
         close_args: {
           channel_id         : channel_id,
+          user_id            : Account.get().openkey,
           player_balance     : player_balance,
           bankroller_balance : bankroller_balance,
           session            : session,
