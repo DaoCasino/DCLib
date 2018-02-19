@@ -473,7 +473,7 @@ export default class DApp {
       // Sign hash from args
       const signed_args = Account.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool))
 
-      console.log('🙏 ask the bankroller to close the channel')
+      console.log('🙏 ask  the bankroller to close the channel')
 
       let dots_i = setInterval(() => {
         const items = ['wait', 'closing...', 'yes its really not so easy', '..', '...', 'bankroller verify checksums of results...', '']
