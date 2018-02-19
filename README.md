@@ -1,6 +1,7 @@
 # [DCLib](https://github.com/DaoCasino/DCLib) 
 
-[![JavaScript Style Guide](https://cdn.rawgit.com/standard/standard/master/badge.svg)](https://github.com/standard/standard)
+[![Maintainability](https://api.codeclimate.com/v1/badges/ea47df84b3790c8a0692/maintainability)](https://codeclimate.com/github/DaoCasino/DCLib/maintainability)
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 
 DCLib is javascript library for integrate [dao.casino blockchain protocol](https://github.com/DaoCasino/Whitepaper).
