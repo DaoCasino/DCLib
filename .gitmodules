@@ -1,6 +1,3 @@
-[submodule "src/packages/dc-messaging"]
-	path = src/packages/dc-messaging
-	url = git@github.com:DaoCasino/dc-messaging.git
 [submodule "packages/dc-messaging"]
 	path = packages/dc-messaging
 	url = git@github.com:DaoCasino/dc-messaging.git
