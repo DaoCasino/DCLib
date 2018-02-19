@@ -1,6 +1,15 @@
 engines:
   eslint:
     enabled: true
+  fixme:
+     enabled: true
+     config:
+       strings:
+       - TODO
+       - FIXME
+       - BUG
+  git-legal:
+    enabled: true
 
 ratings:
   paths:
@@ -11,3 +20,37 @@ exclude_paths:
   - "scripts/**"
   - "manual/**"
   - "contracts/**"
+
+checks:
+  argument-count:
+    enabled: true
+    config:
+      threshold: 4
+  complex-logic:
+    enabled: true
+    config:
+      threshold: 4
+  file-lines:
+    enabled: true
+    config:
+      threshold: 900
+  method-complexity:
+    enabled: true
+    config:
+      threshold: 15
+  method-count:
+    enabled: true
+    config:
+      threshold: 20
+  method-lines:
+    enabled: true
+    config:
+      threshold: 100
+  nested-control-flow:
+    enabled: true
+    config:
+      threshold: 4
+  return-statements:
+    enabled: true
+    config:
+      threshold: 4
