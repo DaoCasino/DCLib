@@ -37,7 +37,7 @@ export default class Account {
      */
     this.web3 = new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
 
-    this.initAccount(log)
+    // this.initAccount(log)
 
     callback()
   }
