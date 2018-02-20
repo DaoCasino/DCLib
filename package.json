@@ -1,7 +1,7 @@
 {
   "name": "dclib",
   "description": "Eth lib",
-  "version": "0.2.405",
+  "version": "3.0.0-beta.0",
   "author": "name <to@alexstep.com>",
   "private": false,
   "homepage": "./",
