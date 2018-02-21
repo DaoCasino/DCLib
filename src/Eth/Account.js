@@ -144,6 +144,8 @@ export default class Account {
   unlockAccount (password = false) {
     password = password || _config.wallet_pass
 
+    if (!localStorage.web3wallet) return false
+
     _wallet = this.web3.eth.accounts.decrypt(
       localStorage.web3wallet,
       password
@@ -324,9 +326,9 @@ export default class Account {
     return ERC20.methods
       .transfer(to, amount)
       .send({
-        from     : this.get().openkey,
-        gasPrice : _config.gasPrice,
-        gas      : (await ERC20.methods.transfer(to, amount).estimateGas({from: this.get().openkey}))
+        from: this.get().openkey,
+        gasPrice: _config.gasPrice,
+        gas: (await ERC20.methods.transfer(to, amount).estimateGas({from: this.get().openkey}))
       })
       .on('transactionHash', transactionHash => { console.info('transactionHash:', transactionHash) })
       .on('receipt', receipt => { console.info('receipt:', receipt) })

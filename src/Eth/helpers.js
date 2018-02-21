@@ -23,7 +23,15 @@ export default class EthHelpers {
    * @ignore
    */
   constructor () {
-    Account.initAccount()
+    const waitAcc = done => {
+      if (!Account.unlockAccount()) {
+        setTimeout(() => {
+          waitAcc()
+        }, 1000)
+        return
+      }
+      done()
+    }
 
     /**
      * ERC20
@@ -31,10 +39,12 @@ export default class EthHelpers {
      *
      * @see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
      */
-    this.ERC20 = new web3.eth.Contract(
-      _config.contracts.erc20.abi,
-      _config.contracts.erc20.address
-    )
+    waitAcc(() => {
+      this.ERC20 = new web3.eth.Contract(
+        _config.contracts.erc20.abi,
+        _config.contracts.erc20.address
+      )
+    })
   }
 
   /**
