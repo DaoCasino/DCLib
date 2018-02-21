@@ -74,8 +74,8 @@ let webpack_prod_config = {
 		// Generated JS file names (with nested folders).
 		// There will be one main bundle, and one file per asynchronous chunk.
 		// We don't currently advertise code splitting but Webpack supports it.
-		filename: '../api/lib/v2/DC.js',
-		chunkFilename: '../api/lib/v2/DC.[chunkhash:8].chunk.js',
+		filename: 'DC.js',
+		chunkFilename: 'DC.[chunkhash:8].chunk.js',
 
 		// We inferred the "public path" (such as / or /my-project) from homepage.
 		publicPath: publicPath,
