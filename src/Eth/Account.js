@@ -64,7 +64,7 @@ export default class Account {
           _config.wallet_pass
         )
       )
-      // this.web3.eth.accounts.wallet.add()
+      this.web3.eth.accounts.wallet.add(privateKey)
 
       if (log) console.info(' 👤 New account created:', _wallet.openkey)
     }

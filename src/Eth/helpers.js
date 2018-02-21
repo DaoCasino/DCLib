@@ -1,5 +1,5 @@
-import _config    from 'config/config'
-import Acc        from 'Eth/Account'
+import _config from 'config/config'
+import Acc from 'Eth/Account'
 import * as Utils from 'utils/utils'
 
 /**
@@ -23,6 +23,8 @@ export default class EthHelpers {
    * @ignore
    */
   constructor () {
+    Account.initAccount()
+
     /**
      * ERC20
      * This is web3.eth.contract instanse of our [ERC20 contract](https://ropsten.etherscan.io/address/0x95a48dca999c89e4e284930d9b9af973a7481287#code)
@@ -164,15 +166,15 @@ export default class EthHelpers {
         console.log('Allow paychannel to withdraw from your account, multiple times, up to the ' + amount + ' amount.')
 
         const approveAmount = amount * 9
-        
+
         const gasLimit = await this.ERC20.methods.approve(spender, approveAmount).estimateGas({from: Account.get().openkey})
         const receipt = await this.ERC20.methods.approve(
           spender,
           approveAmount
         ).send({
-          from     : Account.get().openkey,
-          gasPrice : 1.4 * _config.gasPrice,
-          gas      : gasLimit
+          from: Account.get().openkey,
+          gasPrice: 1.4 * _config.gasPrice,
+          gas: gasLimit
         }).on('transactionHash', transactionHash => {
           console.log('# approve TX pending', transactionHash)
           console.log('https://ropsten.etherscan.io/tx/' + transactionHash)
