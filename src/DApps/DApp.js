@@ -333,7 +333,7 @@ export default class DApp {
       response.session            = 0
       console.log(response)
       this.logic.payChannel.setDeposit(Utils.dec2bet(player_deposit))
-      
+
       if (response.receipt) {
         // Set deposit in logic
         response.contract_address = response.receipt.to
@@ -343,7 +343,7 @@ export default class DApp {
         console.log(response)
         console.groupEnd()
       }
-      clearInterval(dots_i)      
+      clearInterval(dots_i)
       resolve(response)
       console.groupEnd()
     })
