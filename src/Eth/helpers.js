@@ -164,14 +164,14 @@ export default class EthHelpers {
         console.log('Allow paychannel to withdraw from your account, multiple times, up to the ' + amount + ' amount.')
 
         const approveAmount = amount * 9
-
+        
         const gasLimit = await this.ERC20.methods.approve(spender, approveAmount).estimateGas({from: Account.get().openkey})
         const receipt = await this.ERC20.methods.approve(
           spender,
           approveAmount
         ).send({
           from     : Account.get().openkey,
-          gasPrice : 1.2 * _config.gasPrice,
+          gasPrice : 1.4 * _config.gasPrice,
           gas      : gasLimit
         }).on('transactionHash', transactionHash => {
           console.log('# approve TX pending', transactionHash)

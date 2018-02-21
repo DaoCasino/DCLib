@@ -279,6 +279,8 @@ export default class DApp {
         // throw new Error('Low BETs balance')
         return false
       }
+      console.log(contract_address)
+      console.log(params.deposit)
 
       await Eth.ERC20approve(contract_address, params.deposit)
 
@@ -306,8 +308,6 @@ export default class DApp {
         console.log('⏳ ' + items[Math.floor(Math.random() * items.length)])
       }, 1500)
 
-      console.log('Game data: ', game_data)
-
       let response = await this.request({
         action     : 'open_channel',
         deposit    : params.deposit,
@@ -327,16 +327,14 @@ export default class DApp {
       if (response.more) {
         console.log('the previous transaction was not completed')
       }
-
-      clearInterval(dots_i)
-
       response.channel_id         = channel_id
       response.player_deposit     = params.deposit
       response.bankroller_deposit = params.deposit * 2
       response.session            = 0
-
+      console.log(response)
       this.logic.payChannel.setDeposit(Utils.dec2bet(player_deposit))
-      if (response.receipt && response.receipt.transactionHash) {
+      
+      if (response.receipt) {
         // Set deposit in logic
         response.contract_address = response.receipt.to
 
@@ -345,7 +343,7 @@ export default class DApp {
         console.log(response)
         console.groupEnd()
       }
-
+      clearInterval(dots_i)      
       resolve(response)
       console.groupEnd()
     })
@@ -486,7 +484,7 @@ export default class DApp {
         paychannel : open_data.contract_address,
         close_args: {
           channel_id         : channel_id,
-          user_id            : Account.get().openkey,
+          player_address     : Account.get().openkey,
           player_balance     : player_balance,
           bankroller_balance : bankroller_balance,
           session            : session,
