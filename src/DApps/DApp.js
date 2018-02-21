@@ -295,7 +295,7 @@ export default class DApp {
       const ttl_blocks         = 120
       // window.paychannel         = new PaychannelLogic(parseInt(bankroller_deposit))
 
-      console.info(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks)
+      console.info(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data)
 
       // Sign hash from args
       const signed_args = Account.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data))
