@@ -6,7 +6,7 @@
   "private": false,
   "homepage": "./",
   "scripts": {
-    "preinstall": "cd ./packages/dc-messaging/ && npm i",
+    "preinstall": "cd ./packages/dc-messaging/ && yarn",
     "start": "node scripts/start.js",
     "eslint": "eslint --ext=.js,.tag ./src",
     "lint-staged": "lint-staged",
