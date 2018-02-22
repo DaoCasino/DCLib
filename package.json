@@ -6,7 +6,7 @@
   "private": false,
   "homepage": "./",
   "scripts": {
-    "preinstall": "cd ./packages/dc-messaging/ && npm i",
+    "preinstall": "cd ./packages/dc-messaging/ && pnpm i",
     "start": "node scripts/start.js",
     "eslint": "eslint --ext=.js,.tag ./src",
     "lint-staged": "lint-staged",
@@ -31,29 +31,6 @@
     ],
     "*.tag": [
       "eslint"
-    ]
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,tag}"
-    ],
-    "setupFiles": [
-      "<rootDir>/scripts/config/polyfills.js"
-    ],
-    "testMatch": [
-      "<rootDir>/src/**/__tests__/**/*.js?(x)",
-      "<rootDir>/src/**/?(*.)(spec|test).js?(x)"
-    ],
-    "testEnvironment": "node",
-    "testURL": "http://localhost",
-    "transform": {
-      "^.+\\.tag$": "riot-jest-transformer",
-      "^.+\\.js$": "<rootDir>/node_modules/babel-jest",
-      "^.+\\.css$": "<rootDir>/scripts/config/jest/cssTransform.js",
-      "^(?!.*\\.(js|tag|css|json)$)": "<rootDir>/scripts/config/jest/fileTransform.js"
-    },
-    "transformIgnorePatterns": [
-      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$"
     ]
   },
   "dependencies": {
@@ -114,8 +91,6 @@
     "promise": "7.1.1",
     "react-dev-utils": "^3.0.0",
     "release-it": "^5.0.0",
-    "riot-hot-reload": "^1.0.0",
-    "riot-jest-transformer": "^1.0.10",
     "riot-tag-loader": "^1.0.0",
     "serve": "^5.2.1",
     "style-loader": "^0.18.1",

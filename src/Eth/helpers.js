@@ -26,7 +26,7 @@ export default class EthHelpers {
     const waitAcc = done => {
       if (!Account.unlockAccount()) {
         setTimeout(() => {
-          waitAcc()
+          waitAcc(done)
         }, 1000)
         return
       }
