@@ -24,6 +24,7 @@
       $(document).ready(function () {
         // Create our DApp
         DCLib.on('ready', function () {
+          DCLib.Account.initAccount()
           window.MyDApp = new DCLib.DApp({slug : 'dicetest_v10'})
         })
 
