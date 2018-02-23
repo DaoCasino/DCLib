@@ -1,5 +1,6 @@
 # [DCLib](https://github.com/DaoCasino/DCLib) 
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6e1f9afb3da44e998f3bf2ad21c4b039)](https://app.codacy.com/app/alexstep/DCLib?utm_source=github.com&utm_medium=referral&utm_content=DaoCasino/DCLib&utm_campaign=badger)
 [![Maintainability](https://api.codeclimate.com/v1/badges/ea47df84b3790c8a0692/maintainability)](https://codeclimate.com/github/DaoCasino/DCLib/maintainability)
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
