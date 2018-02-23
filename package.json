@@ -4,7 +4,18 @@
   "version": "3.0.0-beta.0",
   "author": "name <team@dao.casino>",
   "private": false,
-  "homepage": "./",
+  "standard": {
+    "globals": [
+      "describe",
+      "context",
+      "before",
+      "beforeEach",
+      "after",
+      "afterEach",
+      "it",
+      "expect"
+    ]
+  },
   "scripts": {
     "preinstall": "git submodule update --init --recursive && npm i -g yarn && cd ./packages/dc-messaging/ && yarn",
     "start": "node scripts/start.js",
