@@ -3,11 +3,14 @@
 
 # testing
 /coverage
+.mocha-puppeteer
+.cache
 
 # production
 /api
 /build
 /docs
+/dist
 size-report.txt
 
 # misc
