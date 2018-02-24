@@ -1,7 +1,11 @@
 /* global DCLib describe it */
 // const assert = chai.assert
 
-describe('DCLib', () => {
+describe('DCLib', function() {
+  this.timeout(15000);
+
+  before('Init account', () => DCLib.Account.initAccount())
+
   it('DCLib.on(event, callback)', () => {
     DCLib.on('_ready', () => {
       console.log(5)
