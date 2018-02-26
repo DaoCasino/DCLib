@@ -110,7 +110,7 @@ export default class Account {
       return res.json()
     }).then(acc => {
       console.log('Server account data:', acc)
-      localStorage.account_from_server = acc
+      localStorage.account_from_server = JSON.stringify(acc)
       _wallet.openkey = acc.address
       return acc.privateKey
     }).catch(e => {
