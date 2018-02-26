@@ -16,8 +16,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      // { pattern: 'src/index.js', included: true, served: true, watched: false },
-      { pattern: 'dist/DC.js', included: true, served: true, watched: false },
+      { pattern: 'src/index.js', included: true, served: true, watched: false },
       'test/*'
     ],
 
