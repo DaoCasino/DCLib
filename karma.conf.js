@@ -17,6 +17,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       { pattern: 'src/index.js', included: true, served: true, watched: false },
+      // { pattern: 'dist/DC.js', included: true, served: true, watched: false },
       'test/*'
     ],
 
@@ -29,13 +30,32 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'src/index.js': ['webpack']
+      'src/index.js': ['webpack', 'sourcemap'],
     },
 
     webpack: {
+      module: {
+        rules: [
+          {
+            test: /\.js$/,
+            exclude: /(node_modules|bower_components)/,
+            use: {
+              loader: 'babel-loader',
+              options: {
+                presets: ['stage-2'],
+                plugins: [
+                  ['transform-es2015-modules-commonjs', { allowTopLevelThis: true }],
+                  ['istanbul']
+                ]
+              }
+            }
+          }
+        ]
+      },
       resolve: {
         modules: ['src', 'node_modules', 'packages']
-      }
+      },
+      devtool: 'inline-source-map'
     },
 
     client: {
@@ -44,10 +64,16 @@ module.exports = function(config) {
       }
     },
 
+    coverageReporter: {
+      type: 'lcov',
+      dir: 'coverage',
+      subdir: '.'
+    },
+
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['mocha'],
+    reporters: ['mocha', 'coverage'],
 
 
     // web server port

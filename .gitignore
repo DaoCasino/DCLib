@@ -1,6 +1,7 @@
 # dependencies
 .history
 .vscode
+.nyc_output
 node_modules
 
 # testing
