@@ -1,4 +1,5 @@
-const assert = chai.assert
+/* global DCLib describe it localStorage */
+// const assert = chai.assert
 
 function Tests () {
   describe('Account', () => {
@@ -79,7 +80,7 @@ function Tests () {
         this.timeout(8000)
         setTimeout(
           function () {
-            DCLib.Account.reset(),
+            DCLib.Account.reset()
             console.log('web3Wallet reseting')
           }, 7000)
       })
@@ -91,7 +92,7 @@ async function AddTokens () {
   const opnKey = JSON.parse(localStorage.web3wallet).address
   DCLib.faucet(opnKey)
 
-  const test = await Tests()
+  await Tests()
 }
 
 AddTokens()

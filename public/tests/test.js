@@ -1,131 +1,80 @@
-const assert = chai.assert
+/* global DCLib describe it */
+// const assert = chai.assert
 
-describe('DCLib', () => {
+describe('DCLib', function() {
 
+  before('should init account', function() {
+    this.timeout(20000)
+    return DCLib.Account.initAccount()
+  })
 
-	it('DCLib.on(event, callback)', () => {
-	
-		DCLib.on('_ready', () => {
-			console.log(5)
-		})
-	
-	})
+  it('should return random hash', () => {
+    const randomHash = DCLib.randomHash()
+    expect(randomHash).to.match(/^confirm\(0x[0-9a-z]+\)$/)
+  })
 
-	it('Random hash: DCLib.randomHash()', () => {
-	
-		const randomHash = DCLib.randomHash()
-		console.log('Random hash: ', randomHash)
-	
-	})
+  it('should return true when sign message is correct', function () {
+    this.timeout(20000)
+    const s = DCLib.Utils.makeSeed()
+    const checkSig = DCLib.checkSig(s, DCLib.Account.signHash(s), DCLib.Account.get().openkey)
+    // expect(checkSig).to.equal(true)
+  })
 
-	it('Sign check', function () {
+  it('should return false when sign message is failed', function () {
+    this.timeout(20000)
+    const s = '0xA312h31kj4h4l1hk34j123313j123141r1d1c2l3kl12'
+    const checkSig = DCLib.checkSig(s, DCLib.Account.signHash(s), DCLib.Account.get().openkey)
+    expect(checkSig).to.equal(false)
+  })
 
-		this.timeout(20000)
-	
-		console.groupCollapsed('Sign check')
-	
-			for (let i = 0; i < 3; i++) {
-				let str = 'Success'
-				let s = DCLib.Utils.makeSeed()
-				if (i === 2) {
-					s = '0xA312h31kj4h4l1hk34j123313j123141r1d1c2l3kl12'
-					str = 'Failed'
-				}
-				const checkSig = DCLib.checkSig(s, DCLib.Account.signHash(s), DCLib.Account.get().openkey)
-				console.log(str, checkSig)
-			}
-		
-		console.groupEnd()
+  it('should return true when sign hash message is correct', function () {
+    this.timeout(20000)
+    const s = DCLib.Utils.makeSeed()
+    const checkSig = DCLib.checkHashSig(s, DCLib.Account.signHash(s), DCLib.Account.get().openkey)
+    expect(checkSig).to.equal(true)
+  })
 
-	})
+  it('should return false when sign hash message is failed', function () {
+    this.timeout(20000)
+    const s = 'j312h31kj4h4l1hk34j123313j123141r1d1c2l3kl12'
+    const checkSig = DCLib.checkHashSig(s, DCLib.Account.signHash(s), DCLib.Account.get().openkey)
+    expect(checkSig).to.equal(false)
+  })
 
-	it('Check hash sign', function () {
+  it('should return string when sig hash recove', function () {
+    this.timeout(10000)
+    const s = DCLib.Utils.makeSeed()
+    const sigHashRecover = DCLib.sigHashRecover(s, DCLib.Account.signHash(s))
+    expect(sigHashRecover).to.be.a('string')
+  })
 
-		this.timeout(20000)
-	
-		console.groupCollapsed('Check hash sign')
-	
-			for (let i = 0; i < 3; i++) {
-				let str = 'Succes!'
-				let s = DCLib.Utils.makeSeed()
-				if (i === 2) {
-					s = 'j312h31kj4h4l1hk34j123313j123141r1d1c2l3kl12'
-					str = 'Failed!'
-				}
-				const checkHashSign = DCLib.checkHashSig(s, DCLib.Account.signHash(s), DCLib.Account.get().openkey)
-				console.log(str, checkHashSign)
-			}
-		
-		console.groupEnd()
+  it('should return string when sig recove', function () {
+    this.timeout(10000)
+    const s = DCLib.Utils.makeSeed()
+    const sigRecover = DCLib.sigRecover(s, DCLib.Account.signHash(s))
+    expect(sigRecover).to.be.a('string')
+  })
 
-	})
+/*
+  it('should add free bets', async function() {
+    this.timeout(20000)
+    const faucet = await DCLib.faucet()
+    console.log(faucet)
+  })
+*/  
 
-	it('Sig Hash Recover', function () {
-	
-		this.timeout(10000)
-		const s = DCLib.Utils.makeSeed()
-		const sigHashRecover = DCLib.sigHashRecover(s, DCLib.Account.signHash(s))
-		console.log('Sig hash recover: ',sigHashRecover)
-	
-	})
+  it('should return number from hash', function () {
+    const randomHash = DCLib.randomHash()
+    const min = Math.floor(Math.random(10) * 10)
+    const max =  11 + Math.floor(Math.random(50) * 50)
+    const numFromHash = DCLib.numFromHash(randomHash.slice(8, -1), min, max)
+    expect(numFromHash).to.be.a('number')
+    expect(numFromHash >= min && numFromHash <= max).to.equal(true)
+  })
 
-	it('Sig recover', function () {
-	
-		this.timeout(10000)
-		const s = DCLib.Utils.makeSeed()
-		const sigRecover = DCLib.sigRecover(s, DCLib.Account.signHash(s))
-		console.log('Sig recover: ', sigRecover)
-	
-	})
+  it('Define DApp logic', (done) => {
+    DCLib.defineDAppLogic('myGame_v1', done)
 
-	it('Faucet', function () {
-	
-		const faucet = DCLib.faucet(DCLib.Account.get().openkey)
-		console.log(faucet)
-	
-	})
-
-	it('Random hash', function () {
-
-		const randomHash = DCLib.randomHash()
-		console.log(randomHash)
-	
-	})
-
-	it('Number from hash', function () {
-
-		console.groupCollapsed('numFromHash')
-			for (let i = 0; i < 5; i++) {
-				const randomHash = DCLib.randomHash()
-				let min = Math.floor(Math.random(100) * 100)
-				const max = Math.floor(Math.random(1000) * 1000)
-				if (i % 2 === 0) {
-					min = 0 - min
-				}
-				const numFromHash = DCLib.numFromHash(randomHash.slice(8, -1), min, max)
-				console.log(`
-				Max value: ${max},
-				Min value: ${min}
-				Random num: ${numFromHash}`)
-			}
-		console.groupEnd()
-
-	})
-
-	it('Define DApp logic', () => {
-
-		DCLib.defineDAppLogic('myGame_v1', function () {
-			console.log('Game started')
-		})
-
-		window.MyDapp = new DCLib.DApp({
-			code: 'myGame_v1'
-		})
-
-	})
-
- })
-
-
-
-
+    window.MyDapp = new DCLib.DApp({ slug: 'myGame_v1' })
+  })
+})
