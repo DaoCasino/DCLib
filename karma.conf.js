@@ -11,13 +11,14 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha', 'chai'],
+    frameworks: ['mocha', 'chai', 'sinon'],
 
 
     // list of files / patterns to load in the browser
     files: [
-      { pattern: 'src/index.js', included: true, served: true, watched: false },
-      'public/tests/test.js'
+      // { pattern: 'src/index.js', included: true, served: true, watched: false },
+      { pattern: 'dist/DC.js', included: true, served: true, watched: false },
+      'test/*'
     ],
 
 
@@ -35,6 +36,12 @@ module.exports = function(config) {
     webpack: {
       resolve: {
         modules: ['src', 'node_modules', 'packages']
+      }
+    },
+
+    client: {
+      mocha: {
+          timeout: '20000'
       }
     },
 

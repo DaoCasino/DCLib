@@ -1,5 +1,6 @@
 # dependencies
 .history
+.vscode
 node_modules
 
 # testing
