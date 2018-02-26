@@ -485,6 +485,21 @@ export default class DApp {
     if (callback) callback(result)
   }
 
+  async updateChannelBalance (params) {
+    const player_address = Account.get().openkey
+    const profit         = params.profit
+
+    const receipt = await this.request({
+      action: 'update_balance',
+      player_address: player_address,
+      profit: profit
+    })
+
+    if (receipt.complete) {
+      this.logic.payChannel.addTX(profit)
+    }
+  }
+
   /**
    * Closin game channel and distribution balance
    *
@@ -505,11 +520,11 @@ export default class DApp {
       const open_data = this.connection_info.channel
 
       // close channel args
-      const channel_id = open_data.channel_id // bytes32 id,
-      const player_balance = Utils.bet2dec(this.logic.payChannel.getBalance()) // profit + open_data.player_deposit // uint playerBalance,
+      const channel_id         = open_data.channel_id // bytes32 id,
+      const player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance()) // profit + open_data.player_deposit // uint playerBalance,
       const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance()) // -profit + open_data.bankroller_deposit // uint bankrollBalance,
-      const session = params.session || 0 // uint session=0px
-      const bool = true
+      const session            = params.session || 0 // uint session=0px
+      const bool               = true
       console.log('session', params.session)
       // console.log('@@@@@@@@', player_balance, bankroller_balance)
       // Sign hash from args
