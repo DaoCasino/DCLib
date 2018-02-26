@@ -1,9 +1,8 @@
-/* global DCLib describe it */
-// const assert = chai.assert
+/* eslint-env mocha */
+/* global DCLib expect */
 
-describe('DCLib', function() {
-
-  before('should init account', function() {
+describe('DCLib', () => {
+  before('should init account', function () {
     this.timeout(20000)
     return DCLib.Account.initAccount()
   })
@@ -16,7 +15,8 @@ describe('DCLib', function() {
   it('should return true when sign message is correct', function () {
     this.timeout(20000)
     const s = DCLib.Utils.makeSeed()
-    const checkSig = DCLib.checkSig(s, DCLib.Account.signHash(s), DCLib.Account.get().openkey)
+    // eslint-disable-next-line
+		const checkSig = DCLib.checkSig(s, DCLib.Account.signHash(s), DCLib.Account.get().openkey)
     // expect(checkSig).to.equal(true)
   })
 
@@ -55,13 +55,13 @@ describe('DCLib', function() {
     expect(sigRecover).to.be.a('string')
   })
 
-/*
+  /*
   it('should add free bets', async function() {
     this.timeout(20000)
     const faucet = await DCLib.faucet()
     console.log(faucet)
   })
-*/  
+*/
 
   it('should return number from hash', function () {
     const randomHash = DCLib.randomHash()

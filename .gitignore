@@ -1,16 +1,17 @@
 # dependencies
-/node_modules
+.history
+node_modules
 
 # testing
-/coverage
+coverage
 .mocha-puppeteer
 .cache
 
 # production
-/api
-/build
-/docs
-/dist
+api
+build
+docs
+dist
 size-report.txt
 
 # misc
