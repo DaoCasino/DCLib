@@ -4,18 +4,6 @@
   "version": "3.0.0-beta.0",
   "author": "name <team@dao.casino>",
   "private": false,
-  "standard": {
-    "globals": [
-      "describe",
-      "context",
-      "before",
-      "beforeEach",
-      "after",
-      "afterEach",
-      "it",
-      "expect"
-    ]
-  },
   "scripts": {
     "preinstall": "git submodule update --init --recursive && npm i -g yarn && cd ./packages/dc-messaging/ && yarn",
     "start": "node scripts/start.js",
@@ -82,6 +70,7 @@
     "karma-chrome-launcher": "^2.2.0",
     "karma-mocha": "^1.3.0",
     "karma-mocha-reporter": "^2.2.5",
+    "karma-sinon": "^1.0.5",
     "karma-webpack": "^2.0.9",
     "lint-staged": "^4.3.0",
     "mocha": "^5.0.1",
@@ -95,6 +84,7 @@
     "react-dev-utils": "^3.0.0",
     "release-it": "^5.0.0",
     "serve": "^5.2.1",
+    "sinon": "^4.4.2",
     "style-loader": "^0.18.1",
     "svg-inline-loader": "^0.7.1",
     "sw-precache-webpack-plugin": "0.9.1",
