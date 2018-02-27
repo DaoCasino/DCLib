@@ -2,8 +2,6 @@
 /* global DCLib expect sinon */
 
 describe('DCLib', () => {
-  before('should init account', () => DCLib.Account.initAccount())
-
   it('should return random hash', () => {
     const randomHash = DCLib.randomHash()
     expect(randomHash).to.match(/^confirm\(0x[0-9a-z]+\)$/)
