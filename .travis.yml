@@ -4,10 +4,14 @@ addons:
   chrome: stable
 language: node_js
 node_js:
-  - stable
+- stable
 before_install:
-  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
-  - npm i -g npx
+- google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost
+  &
+- npm i -g npx
 script:
-  - npm test
-  - npx codacy-coverage
+- npm test
+- npx codacy-coverage
+env:
+  global:
+    secure: I4LXHQzWK3gB+7OJjvGS4s+qfp0I+idOAOrzoEEeKcuTal8vdOCfd7Nba34d+VjnLO5iw6CcoituKAGDdv3VB1NSVkDUTALwxMPfIYoQXTE7v8T5Ac8Px+lyJxfW//8dV87SezEncTbB7V9MbVBNa8JEX8cDbEdPlln5DIQ2gBtTenpgKm3BICqK3IPE7Yl1ZBWKreq5194wsLVNIBPeYYzJDF6e4nap1Bd/cWD9zdT0KRg4EiGr83XVG/78fommUGiEzNiJk6MhQ4kC1hmRGNZpBgS8dB0eZJ3flIOEZYyAQ1rme2HtO3gX9efeefu3k0vv6MPkx131XNaYvOkDGWtBSLH/ikf23SLViEL9BjFvbCaBj6RzoDMrmVhuSydCWPtXPai24yUs/s4UUsi3+ZtIphbTlg7rGCkxuZQ3Xr1FRygECRWIVn2PHzQAf3dxp3XhO1ANs9BPyioLIElPfQXpeIUZM/W858M93a1Ydt3zS/enGuJEVNvZLcnF4jn1V2rNosVvmqNovREZcoHalZgdY94+KF1CCgtAeliCUCEmoVr1kr5KZ5M3yemxbq8RTpXxeb7JM1TOl35yVqvZE9uxtE2cRN/jVbqZBw7twM1A/OtNLFvKEFFy/9pCnFymmqgEAFIR5nCBwdpdlXsBrhjPMN01FRoOGTxSS0GwQ5E=
