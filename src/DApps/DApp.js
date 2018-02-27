@@ -485,21 +485,6 @@ export default class DApp {
     if (callback) callback(result)
   }
 
-  async updateChannelBalance (params) {
-    const player_address = Account.get().openkey
-    const profit         = params.profit
-
-    const receipt = await this.request({
-      action: 'update_balance',
-      player_address: player_address,
-      profit: profit
-    })
-
-    if (receipt.complete) {
-      this.logic.payChannel.addTX(profit)
-    }
-  }
-
   /**
    * Closin game channel and distribution balance
    *

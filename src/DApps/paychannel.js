@@ -121,6 +121,10 @@ export default class PayChannel {
     return Utils.dec2bet(balance.bankroller)
   }
 
+  updateChannelBalance (p, convert = false) {
+    !convert ? this.addTX(p) : this.addTX(p, true)
+  }
+
   /**
      * View game proffit
      *
