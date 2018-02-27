@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-/* global DCLib expect sinon */
+/* global DCLib expect sinon assert */
 
 describe('DCLib', () => {
   it('should return random hash', () => {
@@ -8,27 +8,29 @@ describe('DCLib', () => {
   })
 
   it('should return true when sign message is correct', () => {
-    sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
-    // eslint-disable-next-line
+    const recoverSpy = sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
     const checkSig = DCLib.checkSig('', '', 'xxx')
 
-    DCLib.web3.eth.accounts.recover.restore()
+    recoverSpy.restore()
+    assert(recoverSpy.called)
     expect(checkSig).to.equal(true)
   })
 
   it('should return false when sign message is failed', () => {
-    sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX-f')
+    const recoverSpy = sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX-f')
     const checkSig = DCLib.checkSig('', '', 'xxx')
 
-    DCLib.web3.eth.accounts.recover.restore()
+    recoverSpy.restore()
+    assert(recoverSpy.called)
     expect(checkSig).to.equal(false)
   })
 
   it('should return true when sign hash message is correct', () => {
-    sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
+    const recoverSpy = sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
     const checkSig = DCLib.checkHashSig('', '', 'xxx')
 
-    DCLib.web3.eth.accounts.recover.restore()
+    recoverSpy.restore()
+    assert(recoverSpy.called)
     expect(checkSig).to.equal(true)
   })
 
