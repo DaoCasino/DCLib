@@ -1,3 +1,8 @@
-public/tests/*
+public/tests/Account/*
+public/tests/DApp/*
+public/tests/EthHelpers/*
+public/tests/gameLogicExample/*
+public/tests/payChannel/*
+public/tests/utils/*
 build/*
 scripts/*
