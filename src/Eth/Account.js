@@ -2,7 +2,7 @@ import debug from 'debug'
 import conf from 'config/config'
 import * as Utils from 'utils/utils'
 import WEB3 from 'web3'
-import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
+// import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
 let _config, ERC20
 let _wallet = { openkey: false }
@@ -252,34 +252,6 @@ export default class Account {
     raw = Utils.remove0x(raw)
     logInfo(raw)
     return _wallet.sign(raw)
-  }
-
-  /**
-   * ## DCLib.Account.signHash(hash)
-   * method sign hashMessage
-   *
-   *
-   * @example
-   * > DCLib.Account.signHash("0xAb23..")
-     *
-   * @example
-   * // method return
-   * > `0x6a1bcec4ff132aadb511cfd83131e456fab8b94d92c219448113697b5d75308b3b805
-   *  ef93c60b561b72d7c985fac11a574be0c2b2e4f3a8701cd01afa8e6edd71b`
-   *
-   * @param {string} hash - message which need turn in hash
-   * @returns {string} - hashed Message
-   *
-   * @memberOf {Account}
-   */
-  signHash (hash) {
-    hash = Utils.add0x(hash)
-    if (!this.web3.utils.isHexStrict(hash)) {
-      logInfo(hash + ' is not correct hex')
-      logInfo('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash')
-    }
-
-    return signHash(hash, Utils.add0x(this.exportPrivateKey()))
   }
 
   /**

@@ -330,7 +330,7 @@ export default class DApp {
       if (this.debug) console.info(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data)
 
       // Sign hash from args
-      const signed_args = Account.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data))
+      const signed_args = Eth.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data))
 
       if (this.debug) console.log(bankroller_deposit)
       if (this.debug) console.log('🙏 ask the bankroller to open the channel')
@@ -510,10 +510,10 @@ export default class DApp {
       const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance()) // -profit + open_data.bankroller_deposit // uint bankrollBalance,
       const session = params.session || 0 // uint session=0px
       const bool = true
-
+      console.log('session', params.session)
       // console.log('@@@@@@@@', player_balance, bankroller_balance)
       // Sign hash from args
-      const signed_args = Account.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool))
+      const signed_args = Eth.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool))
 
       console.log('🙏 ask  the bankroller to close the channel')
 
@@ -577,7 +577,7 @@ export default class DApp {
     bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance())
 
     const hash = Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool)
-    const signed_args = Account.signHash(hash)
+    const signed_args = Eth.signHash(hash)
 
     if (DCLib.checkHashSig(hash, signed_args, player_address) === false) {
       console.error('🚫 invalid sig on update state', player_address)
