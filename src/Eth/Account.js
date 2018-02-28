@@ -285,17 +285,16 @@ export default class Account {
    * // or classic callback
    * DCLib.Account.sendBets('0xAb5...', 10, function(receipt){ ... })
    *
-   * @param  {String} to - bytes32 address
-   * @param  {Number} amount - how many bets send, 1 - 1BET, 22 - 22BET
+   * @param  {string} to - bytes32 address
+   * @param  {number} amount - how many bets send, 1 - 1BET, 22 - 22BET
    * @param  {onTxMined} callback - callback, when transacrion mined
    * @return {Promise.receipt} - return web3.send promise,
    *
    * @memberOf {Account}
    */
-  async sendBets (to, amount, callback = false) {
-    to = Utils.add0x(to)
-    amount = Utils.bet2dec(amount)
-
+  async sendBets (toInput, amountInput, callback = false) {
+    const to = Utils.add0x(toInput)
+    const amount = Utils.bet2dec(amountInput)
 
     return ERC20.methods
       .transfer(to, amount)
