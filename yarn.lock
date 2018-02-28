@@ -1481,8 +1481,8 @@ boom@5.x.x, boom@^5.2.0:
     hoek "4.x.x"
 
 boom@^7.1.1:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/boom/-/boom-7.1.1.tgz#50392a4e3417e971f1ad28622c20e832275260bb"
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/boom/-/boom-7.2.0.tgz#2bff24a55565767fde869ec808317eb10c48e966"
   dependencies:
     hoek "5.x.x"
 
@@ -2739,7 +2739,7 @@ date-now@^0.1.4:
 
 "dc-messaging@git+ssh://git@github.com:DaoCasino/dc-messaging.git":
   version "1.0.0"
-  resolved "git+ssh://git@github.com:DaoCasino/dc-messaging.git#a1bfdd20134c9c1e819bab121cb2c122ad98af5b"
+  resolved "git+ssh://git@github.com:DaoCasino/dc-messaging.git#f1ef4baf9e90ea6a912e49ab40299f3a676ba919"
   dependencies:
     event-emitter "^0.3.5"
     ipfs "^0.27.7"
