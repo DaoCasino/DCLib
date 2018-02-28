@@ -17,7 +17,6 @@
     ]
   },
   "scripts": {
-    "preinstall": "git submodule update --init --recursive && npm i -g yarn && cd ./packages/dc-messaging/ && yarn",
     "start": "node scripts/start.js",
     "eslint": "eslint --ext=.js,.tag ./src",
     "lint-staged": "lint-staged",
@@ -42,6 +41,7 @@
   },
   "dependencies": {
     "big-integer": "^1.6.23",
+    "dc-messaging": "git+ssh://git@github.com:DaoCasino/dc-messaging.git",
     "event-emitter": "^0.3.5",
     "remove": "^0.1.5",
     "web3": "^1.0.0-beta.30"
