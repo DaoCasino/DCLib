@@ -1,13 +1,13 @@
+import debug from 'debug'
 import conf from 'config/config'
 import * as Utils from 'utils/utils'
-
-// import web3accounts  from 'web3/packages/web3-eth-accounts'
 import WEB3 from 'web3'
-import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
+// import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
 let _config, ERC20
-
 let _wallet = { openkey: false }
+const logInfo = debug('dclib:info')
+const logError = debug('dclib:error')
 
 /**
  * Class for work with [Ethereum Account/Wallet](http://ethdocs.org/en/latest/account-management.html).
@@ -37,21 +37,26 @@ export default class Account {
      */
     this.web3 = new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
 
-    // this.initAccount(log)
-
     callback()
   }
 
-  async initAccount (log = true) {
-    if (log) console.groupEnd()
-    if (log) console.group('Init Account')
+  /**
+   * Init user account
+   *
+   * @async
+   * @returns - none
+   */
+  async initAccount () {
+    logInfo('Init Account')
 
     // Try to restore
     // wallet from localstorage
     if (localStorage && localStorage.web3wallet) {
       try {
         _wallet.openkey = '0x' + JSON.parse(localStorage.web3wallet).address
-      } catch (e) { console.log('Error!', e) }
+      } catch (e) {
+        logError(e)
+      }
     }
 
     // Create new
@@ -66,22 +71,19 @@ export default class Account {
       )
       this.web3.eth.accounts.wallet.add(privateKey)
 
-      if (log) console.info(' 👤 New account created:', _wallet.openkey)
+      logInfo(' 👤 New account created:', _wallet.openkey)
     }
 
-    if (log) {
-      console.info(' 🔑 Account ' + _wallet.openkey + ' restored from localStorage')
-      console.groupCollapsed('Methods DCLib.Account')
-      console.info('DCLib.Account.get()')
-      console.info('DCLib.Account.sign(raw_msg)')
-      console.info('DCLib.Account.exportPrivateKey()')
-      console.info('DCLib.Account.info(callback)')
-      console.info('DCLib.Account.reset() - remove localstorage data')
-      console.groupEnd()
-    }
+    logInfo(' 🔑 Account ' + _wallet.openkey + ' restored from localStorage')
+    logInfo('DCLib.Account.get()')
+    logInfo('DCLib.Account.sign(raw_msg)')
+    logInfo('DCLib.Account.exportPrivateKey()')
+    logInfo('DCLib.Account.info(callback)')
+    logInfo('DCLib.Account.reset() - remove localstorage data')
 
     this.unlockAccount()
   }
+
   /**
    * @ignore
    */
@@ -109,7 +111,6 @@ export default class Account {
     return fetch('https://platform.dao.casino/faucet?get=account').then(res => {
       return res.json()
     }).then(acc => {
-      console.log('Server account data:', acc)
       localStorage.account_from_server = JSON.stringify(acc)
       _wallet.openkey = acc.address
       return acc.privateKey
@@ -180,8 +181,8 @@ export default class Account {
    * // method return
    * > "0xd8c226915b298530ee9ede352a1c9fe49f15a78167477e34731e26ccc7f577aa" // PrivateKey
    *
-   * @param {String} [password=false] - user passwod for decrypt privateKey
-   * @returns {String} - Private key for user account
+   * @param {string} [password=false] - user passwod for decrypt privateKey
+   * @returns {string} - Private key for user account
    *
    * @extends {Account}
    */
@@ -245,40 +246,12 @@ export default class Account {
    * @extends {Account}
    */
   sign (raw) {
-    console.info('call %web3.eth.accounts.sign', ['font-weight:bold;'])
-    console.log('More docs: http://web3js.readthedocs.io/en/1.0/web3-eth-accounts.html#sign')
+    logInfo('call %web3.eth.accounts.sign', ['font-weight:bold;'])
+    logInfo('More docs: http://web3js.readthedocs.io/en/1.0/web3-eth-accounts.html#sign')
 
     raw = Utils.remove0x(raw)
-    console.info(raw)
+    logInfo(raw)
     return _wallet.sign(raw)
-  }
-
-  /**
-   * ## DCLib.Account.signHash(hash)
-   * method sign hashMessage
-   *
-   *
-   * @example
-   * > DCLib.Account.signHash("0xAb23..")
-     *
-   * @example
-   * // method return
-   * > `0x6a1bcec4ff132aadb511cfd83131e456fab8b94d92c219448113697b5d75308b3b805
-   *  ef93c60b561b72d7c985fac11a574be0c2b2e4f3a8701cd01afa8e6edd71b`
-   *
-   * @param {String} hash - message which need turn in hash
-   * @returns {String} - hashed Message
-   *
-   * @memberOf {Account}
-   */
-  signHash (hash) {
-    hash = Utils.add0x(hash)
-    if (!this.web3.utils.isHexStrict(hash)) {
-      console.log(hash + ' is not correct hex')
-      console.log('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash')
-    }
-
-    return signHash(hash, Utils.add0x(this.exportPrivateKey()))
   }
 
   /**
@@ -303,6 +276,8 @@ export default class Account {
    * sendBets from current account to another account
    * you can use it with "await"
    *
+   * @async
+   *
    * @example
    * const r = await DCLib.Account.sendBets('0xAb5', 10)
    *
@@ -310,18 +285,16 @@ export default class Account {
    * // or classic callback
    * DCLib.Account.sendBets('0xAb5...', 10, function(receipt){ ... })
    *
-   * @param  {String} to - bytes32 address
-   * @param  {Number} amount - how many bets send, 1 - 1BET, 22 - 22BET
-   * @param  {onTxMined} CB - callback, when transacrion mined
+   * @param  {string} to - bytes32 address
+   * @param  {number} amount - how many bets send, 1 - 1BET, 22 - 22BET
+   * @param  {onTxMined} callback - callback, when transacrion mined
    * @return {Promise.receipt} - return web3.send promise,
    *
    * @memberOf {Account}
    */
-  async sendBets (to, amount, callback = false) {
-    to = Utils.add0x(to)
-    amount = Utils.bet2dec(amount)
-
-    console.info('Send ' + amount + ' bets to ' + to)
+  async sendBets (toInput, amountInput, callback = false) {
+    const to = Utils.add0x(toInput)
+    const amount = Utils.bet2dec(amountInput)
 
     return ERC20.methods
       .transfer(to, amount)
@@ -330,18 +303,13 @@ export default class Account {
         gasPrice: _config.gasPrice,
         gas: (await ERC20.methods.transfer(to, amount).estimateGas({from: this.get().openkey}))
       })
-      .on('transactionHash', transactionHash => { console.info('transactionHash:', transactionHash) })
-      .on('receipt', receipt => { console.info('receipt:', receipt) })
-    // .on('confirmation', (confirmationNumber, receipt)=>{
-    //  console.info('confirmation:',confirmationNumber, receipt)
-    // })
-    // .on('error', err=>{ console.log(err) })
+      .on('transactionHash', transactionHash => { logInfo('transactionHash:', transactionHash) })
+      .on('receipt', receipt => { logInfo('receipt:', receipt) })
       .then(receipt => {
-        console.log('Send bets receipt', receipt)
         if (callback) callback(receipt)
         return receipt
       }).catch(err => {
-        console.error('Send bets .catch ', err)
+        logError('Send bets .catch ', err)
       })
   }
 }

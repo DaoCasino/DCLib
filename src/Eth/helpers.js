@@ -1,6 +1,7 @@
 import _config from 'config/config'
 import Acc from 'Eth/Account'
 import * as Utils from 'utils/utils'
+import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
 /**
  * @ignore
@@ -151,6 +152,34 @@ export default class EthHelpers {
         reject(err)
       })
     })
+  }
+
+  /**
+   * ## DCLib.Account.signHash(hash)
+   * method sign hashMessage
+   *
+   *
+   * @example
+   * > DCLib.Account.signHash("0xAb23..")
+     *
+   * @example
+   * // method return
+   * > `0x6a1bcec4ff132aadb511cfd83131e456fab8b94d92c219448113697b5d75308b3b805
+   *  ef93c60b561b72d7c985fac11a574be0c2b2e4f3a8701cd01afa8e6edd71b`
+   *
+   * @param {String} hash - message which need turn in hash
+   * @returns {String} - hashed Message
+   *
+   * @memberOf {Account}
+   */
+  signHash (hash) {
+    hash = Utils.add0x(hash)
+    if (!web3.utils.isHexStrict(hash)) {
+      console.log(hash + ' is not correct hex')
+      console.log('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash')
+    }
+
+    return signHash(hash, Utils.add0x(Account.exportPrivateKey()))
   }
 
   /**

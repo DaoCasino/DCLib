@@ -1,17 +1,17 @@
+import debug from 'debug'
+
+const logInfo = debug('dclib:info')
+
 export default function (DCLib) {
-  console.clear()
-  console.log('\n')
-  console.log('%c DCLib (DApps API) v ' + DCLib.version + ' - initialized', 'background:#333; color:#d99736; padding:5px 10px; ')
-  console.log('\n')
+  logInfo('%c DCLib (DApps API) v ' + DCLib.version + ' - initialized', 'background:#333; color:#d99736; padding:5px 10px; ')
 
-  console.groupCollapsed(' >>> README <<< ')
+  logInfo(' >>> README <<< ')
 
-  console.log('\n')
-  console.info('%c Full documentation here https://daocasino.readme.io/',
+  logInfo('%c Full documentation here https://daocasino.readme.io/',
     'background: #333; color: #bada55; padding:5px')
 
-  console.info('\n\nUse DCLib like this:\n')
-  console.info('%c' +
+  logInfo('\n\nUse DCLib like this:\n')
+  logInfo('%c' +
         '  const myDApp = new DCLib.DApp({})          \n' +
         '  console.log( DCLib.web3.version           )\n' +
         '  console.log( DCLib.Account.get().openkey  )\n' +
@@ -19,36 +19,14 @@ export default function (DCLib) {
     ,
   'font-size:12px; background:#ccc; color:#333;'
   )
-  console.log('\n')
 
-  console.group('WEB3')
-  console.log('web3 placed in DCLib.web3, vesrion:', DCLib.web3.version)
-  console.log('docs: £https://github.com/ethereum/web3.js/tree/1.0')
-  console.groupEnd()
+  logInfo('WEB3')
+  logInfo('web3 placed in DCLib.web3, vesrion:', DCLib.web3.version)
+  logInfo('docs: £https://github.com/ethereum/web3.js/tree/1.0')
 
-  console.group('Account')
+  logInfo('Account')
 
-  console.group('Eth Lightwallet')
-  console.log('lightwallet placed in DCLib.Account.lib ')
-  console.log('docs: https://github.com/ConsenSys/eth-lightwallet')
-  console.groupEnd()
-
-  console.group('Eth Account/Wallet')
-  console.log('Account info DCLib().Account.get():')
-  let accinfo = DCLib.Account.get()
-  delete (accinfo._)
-  console.table(accinfo)
-  console.groupEnd()
-
-  console.groupEnd()
-
-  console.log('')
-  console.log('')
-  console.log('')
-  console.groupEnd()
-  console.groupEnd()
-  console.groupEnd()
-  console.groupEnd()
-  console.log('\n')
-  console.log('\n')
+  logInfo('Eth Lightwallet')
+  logInfo('lightwallet placed in DCLib.Account.lib ')
+  logInfo('docs: https://github.com/ConsenSys/eth-lightwallet')
 }
