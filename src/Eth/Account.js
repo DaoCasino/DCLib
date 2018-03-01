@@ -4,7 +4,8 @@ import * as Utils from 'utils/utils'
 import WEB3 from 'web3'
 // import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
-let _config, ERC20
+let _config = {}
+let ERC20 = {}
 let _wallet = { openkey: false }
 const logInfo = debug('dclib:info')
 const logError = debug('dclib:error')
@@ -27,10 +28,13 @@ export default class Account {
   /**
   * @ignore
   */
-  constructor (config, callback = false, log = true) {
+  constructor (config, callback = false) {
     callback = callback || (() => {})
 
     _config = Object.assign(conf, config)
+    this._wallet = _wallet
+    this._config = _config
+    this._ERC20 = ERC20
 
     /**
      * @ignore
@@ -51,30 +55,30 @@ export default class Account {
 
     // Try to restore
     // wallet from localstorage
-    if (localStorage && localStorage.web3wallet) {
+    if (localStorage.web3wallet) {
       try {
-        _wallet.openkey = '0x' + JSON.parse(localStorage.web3wallet).address
+        this._wallet.openkey = '0x' + JSON.parse(localStorage.web3wallet).address
       } catch (e) {
         logError(e)
       }
     }
 
     // Create new
-    if (!_wallet.openkey) {
+    if (!this._wallet.openkey) {
       const privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
       /* global localStorage */
       localStorage.web3wallet = JSON.stringify(
         this.web3.eth.accounts.encrypt(
           privateKey,
-          _config.wallet_pass
+          this._config.wallet_pass
         )
       )
       this.web3.eth.accounts.wallet.add(privateKey)
 
-      logInfo(' 👤 New account created:', _wallet.openkey)
+      logInfo(' 👤 New account created:', this._wallet.openkey)
     }
 
-    logInfo(' 🔑 Account ' + _wallet.openkey + ' restored from localStorage')
+    logInfo(' 🔑 Account ' + this._wallet.openkey + ' restored from localStorage')
     logInfo('DCLib.Account.get()')
     logInfo('DCLib.Account.sign(raw_msg)')
     logInfo('DCLib.Account.exportPrivateKey()')
@@ -112,7 +116,7 @@ export default class Account {
       return res.json()
     }).then(acc => {
       localStorage.account_from_server = JSON.stringify(acc)
-      _wallet.openkey = acc.address
+      this._wallet.openkey = acc.address
       return acc.privateKey
     }).catch(e => {
       return false
@@ -143,31 +147,31 @@ export default class Account {
    * @extends {Account}
    */
   unlockAccount (password = false) {
-    password = password || _config.wallet_pass
+    password = password || this._config.wallet_pass
 
-    if (!localStorage.web3wallet) return false
+    if (!localStorage.getItem('web3wallet')) return false
 
-    _wallet = this.web3.eth.accounts.decrypt(
-      localStorage.web3wallet,
+    this._wallet = this.web3.eth.accounts.decrypt(
+      localStorage.getItem('web3wallet'),
       password
     )
 
-    this.web3.eth.accounts.wallet.add(_wallet.privateKey)
+    this.web3.eth.accounts.wallet.add(this._wallet.privateKey)
 
-    _wallet.openkey = _wallet.address
+    this._wallet.openkey = this._wallet.address
 
     /**
      * @ignore
      */
-    this.signTransaction = _wallet.signTransaction
+    this.signTransaction = this._wallet.signTransaction
 
     // Init ERC20 contract
     ERC20 = new this.web3.eth.Contract(
-      _config.contracts.erc20.abi,
-      _config.contracts.erc20.address
+      this._config.contracts.erc20.abi,
+      this._config.contracts.erc20.address
     )
 
-    return _wallet
+    return this._wallet
   }
 
   /**
@@ -213,7 +217,7 @@ export default class Account {
    * @extends {Account}
    */
   get () {
-    let w = Object.assign({}, _wallet)
+    let w = Object.assign({}, this._wallet)
     delete w.privateKey
     return w
   }
@@ -251,7 +255,7 @@ export default class Account {
 
     raw = Utils.remove0x(raw)
     logInfo(raw)
-    return _wallet.sign(raw)
+    return this._wallet.sign(raw)
   }
 
   /**
@@ -264,7 +268,7 @@ export default class Account {
    * @returns - none
    * @memberOf {Account}
    */
-  reset () { localStorage.web3wallet = '' }
+  reset () { localStorage.setItem('web3wallet', '') }
 
   /**
    * This callback is
@@ -296,20 +300,21 @@ export default class Account {
     const to = Utils.add0x(toInput)
     const amount = Utils.bet2dec(amountInput)
 
-    return ERC20.methods
+    return this._ERC20.methods
       .transfer(to, amount)
       .send({
         from: this.get().openkey,
-        gasPrice: _config.gasPrice,
-        gas: (await ERC20.methods.transfer(to, amount).estimateGas({from: this.get().openkey}))
+        gasPrice: this._config.gasPrice,
+        gas: (await this._ERC20.methods.transfer(to, amount).estimateGas({from: this.get().openkey}))
       })
       .on('transactionHash', transactionHash => { logInfo('transactionHash:', transactionHash) })
       .on('receipt', receipt => { logInfo('receipt:', receipt) })
-      .then(receipt => {
-        if (callback) callback(receipt)
-        return receipt
-      }).catch(err => {
-        logError('Send bets .catch ', err)
-      })
+      .then(
+        receipt => {
+          if (callback) callback(receipt)
+          return receipt
+        },
+        err => logError('Send bets .catch ', err)
+      )
   }
 }

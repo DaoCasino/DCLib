@@ -2,69 +2,70 @@
 /* global DCLib expect sinon */
 
 describe('DCLib', () => {
+  let sandbox
+
+  beforeEach(function () {
+    sandbox = sinon.sandbox.create()
+  })
+
+  afterEach(function () {
+    sandbox.restore()
+  })
+
   it('should return random hash', () => {
     const randomHash = DCLib.randomHash()
     expect(randomHash).to.match(/^confirm\(0x[0-9a-z]+\)$/)
   })
 
   it('should return true when sign message is correct', () => {
-    const recoverSpy = sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
-    const remove0xSpy = sinon.stub(DCLib.Utils, 'remove0x').returns('remove0xRawMsg')
+    const recoverSpy = sandbox.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
+    const remove0xSpy = sandbox.stub(DCLib.Utils, 'remove0x').returns('remove0xRawMsg')
     const checkSig = DCLib.checkSig('rawMsg', 'signedMsg', 'xxx')
 
-    recoverSpy.restore()
-    remove0xSpy.restore()
     expect(checkSig).to.equal(true)
     expect(remove0xSpy.getCall(0).args).to.deep.equal(['rawMsg'])
     expect(recoverSpy.getCall(0).args).to.deep.equal(['remove0xRawMsg', 'signedMsg'])
   })
 
   it('should return false when sign message is failed', () => {
-    const recoverSpy = sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX-f')
-    const remove0xSpy = sinon.stub(DCLib.Utils, 'remove0x').returns('remove0xRawMsg')
+    const recoverSpy = sandbox.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX-f')
+    const remove0xSpy = sandbox.stub(DCLib.Utils, 'remove0x').returns('remove0xRawMsg')
     const checkSig = DCLib.checkSig('rawMsg', 'signedMsg', 'xxx')
 
-    recoverSpy.restore()
-    remove0xSpy.restore()
     expect(checkSig).to.equal(false)
     expect(remove0xSpy.getCall(0).args).to.deep.equal(['rawMsg'])
     expect(recoverSpy.getCall(0).args).to.deep.equal(['remove0xRawMsg', 'signedMsg'])
   })
 
   it('should return true when sign hash message is correct', () => {
-    const recoverSpy = sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
+    const recoverSpy = sandbox.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
     const checkSig = DCLib.checkHashSig('rawMsg', 'signedMsg', 'xxx')
 
-    recoverSpy.restore()
     expect(checkSig).to.equal(true)
     expect(recoverSpy.getCall(0).args).to.deep.equal(['rawMsg', 'signedMsg'])
   })
 
   it('should return false when sign hash message is failed', () => {
-    const recoverSpy = sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX-f')
+    const recoverSpy = sandbox.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX-f')
     const checkSig = DCLib.checkHashSig('rawMsg', 'signedMsg', 'xxx')
 
-    recoverSpy.restore()
     expect(checkSig).to.equal(false)
     expect(recoverSpy.getCall(0).args).to.deep.equal(['rawMsg', 'signedMsg'])
   })
 
   it('should return string when sig hash recove', () => {
-    const recoverSpy = sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
+    const recoverSpy = sandbox.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
     const sigHashRecover = DCLib.sigHashRecover('rawMsg', 'signedMsg')
 
-    recoverSpy.restore()
     expect(sigHashRecover).to.equal('xxx')
     expect(recoverSpy.getCall(0).args).to.deep.equal(['rawMsg', 'signedMsg'])
   })
 
   it('should return string when sig recove', () => {
-    const recoverSpy = sinon.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
-    const remove0xSpy = sinon.stub(DCLib.Utils, 'remove0x').returns('remove0xRawMsg')
+    const recoverSpy = sandbox.stub(DCLib.web3.eth.accounts, 'recover').returns('XXX')
+    const remove0xSpy = sandbox.stub(DCLib.Utils, 'remove0x').returns('remove0xRawMsg')
     const checkSig = DCLib.sigRecover('rawMsg', 'signedMsg')
 
-    recoverSpy.restore()
-    remove0xSpy.restore()
     expect(checkSig).to.equal('xxx')
     expect(remove0xSpy.getCall(0).args).to.deep.equal(['rawMsg'])
     expect(recoverSpy.getCall(0).args).to.deep.equal(['remove0xRawMsg', 'signedMsg'])
