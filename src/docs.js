@@ -1,4 +1,8 @@
+import _config from 'config/config'
+
 export default function (DCLib) {
+  if (_config.loglevel === 'none') return
+
   console.clear()
   console.log('\n')
   console.log('%c DCLib (DApps API) v ' + DCLib.version + ' - initialized', 'background:#333; color:#d99736; padding:5px 10px; ')

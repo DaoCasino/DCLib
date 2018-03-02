@@ -43,6 +43,7 @@
     "big-integer": "^1.6.23",
     "dc-messaging": "git+ssh://git@github.com:DaoCasino/dc-messaging.git",
     "event-emitter": "^0.3.5",
+    "js-cryptico": "^1.0.2",
     "remove": "^0.1.5",
     "web3": "^1.0.0-beta.30"
   },
@@ -63,6 +64,7 @@
     "chalk": "1.1.3",
     "cross-env": "^5.1.3",
     "css-loader": "^0.28.4",
+    "debug": "^3.1.0",
     "dotenv": "4.0.0",
     "eslint": "^4.16.0",
     "eslint-config-standard": "^11.0.0-beta.0",

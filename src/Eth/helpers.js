@@ -113,7 +113,7 @@ export default class EthHelpers {
         resolve(balance)
         if (callback) callback(balance)
       }).catch(err => {
-        console.error(err)
+        Utils.debugLog(err, 'error')
         reject(err)
       })
     })
@@ -148,7 +148,7 @@ export default class EthHelpers {
         resolve(balance)
         if (callback) callback(balance)
       }).catch(err => {
-        console.error(err)
+        Utils.debugLog(err, 'error')
         reject(err)
       })
     })
@@ -175,8 +175,8 @@ export default class EthHelpers {
   signHash (hash) {
     hash = Utils.add0x(hash)
     if (!web3.utils.isHexStrict(hash)) {
-      console.log(hash + ' is not correct hex')
-      console.log('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash')
+      Utils.debugLog(hash + ' is not correct hex', _config.loglevel)
+      Utils.debugLog('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash', _config.loglevel)
     }
 
     return signHash(hash, Utils.add0x(Account.exportPrivateKey()))
@@ -192,17 +192,17 @@ export default class EthHelpers {
    */
   async ERC20approve (spender, amount, callback = false) {
     return new Promise(async (resolve, reject) => {
-      console.log('Check how many tokens user ' + Account.get().openkey + ' is still allowed to withdraw from contract ' + spender + ' . . . ')
+      Utils.debugLog('Check how many tokens user ' + Account.get().openkey + ' is still allowed to withdraw from contract ' + spender + ' . . . ', _config.loglevel)
 
       let allowance = await this.ERC20.methods.allowance(Account.get().openkey, spender).call()
 
-      console.log('💸 allowance:', allowance)
+      Utils.debugLog(['💸 allowance:', allowance], _config.loglevel)
 
       if (allowance < amount) {
-        console.log('allowance lower than need deposit')
+        Utils.debugLog('allowance lower than need deposit', _config.loglevel)
 
-        console.group('Call .approve on ERC20')
-        console.log('Allow paychannel to withdraw from your account, multiple times, up to the ' + amount + ' amount.')
+        Utils.debugLog('Call .approve on ERC20', _config.loglevel)
+        Utils.debugLog('Allow paychannel to withdraw from your account, multiple times, up to the ' + amount + ' amount.', _config.loglevel)
 
         const approveAmount = amount * 9
 
@@ -215,20 +215,18 @@ export default class EthHelpers {
           gasPrice: 1.4 * _config.gasPrice,
           gas: gasLimit
         }).on('transactionHash', transactionHash => {
-          console.log('# approve TX pending', transactionHash)
-          console.log('https://ropsten.etherscan.io/tx/' + transactionHash)
+          Utils.debugLog(['# approve TX pending', transactionHash], _config.loglevel)
+          Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
         }).on('error', err => {
-          console.error(err)
+          Utils.debugLog(err, 'error')
           reject(err, true)
         })
 
-        console.log('📌 ERC20.approve receipt:', receipt)
+        Utils.debugLog(['📌 ERC20.approve receipt:', receipt], _config.loglevel)
 
         allowance = await this.ERC20.methods.allowance(Account.get().openkey, spender).call()
 
-        console.log('💸💸💸 allowance:', allowance)
-
-        console.groupEnd()
+        Utils.debugLog(['💸💸💸 allowance:', allowance], _config.loglevel)
       }
 
       resolve(null, true)

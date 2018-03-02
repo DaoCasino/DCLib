@@ -1,6 +1,6 @@
 /* global DCLib */
 (function () {
-  var myDApp = new DCLib.DApp({slug : 'dicetest_v10'})
+  var myDApp = new DCLib.DApp({slug : 'dicetest_v11'})
 
   // Banroller side code
   console.log(myDApp)

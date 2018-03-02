@@ -4,7 +4,7 @@
  */
 
 /* global DCLib */
-DCLib.defineDAppLogic('dicetest_v10', function () {
+DCLib.defineDAppLogic('dicetest_v11', function () {
   const _self = this
 
   const MAX_RAND_NUM = 65535
@@ -26,7 +26,7 @@ DCLib.defineDAppLogic('dicetest_v10', function () {
     }
 
     // add result to paychannel
-    _self.payChannel.addTX(DCLib.Utils.dec2bet(profit))
+    _self.payChannel.addTX(DCLib.Utils.dec2bet(profit), true)
     _self.payChannel.printLog()
 
     // push all data to our log
