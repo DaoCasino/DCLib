@@ -300,7 +300,7 @@ export default class Account {
     const amount = Utils.bet2dec(amountInput)
 
     return this._ERC20.methods
-      .transfer(to, amount)      
+      .transfer(to, amount)
       .send({
         from: this.get().openkey,
         gasPrice: this._config.gasPrice,
