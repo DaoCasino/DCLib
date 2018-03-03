@@ -5,7 +5,7 @@
   "author": "name <team@dao.casino>",
   "private": false,
   "scripts": {
-    "preinstall": "git submodule update --init --recursive && npm i -g yarn && cd ./packages/dc-messaging/ && yarn",
+    "preinstall": "git submodule update --init --recursive && cd ./packages/dc-messaging/ && npm i",
     "start": "node scripts/start.js",
     "lint": "eslint --ext=.js,.tag ./src ./test",
     "prebuild": "npm run eslint",
