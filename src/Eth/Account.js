@@ -2,7 +2,6 @@ import debug from 'debug'
 import conf from 'config/config'
 import * as Utils from 'utils/utils'
 import WEB3 from 'web3'
-// import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
 let _config = {}
 let ERC20 = {}
@@ -301,7 +300,7 @@ export default class Account {
     const amount = Utils.bet2dec(amountInput)
 
     return this._ERC20.methods
-      .transfer(to, amount)
+      .transfer(to, amount)      
       .send({
         from: this.get().openkey,
         gasPrice: this._config.gasPrice,
