@@ -43,11 +43,12 @@ html, body {
 }
 
 .disabled * {
+	/* stylelint-disable */
 	pointer-events: none !important; opacity: 0.8 !important;
+	/* stylelint-enable */
 }
 
 
-#games_list {}
 #games_list .hash { display:inline-block; overflow: hidden; max-width: 100px; }
 #games_list td, #games_list th {padding:3px;}
 #games_list th { text-transform:uppercase; font-weight:200; letter-spacing:1px; }
