@@ -3,6 +3,7 @@
 import _config from 'config/config'
 import Rtc from 'dc-messaging'
 import EthHelpers from 'Eth/helpers'
+import RSA from '../API/rsa'
 import Acc from 'Eth/Account'
 import EE from 'event-emitter'
 import * as Utils from 'utils/utils'
@@ -68,13 +69,13 @@ export default class DApp {
    */
   constructor (params) {
     if (!params.slug) {
-      console.error('Create DApp error', params)
+      Utils.debugLog(['Create DApp error', params], 'error')
       throw new Error('slug option is required')
     }
 
     if (!window.DAppsLogic[params.slug] || !window.DAppsLogic[params.slug]) {
-      console.log('First you need define your DApp logic')
-      console.log('Example DCLib.defineDAppLogic("' + params.slug + '", function(){...})')
+      Utils.debugLog('First you need define your DApp logic', _config.loglevel)
+      Utils.debugLog('Example DCLib.defineDAppLogic("' + params.slug + '", function(){...})', _config.loglevel)
       throw new Error('Cant find DApp logic')
     }
 
@@ -85,20 +86,20 @@ export default class DApp {
     /** @ignore */
     this.hash = Utils.checksum(this.slug)
     /** DApp logic */
-    this.logic = payChannelWrap(logic)
-
-    this.debug = true
+    this.logic     = payChannelWrap(logic)
+    this.playerRSA = new RSA()
+    this.debug     = true
     if (typeof params.debug !== 'undefined') {
       this.debug = params.debug
     }
 
     /** Add contract's */
     if (params.contract) {
-      if (this.debug) console.log('Your contract is add')
+      if (this.debug) Utils.debugLog('Your contract is add', _config.loglevel)
       this.contract_address = params.contract.contract_address
       this.contract_abi = params.contract.contract_abi
     } else {
-      if (this.debug) console.log('Standart payChannel contract is add')
+      if (this.debug) Utils.debugLog('Standart payChannel contract is add', _config.loglevel)
       this.contract_address = _config.contracts.paychannel.address
       this.contract_abi = _config.contracts.paychannel.abi
     }
@@ -111,7 +112,7 @@ export default class DApp {
     /** @ignore */
     this.Status = new EC()
 
-    if (this.debug) {
+    if (this.debug && _config.loglevel !== 'none') {
       console.groupCollapsed('DApp %c' + this.slug + ' %ccreated', 'color:orange', 'color:default')
       console.info(params)
       console.info(' >>> Unique DApp logic checksum/hash would be used for connect to bankrollers:')
@@ -153,14 +154,14 @@ export default class DApp {
    * @return {[type]}
    */
   async connect (params = {}, callback = false) {
-    if (this.debug) console.group('DApp %c' + this.slug + ' %cconnecting...', 'color:orange', 'color:default')
+    if (this.debug) Utils.debugLog('DApp %c' + this.slug + ' %cconnecting...', 'color:orange', 'color:default', _config.loglevel)
 
     let def_params = {bankroller: 'auto'}
 
     params = Object.assign(def_params, params)
 
     if (params.paychannel && (!params.paychannel.deposit || isNaN(params.paychannel.deposit * 1))) {
-      console.error('Oops, paychannel.deposit*1 - is not a number')
+      Utils.debugLog('Oops, paychannel.deposit*1 - is not a number', 'error')
       throw new Error(' 💴 Deposit is required to open paychannel')
     }
 
@@ -177,7 +178,7 @@ export default class DApp {
 
     let bankroller_address = params.bankroller || 'auto'
 
-    if (this.debug) {
+    if (this.debug && _config.loglevel !== 'none') {
       console.log('params:')
       console.table(Object.assign(params, {
         deposit: deposit,
@@ -189,12 +190,12 @@ export default class DApp {
       this.Status.emit('connect::info', {status: 'findBankroller', data: {deposit: deposit}})
       bankroller_address = await this.findBankroller(deposit)
     }
-    if (this.debug) console.info('📫 Bankroller address:', bankroller_address)
+    if (this.debug) Utils.debugLog(['📫 Bankroller address:', bankroller_address], _config.loglevel)
 
     let connectionResult = false
     let conT = setTimeout(() => {
       this.Status.emit('error', {code: 'timeout', 'text': 'Connection timeout'})
-      console.error('⌛ Connection timeout.... 🤐🤐🤐 ')
+      Utils.debugLog('⌛ Connection timeout.... 🤐🤐🤐 ', 'error')
       callback(connectionResult, null)
     }, 7777)
 
@@ -213,13 +214,13 @@ export default class DApp {
 
       if (!connection.id) {
         this.Status.emit('error', {code: 'unknow', 'text': 'Cant establish connection'})
-        console.error('😓 Cant establish connection....')
+        Utils.debugLog('😓 Cant establish connection....', 'error')
         return callback(connectionResult, null)
       }
 
       clearTimeout(conT)
 
-      if (this.debug) console.log('🔗 Connection established ', connection)
+      if (this.debug) Utils.debugLog(['🔗 Connection established ', connection], _config.loglevel)
       this.Status.emit('connect::info', {status: 'connected', data: {connection: connection}})
 
       this.Room = new Rtc(Account.get().openkey, this.hash + '_' + connection.id)
@@ -228,11 +229,11 @@ export default class DApp {
       this.connection_info.room_name = this.hash + '_' + connection.id
     } catch (e) {
       this.Status.emit('error', {code: 'unknow', 'text': 'Connection error', err: e})
-      console.error(' 🚬 Connection error...', e)
+      Utils.debugLog([' 🚬 Connection error...', e], 'error')
       return callback(connectionResult, null)
     }
 
-    if (this.debug) {
+    if (this.debug && _config.loglevel !== 'none') {
       console.groupCollapsed(' 🚪 Personal user<->bankroller room created')
       console.log('personal room name: ', this.Room.name)
       console.groupEnd()
@@ -245,7 +246,7 @@ export default class DApp {
 
     if (params.paychannel) {
       // Check than payChannel logic exist
-      if (typeof this.logic.payChannel !== 'object') {
+      if (typeof this.logic.payChannel !== 'object' && _config.loglevel !== 'none') {
         console.log('')
         console.log('')
 
@@ -280,7 +281,7 @@ export default class DApp {
    * @memberOf DApp
    */
   openChannel (params, game_data = false) {
-    if (this.debug) console.group(' 🔐 Open channel with deposit', params.deposit)
+    if (this.debug) Utils.debugLog([' 🔐 Open channel with deposit', params.deposit], _config.loglevel)
     return new Promise(async (resolve, reject) => {
       let contract_address
       this.contract_address
@@ -294,20 +295,20 @@ export default class DApp {
       const minbet = Utils.dec2bet(params.deposit)
 
       if (mineth !== false && user_balance.eth * 1 < mineth * 1) {
-        console.error(user_balance.eth + ' is very low, you need minimum ' + mineth)
+        Utils.debugLog(user_balance.eth + ' is very low, you need minimum ' + mineth, 'error')
         reject(new Error({error: 'low balance'}))
         // throw new Error('Low ETHs balance')
         return false
       }
 
       if (minbet !== false && user_balance.bets * 1 < minbet * 1) {
-        console.error('Your BET balance ' + user_balance.bets + ' <  ' + minbet)
+        Utils.debugLog('Your BET balance ' + user_balance.bets + ' <  ' + minbet, 'error')
         reject(new Error({error: 'low balance'}))
         // throw new Error('Low BETs balance')
         return false
       }
-      if (this.debug) console.log(contract_address)
-      if (this.debug) console.log(params.deposit)
+      if (this.debug) Utils.debugLog(contract_address, _config.loglevel)
+      if (this.debug) Utils.debugLog(params.deposit, _config.loglevel)
 
       this.Status.emit('connect::info', {
         status: 'ERC20approve',
@@ -327,17 +328,17 @@ export default class DApp {
       const ttl_blocks = 120
       // window.paychannel         = new PaychannelLogic(parseInt(bankroller_deposit))
 
-      if (this.debug) console.info(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data)
+      if (this.debug) Utils.debugLog([channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data], _config.loglevel)
 
       // Sign hash from args
       const signed_args = Eth.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data))
 
-      if (this.debug) console.log(bankroller_deposit)
-      if (this.debug) console.log('🙏 ask the bankroller to open the channel')
+      if (this.debug) Utils.debugLog(bankroller_deposit, _config.loglevel)
+      if (this.debug) Utils.debugLog('🙏 ask the bankroller to open the channel', _config.loglevel)
 
       let dots_i = setInterval(() => {
         const items = ['wait', 'just moment', 'bankroller work, wait ))', '..', '...', 'wait when bankroller open channel', 'yes its not so fast', 'this is Blockchain 👶', 'TX mine...']
-        if (this.debug) console.log('⏳ ' + items[Math.floor(Math.random() * items.length)])
+        if (this.debug) Utils.debugLog('⏳ ' + items[Math.floor(Math.random() * items.length)], _config.loglevel)
       }, 1500)
 
       this.Status.emit('connect::info', {
@@ -367,20 +368,20 @@ export default class DApp {
       })
 
       if (response.more) {
-        console.log('the previous transaction was not completed')
+        Utils.debugLog('the previous transaction was not completed', _config.loglevel)
       }
       response.channel_id = channel_id
       response.player_deposit = params.deposit
       response.bankroller_deposit = params.deposit * 2
       response.session = 0
-      if (this.debug) console.log(response)
+      if (this.debug) Utils.debugLog(response, _config.loglevel)
       this.logic.payChannel.setDeposit(Utils.dec2bet(player_deposit))
 
       if (response.receipt) {
         // Set deposit in logic
         response.contract_address = response.receipt.to
 
-        if (this.debug) {
+        if (this.debug && _config.loglevel !== 'none') {
           console.log('🎉 Channel opened https://ropsten.etherscan.io/tx/' + response.receipt.transactionHash)
           console.groupCollapsed('channel info')
           console.log(response)
@@ -389,7 +390,7 @@ export default class DApp {
       }
       clearInterval(dots_i)
       resolve(response)
-      if (this.debug) console.groupEnd()
+      // if (this.debug) console.groupEnd()
     })
   }
 
@@ -408,11 +409,11 @@ export default class DApp {
       throw new Error(function_name + ' not exist')
     }
     if (!this.Room) {
-      console.warn('You need .connect() before call!')
+      Utils.debugLog('You need .connect() before call!', _config.loglevel)
       return
     }
 
-    console.log('Call function ' + function_name + '...')
+    Utils.debugLog('Call function ' + function_name + '...', _config.loglevel)
     return new Promise(async (resolve, reject) => {
       let res = await this.request({
         action: 'call',
@@ -430,12 +431,14 @@ export default class DApp {
       //  console.log(JSON.stringify(local_returns), JSON.stringify(res.returns))
       // }
 
-      console.groupCollapsed('call "' + function_name + '" log:')
-      console.log('You send args:', function_args)
-      console.log('Bankroller signed args:', res.args)
-      console.log('Bankroller call result:', res.returns)
-      console.log('You local call result:', local_returns)
-      console.groupEnd()
+      if (_config.loglevel !== 'none') {
+        console.groupCollapsed('call "' + function_name + '" log:')
+        Utils.debugLog(['You send args:', function_args], _config.loglevel)
+        Utils.debugLog(['Bankroller signed args:', res.args], _config.loglevel)
+        Utils.debugLog(['Bankroller call result:', res.returns], _config.loglevel)
+        Utils.debugLog(['You local call result:', local_returns], _config.loglevel)
+        console.groupEnd()
+      }
 
       const adv = {
         bankroller: {
@@ -499,27 +502,26 @@ export default class DApp {
     const profit = this.logic.payChannel._getProfit()
     if (this.connection_info.channel === false) return
 
-    console.group('  Close channel with profit', profit)
+    Utils.debugLog(['  Close channel with profit', profit], _config.loglevel)
 
     return new Promise(async (resolve, reject) => {
       const open_data = this.connection_info.channel
 
       // close channel args
-      const channel_id = open_data.channel_id // bytes32 id,
-      const player_balance = Utils.bet2dec(this.logic.payChannel.getBalance()) // profit + open_data.player_deposit // uint playerBalance,
+      const channel_id         = open_data.channel_id // bytes32 id,
+      const player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance()) // profit + open_data.player_deposit // uint playerBalance,
       const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance()) // -profit + open_data.bankroller_deposit // uint bankrollBalance,
-      const session = params.session || 0 // uint session=0px
-      const bool = true
-      console.log('session', params.session)
+      const session            = params.session || 0 // uint session=0px
+      const bool               = true
       // console.log('@@@@@@@@', player_balance, bankroller_balance)
       // Sign hash from args
       const signed_args = Eth.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool))
 
-      console.log('🙏 ask  the bankroller to close the channel')
+      Utils.debugLog('🙏 ask  the bankroller to close the channel', _config.loglevel)
 
       let dots_i = setInterval(() => {
         const items = ['wait', 'closing...', 'yes its really not so easy', '..', '...', 'bankroller verify checksums of results...', '']
-        console.log('⏳ ' + items[Math.floor(Math.random() * items.length)])
+        Utils.debugLog('⏳ ' + items[Math.floor(Math.random() * items.length)], _config.loglevel)
       }, 1500)
 
       const receipt = await this.request({
@@ -540,17 +542,13 @@ export default class DApp {
       clearInterval(dots_i)
 
       if (receipt.transactionHash) {
-        console.log('🎉 Channel closed https://ropsten.etherscan.io/tx/' + receipt.transactionHash)
-        console.groupCollapsed('close receipt')
-        console.log(receipt)
-        console.groupEnd()
+        Utils.debugLog('🎉 Channel closed https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
+        Utils.debugLog(receipt, _config.loglevel)
       }
 
       this.logic.payChannel.reset()
       this.connection_info.channel = false
       resolve(receipt)
-
-      console.groupEnd()
     })
   }
 
@@ -580,7 +578,7 @@ export default class DApp {
     const signed_args = Eth.signHash(hash)
 
     if (DCLib.checkHashSig(hash, signed_args, player_address) === false) {
-      console.error('🚫 invalid sig on update state', player_address)
+      Utils.debugLog(['🚫 invalid sig on update state', player_address], 'error')
       this.response(params, {error: 'Invalid sig'})
       return
     }
@@ -599,7 +597,15 @@ export default class DApp {
     })
 
     if (receipt) {
-      if (this.debug) console.log(' 🎉 State updated')
+      if (this.debug) Utils.debugLog(' 🎉 State updated', _config.loglevel)
+      this.playerRSA.create(receipt.bankroller_rsa_n)
+      const verify = this.playerRSA.verify(receipt.signed_bankroller, receipt.signedRSA_bankroller)
+      if (verify) {
+        console.log(' 🎉 State updated with rsa')
+      } else {
+        console.error('🚫 invalid rsa sig')
+        return
+      }
     }
 
     if (callback) callback(receipt)
@@ -634,7 +640,7 @@ export default class DApp {
     const hash = Utils.sha3(channel_id, player_balance, bankroller_balance, session)
 
     if (DCLib.checkHashSig(hash, signed_args, bankroll_address) === false) {
-      console.error('🚫 invalid sig on update channel')
+      Utils.debugLog('🚫 invalid sig on update channel', _config.loglevel)
       this.response(params, {error: 'Invalid sig'})
       return
     }
@@ -653,19 +659,19 @@ export default class DApp {
         from: Account.get().openkey
       })
       .on('transactionHash', transactionHash => {
-        console.log('# updateChannel TX pending', transactionHash)
-        console.log('https://ropsten.etherscan.io/tx/' + transactionHash)
-        console.log('⏳ wait receipt...')
+        Utils.debugLog(['# updateChannel TX pending', transactionHash], _config.loglevel)
+        Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
+        Utils.debugLog('⏳ wait receipt...', _config.loglevel)
       }).on('error', err => {
-        console.warn('Update channel error', err)
+        Utils.debugLog(['Update channel error', err], 'error')
         this.response(params, {error: 'cant update channel', more: err})
       })
 
     if (receipt.transactionHash) {
-      console.log('🎉 Channel updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash)
-      console.groupCollapsed('close receipt')
-      console.log(receipt)
-      console.groupEnd()
+      Utils.debugLog('🎉 Channel updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
+      // console.groupCollapsed('close receipt')
+      Utils.debugLog(receipt, _config.loglevel)
+      // console.groupEnd()
     }
 
     this.response(params, {receipt: receipt})
@@ -687,7 +693,7 @@ export default class DApp {
     const hash = Utils.sha3(channel_id, session, round, seed, game_data)
 
     if (DCLib.checkHashSig(hash, sig_player, player_address) === false || DCLib.checkHashSig(hash, sig_bankroll, bankroll_address) === false) {
-      console.error('🚫 invalid sig on update game')
+      Utils.debugLog('🚫 invalid sig on update game', 'error')
       this.response(params, {error: 'Invalid sig'})
       return
     }
@@ -708,19 +714,19 @@ export default class DApp {
         from: Account.get().openkey
       })
       .on('transactionHash', transactionHash => {
-        console.log('# openchannel TX pending', transactionHash)
-        console.log('https://ropsten.etherscan.io/tx/' + transactionHash)
-        console.log('⏳ wait receipt...')
+        Utils.debugLog(['# openchannel TX pending', transactionHash], _config.loglevel)
+        Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
+        Utils.debugLog('⏳ wait receipt...', _config.loglevel)
       }).on('error', err => {
-        console.warn('Open channel error', err)
+        Utils.debugLog(['Open channel error', err], _config.loglevel)
         this.response(params, {error: 'cant open channel', more: err})
       })
 
     if (receipt.transactionHash) {
-      console.log('🎉 Game updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash)
-      console.groupCollapsed('close receipt')
-      console.log(receipt)
-      console.groupEnd()
+      Utils.debugLog('🎉 Game updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
+      // console.groupCollapsed('close receipt')
+      Utils.debugLog(receipt, _config.loglevel)
+      // console.groupEnd()
     }
 
     this.response(params, {receipt: receipt})
@@ -751,11 +757,11 @@ export default class DApp {
         from: Account.get().openkey
       })
       .on('transactionHash', transactionHash => {
-        console.log('# openchannel TX pending', transactionHash)
-        console.log('https://ropsten.etherscan.io/tx/' + transactionHash)
-        console.log('⏳ wait receipt...')
+        Utils.debugLog(['# openchannel TX pending', transactionHash], _config.loglevel)
+        Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
+        Utils.debugLog('⏳ wait receipt...', _config.loglevel)
       }).on('error', err => {
-        console.warn('Open channel error', err)
+        Utils.debugLog(['Open channel error', err], 'error')
         this.response(params, {error: 'cant open channel', more: err})
       })
 
@@ -784,8 +790,8 @@ export default class DApp {
     params.address = params.address || this.connection_info.bankroller_address
 
     if (!params.address) {
-      console.error('params.address is empty ... ', params)
-      console.info('set bankroller address in params')
+      Utils.debugLog(['params.address is empty ... ', params], 'error')
+      Utils.debugLog('set bankroller address in params', _config.loglevel)
       return
     }
 
@@ -804,7 +810,7 @@ export default class DApp {
       // Send request
       Room.send(params, delivered => {
         if (!delivered) {
-          console.error('🙉 Cant send msg to bankroller, connection error')
+          Utils.debugLog('🙉 Cant send msg to bankroller, connection error', _config.loglevel)
           reject(new Error('undelivered'))
         }
       })
@@ -844,11 +850,11 @@ export default class DApp {
      * @memberOf DApp
      */
   findBankroller (deposit = false) {
-    if (this.debug) console.info(' 🔎 Find bankrollers in shared Dapp room...')
+    if (this.debug) Utils.debugLog(' 🔎 Find bankrollers in shared Dapp room...', _config.loglevel)
     const Status = this.Status
     let noBankroller = setTimeout(function noInf (params) {
       Status.emit('connect::info', {status: 'noBankroller', data: {deposit: deposit}})
-      console.info(' 🔎 Not bankroller with the same deposit, find continue')
+      Utils.debugLog(' 🔎 Not bankroller with the same deposit, find continue', _config.loglevel)
       noBankroller = setTimeout(noInf, 8000)
     }, 8000)
 

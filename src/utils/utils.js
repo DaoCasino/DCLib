@@ -1,9 +1,32 @@
+import debug   from 'debug'
+import _config from '../config/config'
 
 export const bigInt = require('big-integer')
 
 const web3sha3 = require('web3-utils/src/soliditySha3.js')
 
 export const sha3 = web3sha3
+
+export const debugLog = function (data, loglevel, enable = true) {
+  let log = debug('')
+
+  if (loglevel === 'hight') log.enabled = true
+
+  loglevel === 'light' && !enable
+    ? log.enabled = false
+    : log.enabled = true
+
+  if (loglevel === 'error') {
+    log = debug(loglevel)
+    log.enabled = true
+  }
+
+  if (loglevel === 'none')  log.enabled = false
+
+  if (Array.isArray(data)) return log(...data)
+
+  return log(data)
+}
 
 /**
  * Convert BET from decimal, to "human" format, ex: 110000000 = 1.1BET
@@ -87,14 +110,14 @@ export const buf2bytes32 = buffer => {
 export const remove0x = (str) => {
   if (str.length > 2 && str.substr(0, 2) === '0x') {
     str = str.substr(2)
-    console.log('0x prefix removed from  ' + str.substr(0, 8) + '...')
+    debugLog('0x prefix removed from  ' + str.substr(0, 8) + '...', _config.loglevel)
   }
   return str
 }
 
 export const add0x = (str) => {
   if (str.substr(0, 2) !== '0x') {
-    console.log('0x prefix added to ' + str.substr(0, 8) + '...')
+    debugLog('0x prefix added to ' + str.substr(0, 8) + '...', _config.loglevel)
     str = '0x' + str
   }
   return str

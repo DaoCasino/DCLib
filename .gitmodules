@@ -1,3 +1,0 @@
-[submodule "packages/dc-messaging"]
-	path = packages/dc-messaging
-	url = https://github.com/DaoCasino/dc-messaging.git

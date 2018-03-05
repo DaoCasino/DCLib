@@ -1,4 +1,3 @@
-import debug from 'debug'
 import conf from 'config/config'
 import * as Utils from 'utils/utils'
 import WEB3 from 'web3'
@@ -6,8 +5,6 @@ import WEB3 from 'web3'
 let _config = {}
 let ERC20 = {}
 let _wallet = { openkey: false }
-const logInfo = debug('dclib:info')
-const logError = debug('dclib:error')
 
 /**
  * Class for work with [Ethereum Account/Wallet](http://ethdocs.org/en/latest/account-management.html).
@@ -43,23 +40,14 @@ export default class Account {
     callback()
   }
 
-  /**
-   * Init user account
-   *
-   * @async
-   * @returns - none
-   */
-  async initAccount () {
-    logInfo('Init Account')
+  async initAccount (log = true) {
 
     // Try to restore
     // wallet from localstorage
     if (localStorage.web3wallet) {
       try {
-        this._wallet.openkey = '0x' + JSON.parse(localStorage.web3wallet).address
-      } catch (e) {
-        logError(e)
-      }
+        _wallet.openkey = '0x' + JSON.parse(localStorage.web3wallet).address
+      } catch (e) { Utils.debugLog(['Error!', e], 'error') }
     }
 
     // Create new
@@ -74,15 +62,21 @@ export default class Account {
       )
       this.web3.eth.accounts.wallet.add(privateKey)
 
-      logInfo(' 👤 New account created:', this._wallet.openkey)
+      if (log) Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
     }
 
-    logInfo(' 🔑 Account ' + this._wallet.openkey + ' restored from localStorage')
-    logInfo('DCLib.Account.get()')
-    logInfo('DCLib.Account.sign(raw_msg)')
-    logInfo('DCLib.Account.exportPrivateKey()')
-    logInfo('DCLib.Account.info(callback)')
-    logInfo('DCLib.Account.reset() - remove localstorage data')
+    if (log) {
+      Utils.debugLog(' 🔑 Account ' + _wallet.openkey + ' restored from localStorage', _config.loglevel)
+      if (_config.loglevel !== 'none') {
+        console.groupCollapsed('Methods DCLib.Account')
+        Utils.debugLog('DCLib.Account.get()', _config.loglevel)
+        Utils.debugLog('DCLib.Account.sign(raw_msg)', _config.loglevel)
+        Utils.debugLog('DCLib.Account.exportPrivateKey()', _config.loglevel)
+        Utils.debugLog('DCLib.Account.info(callback)', _config.loglevel)
+        Utils.debugLog('DCLib.Account.reset() - remove localstorage data', _config.loglevel)
+        console.groupEnd()
+      }
+    }
 
     this.unlockAccount()
   }
@@ -114,6 +108,7 @@ export default class Account {
     return fetch('https://platform.dao.casino/faucet?get=account').then(res => {
       return res.json()
     }).then(acc => {
+      Utils.debugLog(['Server account data:', acc], _config.loglevel)
       localStorage.account_from_server = JSON.stringify(acc)
       this._wallet.openkey = acc.address
       return acc.privateKey
@@ -249,12 +244,12 @@ export default class Account {
    * @extends {Account}
    */
   sign (raw) {
-    logInfo('call %web3.eth.accounts.sign', ['font-weight:bold;'])
-    logInfo('More docs: http://web3js.readthedocs.io/en/1.0/web3-eth-accounts.html#sign')
+    Utils.debugLog(['call %web3.eth.accounts.sign', ['font-weight:bold;']], _config.loglevel)
+    Utils.debugLog('More docs: http://web3js.readthedocs.io/en/1.0/web3-eth-accounts.html#sign', _config.loglevel)
 
     raw = Utils.remove0x(raw)
-    logInfo(raw)
-    return this._wallet.sign(raw)
+    Utils.debugLog(raw, _config.loglevel)
+    return _wallet.sign(raw)
   }
 
   /**
@@ -306,14 +301,14 @@ export default class Account {
         gasPrice: this._config.gasPrice,
         gas: (await this._ERC20.methods.transfer(to, amount).estimateGas({from: this.get().openkey}))
       })
-      .on('transactionHash', transactionHash => { logInfo('transactionHash:', transactionHash) })
-      .on('receipt', receipt => { logInfo('receipt:', receipt) })
+      .on('transactionHash', transactionHash => { Utils.debugLog('transactionHash:', transactionHash) })
+      .on('receipt', receipt => { Utils.debugLog('receipt:', receipt) })
       .then(
         receipt => {
           if (callback) callback(receipt)
           return receipt
         },
-        err => logError('Send bets .catch ', err)
+        err => Utils.debugLog('Send bets .catch ', err)
       )
   }
 }

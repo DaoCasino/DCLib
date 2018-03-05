@@ -1,5 +1,5 @@
 import * as Utils from 'utils/utils'
-
+import _config    from '../config/config'
 /** max items in history */
 const h_max   = 100
 
@@ -40,18 +40,20 @@ export default class PayChannel {
   constructor (bankroller_deposit) {
     deposit.bankroller = bankroller_deposit
 
-    console.groupCollapsed('payChannel injected in DApp logic')
-    console.log('Now your logic has methods for work with payment channel')
-    console.table({
-      getDeposit : 'for get start deposit',
-      getBalance : 'current user balance',
-      getProfit  : 'How many user up, balance-deposit',
+    if (_config.loglevel !== 'none') {
+      Utils.debugLog('paychannel injected in dapp logic', _config.loglevel)
+      Utils.debugLog('Now your logic has methods for work with payment channel', _config.loglevel)
+      console.table({
+        getDeposit : 'for get start deposit',
+        getBalance : 'current user balance',
+        getProfit  : 'How many user up, balance-deposit',
 
-      addTX      : 'Change current user balance, ex: addTX(-1) ',
+        addTX      : 'Change current user balance, ex: addTX(-1) ',
 
-      printLog   : 'console.log channel state'
-    })
-    console.groupEnd()
+        printLog   : 'console.log channel state'
+      })
+      console.groupEnd()
+    }
   }
 
   /**
@@ -70,7 +72,7 @@ export default class PayChannel {
      */
   setDeposit (d) {
     if (deposit.player !== false) {
-      console.error('Deposit allready set')
+      Utils.debugLog('Deposit allready set', 'error')
       return
     }
 
@@ -78,7 +80,7 @@ export default class PayChannel {
     deposit.bankroller = Utils.bet2dec(d * 2)
     balance.player     = (1 * deposit.player)
     balance.bankroller = (1 * deposit.bankroller)
-    console.log('PayChannel::User deposit set ' + deposit.player + ' bankroller deposit set' + deposit.bankroller + ', now user balance:', deposit.player)
+    Utils.debugLog(['PayChannel::User deposit set ' + deposit.player + ' bankroller deposit set' + deposit.bankroller + ', now user balance:', deposit.player], _config.loglevel)
     return balance
   }
 
@@ -95,7 +97,7 @@ export default class PayChannel {
      * @memberOf PayChannel
      */
   getDeposit () {
-    console.log('PayChannel::getDeposit', deposit.player)
+    Utils.debugLog(['PayChannel::getDeposit', deposit.player], _config.loglevel)
     return Utils.dec2bet(deposit.player)
   }
 
@@ -112,13 +114,17 @@ export default class PayChannel {
      * @memberOf PayChannel
      */
   getBalance () {
-    console.log('PayChannel::getBalance', balance.player)
+    Utils.debugLog(['PayChannel::getBalance', balance.player], _config.loglevel)
     return Utils.dec2bet(balance.player)
   }
 
   getBankrollBalance () {
-    console.log('PayChannel::getBankrollBalance', balance.bankroller)
+    Utils.debugLog(['PayChannel::getBankrollBalance', balance.bankroller], _config.loglevel)
     return Utils.dec2bet(balance.bankroller)
+  }
+
+  updateChannelBalance (p, convert = false) {
+    !convert ? this.addTX(p) : this.addTX(p, true)
   }
 
   /**
@@ -134,7 +140,7 @@ export default class PayChannel {
      * @memberOf PayChannel
      */
   getProfit () {
-    console.log('PayChannel::getProfit', _profit)
+    Utils.debugLog(['PayChannel::getProfit', _profit], _config.loglevel)
     return Utils.dec2bet(_profit)
   }
 
@@ -142,7 +148,7 @@ export default class PayChannel {
      * @ignore
      */
   _getProfit () {
-    console.log('PayChannel::_getProfit', _profit)
+    Utils.debugLog(['PayChannel::_getProfit', _profit], _config.loglevel)
     return _profit
   }
 
@@ -161,11 +167,11 @@ export default class PayChannel {
      * @param {bool} convert - convet from BET to microbet, default - true
      */
   addTX (p, convert = true) {
-    console.log('PayChannel::addTX')
+    Utils.debugLog('PayChannel::addTX', _config.loglevel)
 
     if (convert) {
       p = Utils.bet2dec(p)
-      console.log('PayChannel::addTX - convert BET to minibet', p)
+      Utils.debugLog(['PayChannel::addTX - convert BET to minibet', p], _config.loglevel)
     }
 
     if (('' + p).indexOf('.') > -1) {
@@ -176,8 +182,8 @@ export default class PayChannel {
 
     balance.player     = deposit.player     + _profit
     balance.bankroller = deposit.bankroller - _profit
-    console.log(_profit)
-    console.log(balance)
+    Utils.debugLog(_profit, _config.loglevel)
+    Utils.debugLog(balance, _config.loglevel)
     _history.push({
       profit    : p,
       balance   : balance.player,
@@ -197,17 +203,19 @@ export default class PayChannel {
      * @return {Array} - history array
      */
   printLog () {
-    console.groupCollapsed('Paychannel state:')
-    console.table({
-      Deposit          : this.getDeposit(),
-      player_balance   : this.getBalance(),
-      bankroll_balance : this.getBankrollBalance(),
-      Profit           : this.getProfit()
-    })
-    console.groupCollapsed('TX History, last ' + h_max + ' items ' + _history.length)
-    console.log(_history)
-    console.groupEnd()
-    console.groupEnd()
+    if (_config.loglevel !== 'none') {
+      console.groupCollapsed('Paychannel state:')
+      console.table({
+        Deposit          : this.getDeposit(),
+        player_balance   : this.getBalance(),
+        bankroll_balance : this.getBankrollBalance(),
+        Profit           : this.getProfit()
+      })
+      console.groupCollapsed('TX History, last ' + h_max + ' items ' + _history.length)
+      Utils.debugLog(_history, _config.loglevel)
+      console.groupEnd()
+      console.groupEnd()
+    }
 
     return _history
   }
@@ -222,7 +230,7 @@ export default class PayChannel {
      * @memberOf PayChannel
      */
   reset () {
-    console.log('PayChannel::reset, set deposit balance profit to 0')
+    Utils.debugLog('PayChannel::reset, set deposit balance profit to 0', _config.loglevel)
     deposit.player     = false
     deposit.bankroller = false
     balance.player     = 0

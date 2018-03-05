@@ -7,6 +7,7 @@ module.exports = {
   db_name   : 'DCLib',
   rtc_room  : 'dc-room1',
   rtc_store : 'rtc_msgs',
+  loglevel  : 'hight',
 
   network   : 'ropsten',
   rpc_url   : 'https://ropsten.infura.io/JCnK5ifEPH9qcQkX0Ahl',
