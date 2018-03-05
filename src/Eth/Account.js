@@ -43,9 +43,11 @@ export default class Account {
   async initAccount (log = true) {
     // Try to restore
     // wallet from localstorage
-    if (localStorage.web3wallet) {
+    const web3wallet = localStorage.getItem('web3wallet')
+
+    if (web3wallet) {
       try {
-        _wallet.openkey = '0x' + JSON.parse(localStorage.web3wallet).address
+        _wallet.openkey = `0x${JSON.parse(web3wallet).address}`
       } catch (e) { Utils.debugLog(['Error!', e], 'error') }
     }
 
@@ -248,7 +250,7 @@ export default class Account {
 
     raw = Utils.remove0x(raw)
     Utils.debugLog(raw, _config.loglevel)
-    return _wallet.sign(raw)
+    return this._wallet.sign(raw)
   }
 
   /**
