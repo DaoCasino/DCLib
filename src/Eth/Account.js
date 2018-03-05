@@ -41,7 +41,6 @@ export default class Account {
   }
 
   async initAccount (log = true) {
-
     // Try to restore
     // wallet from localstorage
     if (localStorage.web3wallet) {
