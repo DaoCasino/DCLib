@@ -1,4 +1,4 @@
-/* global localStorage */
+/* global localStorage fetch */
 import conf from 'config/config'
 import * as Utils from 'utils/utils'
 import WEB3 from 'web3'
@@ -84,14 +84,17 @@ export default class Account {
   /**
    * @ignore
    */
-  getAccountFromServer () {
-    if (localStorage.account_from_server) {
-      if (localStorage.account_from_server === 'wait') {
+  getAccountFromServer (localStorageStatusKey = 'statusGetAccountfromServer') {
+    const status = localStorage.getItem(localStorageStatusKey)
+
+    if (status) {
+      if (status === 'wait') {
         return new Promise((resolve, reject) => {
           let waitTimer = () => {
             setTimeout(() => {
-              if (localStorage.account_from_server.privateKey) {
-                resolve(localStorage.account_from_server)
+              const newStatus = localStorage.getItem(localStorageStatusKey)
+              if (typeof newStatus === 'object' && newStatus.privateKey) {
+                resolve(newStatus)
               } else {
                 waitTimer()
               }
@@ -103,13 +106,13 @@ export default class Account {
       return
     }
 
-    localStorage.account_from_server = 'wait'
-    /* global fetch */
+    localStorage.setItem(localStorageStatusKey, 'wait')
+
     return fetch('https://platform.dao.casino/faucet?get=account')
       .then(res => res.json())
       .then(acc => {
         Utils.debugLog(['Server account data:', acc], _config.loglevel)
-        localStorage.account_from_server = JSON.stringify(acc)
+        localStorage.setItem(localStorageStatusKey, JSON.stringify(acc))
         this._wallet.openkey = acc.address
         return acc.privateKey
       })
@@ -162,7 +165,7 @@ export default class Account {
     this.signTransaction = this._wallet.signTransaction
 
     // Init ERC20 contract
-    ERC20 = new this.web3.eth.Contract(
+    this._ERC20 = new this.web3.eth.Contract(
       this._config.contracts.erc20.abi,
       this._config.contracts.erc20.address
     )

@@ -1,12 +1,18 @@
 /* eslint-env mocha */
-/* global DCLib expect sinon localStorage */
+/* global DCLib expect sinon localStorage fetchMock */
 
 describe('Account', () => {
   let sandbox
 
   beforeEach(() => { sandbox = sinon.sandbox.create() })
 
-  afterEach(() => { sandbox.restore() })
+  afterEach(() => {
+    sandbox.restore()
+    fetchMock.restore()
+    DCLib.Account._wallet = { openkey: false }
+    DCLib.Account._config = {}
+    DCLib.Account._ERC20 = {}
+  })
 
   it('should init account when account is save in localStorage', async () => {
     const localStorageGetItemStub = sandbox
@@ -53,6 +59,16 @@ describe('Account', () => {
       openkey: '0xD4E9F60fc84b97080A1803CF2D4E1003313a2Ea2',
       privateKey: '0xd8c226915b298530ee9ede352a1c9fe49f15a78167477e34731e26ccc7f577aa'
     }
+    sandbox.stub(DCLib.Account, '_config').value({
+      wallet_pass: 'walletPassValue',
+      contracts: {
+        erc20: {
+          abi: 'fakeAbi',
+          address: 'fakeAddres'
+        }
+      }
+    })
+    const createContractStub = sandbox.stub(DCLib.web3.eth, 'Contract')
     const localStorageSpy = sandbox.stub(localStorage, 'getItem').returns('xxx')
     const decryptSpy = sandbox.stub(DCLib.web3.eth.accounts, 'decrypt').returns(result)
     const addWalletSpy = sandbox.stub(DCLib.web3.eth.accounts.wallet, 'add')
@@ -65,7 +81,24 @@ describe('Account', () => {
     expect(decryptSpy.getCall(0).args).to.deep.equal(['xxx', '1234'])
     expect(addWalletSpy.getCall(0).args).to.deep.equal([result.privateKey])
     expect(localStorageSpy.getCall(0).args).to.deep.equal(['web3wallet'])
+    expect(createContractStub.getCall(0).args).to.deep.equal(['fakeAbi', 'fakeAddres'])
     expect(unlock).to.deep.equal(result)
+  })
+
+  it('should return account from server', async () => {
+    fetchMock.get('*', { address: 'fakeAddress', privateKey: 'fakePrivateKey' })
+    const localStorageStub = sandbox.stub(localStorage, 'getItem').returns(undefined)
+    const localStorageSetItemStub = sandbox.stub(localStorage, 'setItem')
+    const result = await DCLib.Account.getAccountFromServer('testKey')
+
+    expect(localStorageStub.getCall(0).args).to.deep.equal(['testKey'])
+    expect(result).to.equal('fakePrivateKey')
+    expect(DCLib.Account._wallet.openkey).to.equal('fakeAddress')
+    expect(localStorageSetItemStub.getCall(0).args).to.deep.equal(['testKey', 'wait'])
+    expect(localStorageSetItemStub.getCall(1).args).to.deep.equal([
+      'testKey',
+      JSON.stringify({ address: 'fakeAddress', privateKey: 'fakePrivateKey' })
+    ])
   })
 
   it('should return false when localstorage does not have web3wallet item', () => {
