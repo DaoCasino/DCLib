@@ -4,12 +4,46 @@
 describe('Account', () => {
   let sandbox
 
-  beforeEach(function () {
-    sandbox = sinon.sandbox.create()
+  beforeEach(() => { sandbox = sinon.sandbox.create() })
+
+  afterEach(() => { sandbox.restore() })
+
+  it('should init account when account is save in localStorage', async () => {
+    const localStorageGetItemStub = sandbox
+      .stub(localStorage, 'getItem')
+      .returns(JSON.stringify({ address: 'web3walletAddress' }))
+    const unlockAccountStub = sandbox.stub(DCLib.Account, 'unlockAccount')
+    await DCLib.Account.initAccount(false)
+
+    expect(localStorageGetItemStub.getCall(0).args).to.deep.equal(['web3wallet'])
+    expect(unlockAccountStub.getCall(0).args).to.deep.equal([])
+    expect(DCLib.Account._wallet).to.deep.equal({ openkey: '0xweb3walletAddress' })
   })
 
-  afterEach(function () {
-    sandbox.restore()
+  it('should init account when account is not save in localStorage but exists in server', async () => {
+    const localStorageGetItemStub = sandbox
+      .stub(localStorage, 'getItem')
+      .returns(undefined)
+    sandbox.stub(DCLib.Account, '_wallet').value({ openkey: false })
+    const getAccountFromServerStub = sandbox
+      .stub(DCLib.Account, 'getAccountFromServer')
+      .returns(Promise.resolve('privateKeyValue'))
+    sandbox.stub(DCLib.Account, '_config').value({ wallet_pass: 'walletPassValue' })
+    const encryptStub = sandbox.stub(DCLib.web3.eth.accounts, 'encrypt').returns({ value: 'encrypt' })
+    const localStorageSetItemStub = sandbox.stub(localStorage, 'setItem')
+    const walletAddStub = sandbox.stub(DCLib.web3.eth.accounts.wallet, 'add')
+    const unlockAccountStub = sandbox.stub(DCLib.Account, 'unlockAccount')
+    await DCLib.Account.initAccount(false)
+
+    expect(localStorageGetItemStub.getCall(0).args).to.deep.equal(['web3wallet'])
+    expect(getAccountFromServerStub.getCall(0).args).to.deep.equal([])
+    expect(encryptStub.getCall(0).args).to.deep.equal(['privateKeyValue', 'walletPassValue'])
+    expect(localStorageSetItemStub.getCall(0).args).to.deep.equal([
+      'web3wallet',
+      JSON.stringify({ value: 'encrypt' })
+    ])
+    expect(walletAddStub.getCall(0).args).to.deep.equal(['privateKeyValue'])
+    expect(unlockAccountStub.getCall(0).args).to.deep.equal([])
   })
 
   it('should unlock account', () => {

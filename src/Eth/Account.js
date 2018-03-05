@@ -1,3 +1,4 @@
+/* global localStorage */
 import conf from 'config/config'
 import * as Utils from 'utils/utils'
 import WEB3 from 'web3'
@@ -41,26 +42,24 @@ export default class Account {
   }
 
   async initAccount (log = true) {
-    // Try to restore
-    // wallet from localstorage
     const web3wallet = localStorage.getItem('web3wallet')
 
     if (web3wallet) {
       try {
-        _wallet.openkey = `0x${JSON.parse(web3wallet).address}`
-      } catch (e) { Utils.debugLog(['Error!', e], 'error') }
+        this._wallet.openkey = `0x${JSON.parse(web3wallet).address}`
+      } catch (e) {
+        Utils.debugLog(['Error!', e], 'error')
+      }
     }
 
-    // Create new
     if (!this._wallet.openkey) {
       const privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
-      /* global localStorage */
-      localStorage.web3wallet = JSON.stringify(
+      localStorage.setItem('web3wallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
           privateKey,
           this._config.wallet_pass
         )
-      )
+      ))
       this.web3.eth.accounts.wallet.add(privateKey)
 
       if (log) Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
@@ -106,16 +105,18 @@ export default class Account {
 
     localStorage.account_from_server = 'wait'
     /* global fetch */
-    return fetch('https://platform.dao.casino/faucet?get=account').then(res => {
-      return res.json()
-    }).then(acc => {
-      Utils.debugLog(['Server account data:', acc], _config.loglevel)
-      localStorage.account_from_server = JSON.stringify(acc)
-      this._wallet.openkey = acc.address
-      return acc.privateKey
-    }).catch(e => {
-      return false
-    })
+    return fetch('https://platform.dao.casino/faucet?get=account')
+      .then(res => res.json())
+      .then(acc => {
+        Utils.debugLog(['Server account data:', acc], _config.loglevel)
+        localStorage.account_from_server = JSON.stringify(acc)
+        this._wallet.openkey = acc.address
+        return acc.privateKey
+      })
+      .catch(e => {
+        Utils.debugLog(e)
+        return false
+      })
   }
 
   /**
