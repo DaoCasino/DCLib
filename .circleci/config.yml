@@ -6,7 +6,8 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-        key: dependency-cache-{{ checksum "package.json" }}
+        keys:
+          - dependency-cache-{{ checksum "package.json" }}
       - run: npm i
       - save_cache:
         key: dependency-cache-{{ checksum "package.json" }}
