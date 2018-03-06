@@ -321,6 +321,4 @@ if (process.env.enable_less) {
   })
 }
 
-
-
 module.exports = webpack_prod_config
