@@ -5,5 +5,11 @@ jobs:
       - image: circleci/node:9-browsers
     steps:
       - checkout
+      - restore_cache:
+        key: dependency-cache-{{ checksum "package.json" }}
       - run: npm i
+      - save_cache:
+        key: dependency-cache-{{ checksum "package.json" }}
+        paths:
+          - node_modules
       - run: npm run build
