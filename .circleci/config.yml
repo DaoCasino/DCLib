@@ -6,5 +6,4 @@ jobs:
     steps:
       - checkout
       - run: npm i
-      - run: npm i -g npx
       - run: npm run build
