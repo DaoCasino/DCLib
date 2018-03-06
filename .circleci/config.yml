@@ -25,7 +25,11 @@ jobs:
 
       - run:
           name: Build Packages
-          command: npm run build
+          command: npm run prebuild
+
+      - run:
+          name: Send coverage report to codacy
+          command: cat ./coverage/lcov.info | ./node_modules/.bin/codacy-coverage
 
       - save_cache:
           name: Save node_modules cache
