@@ -1,10 +1,9 @@
 /* global localStorage fetch */
 import conf from 'config/config'
 import * as Utils from 'utils/utils'
-import WEB3 from 'web3'
 
 let _config = {}
-let ERC20 = {}
+let ERC20   = {}
 let _wallet = { openkey: false }
 
 /**
@@ -28,10 +27,10 @@ export default class Account {
   constructor (config, callback = false) {
     callback = callback || (() => {})
 
-    _config = Object.assign(conf, config)
+    _config      = Object.assign(conf, config)
     this._wallet = _wallet
     this._config = _config
-    this._ERC20 = ERC20
+    this._ERC20  = ERC20
 
     /**
      * @ignore
@@ -41,6 +40,7 @@ export default class Account {
     callback()
   }
 
+<<<<<<< HEAD
   async initAccount (log = true) {
     const web3wallet = localStorage.getItem('web3wallet')
 
@@ -53,6 +53,26 @@ export default class Account {
     }
 
     if (!this._wallet.openkey) {
+=======
+
+  /**
+   * Init user account
+   *
+   * @async
+   * @returns - none
+   */
+  async initAccount (log = true) {
+    // Try to restore
+    // wallet from localstorage
+    if (localStorage.web3wallet) {
+      try {
+        _wallet.openkey = '0x' + JSON.parse(localStorage.web3wallet).address
+      } catch (e) { Utils.debugLog(['Error!', e], 'error') }
+    }
+
+    // Create new
+    if (!_wallet.openkey) {
+>>>>>>> upstream/develop
       const privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
       localStorage.setItem('web3wallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
@@ -62,6 +82,7 @@ export default class Account {
       ))
       this.web3.eth.accounts.wallet.add(privateKey)
 
+<<<<<<< HEAD
       if (log) Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
     }
 
@@ -78,6 +99,13 @@ export default class Account {
       }
     }
 
+=======
+      logInfo(' 👤 New account created:', _wallet.openkey)
+    } else {
+      logInfo(' 🔑 Account ' + this._wallet.openkey + ' restored from localStorage')
+    }
+
+>>>>>>> upstream/develop
     this.unlockAccount()
   }
 
@@ -106,6 +134,7 @@ export default class Account {
       return
     }
 
+<<<<<<< HEAD
     localStorage.setItem(localStorageStatusKey, 'wait')
 
     return fetch('https://platform.dao.casino/faucet?get=account')
@@ -120,6 +149,21 @@ export default class Account {
         Utils.debugLog(e)
         return false
       })
+=======
+    localStorage.account_from_server = 'wait'
+    /* global fetch */
+    return fetch('https://platform.dao.casino/faucet?get=account').then(res => {
+      return res.json()
+    }).then(acc => {
+      Utils.debugLog(['Server account data:', acc], _config.loglevel)
+
+      localStorage.account_from_server = JSON.stringify(acc)
+      this._wallet.openkey = acc.address
+      return acc.privateKey
+    }).catch(e => {
+      return false
+    })
+>>>>>>> upstream/develop
   }
 
   /**
