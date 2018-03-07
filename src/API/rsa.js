@@ -21,6 +21,6 @@ export default class RSA {
     let sigMsg     = parseBigInt(signedMessage, 16)
     msg            = msg.mod(this.RSA.n)
     let newMessage = this.RSA.doPublic(sigMsg)
-    return (newMessage.equals(msg))
+    return newMessage.equals(msg)
   }
 }

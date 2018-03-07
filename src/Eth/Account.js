@@ -1,14 +1,10 @@
-import debug  from 'debug'
-import conf   from 'config/config'
-import WEB3   from 'web3'
+/* global localStorage fetch */
+import conf from 'config/config'
 import * as Utils from 'utils/utils'
 
 let _config = {}
 let ERC20   = {}
 let _wallet = { openkey: false }
-
-const logInfo  = debug('dclib:info')
-const logError = debug('dclib:error')
 
 /**
  * Class for work with [Ethereum Account/Wallet](http://ethdocs.org/en/latest/account-management.html).
@@ -44,6 +40,20 @@ export default class Account {
     callback()
   }
 
+<<<<<<< HEAD
+  async initAccount (log = true) {
+    const web3wallet = localStorage.getItem('web3wallet')
+
+    if (web3wallet) {
+      try {
+        this._wallet.openkey = `0x${JSON.parse(web3wallet).address}`
+      } catch (e) {
+        Utils.debugLog(['Error!', e], 'error')
+      }
+    }
+
+    if (!this._wallet.openkey) {
+=======
 
   /**
    * Init user account
@@ -62,35 +72,57 @@ export default class Account {
 
     // Create new
     if (!_wallet.openkey) {
+>>>>>>> upstream/develop
       const privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
-      /* global localStorage */
-      localStorage.web3wallet = JSON.stringify(
+      localStorage.setItem('web3wallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
           privateKey,
           this._config.wallet_pass
         )
-      )
+      ))
       this.web3.eth.accounts.wallet.add(privateKey)
 
+<<<<<<< HEAD
+      if (log) Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
+    }
+
+    if (log) {
+      Utils.debugLog(' 🔑 Account ' + _wallet.openkey + ' restored from localStorage', _config.loglevel)
+      if (_config.loglevel !== 'none') {
+        console.groupCollapsed('Methods DCLib.Account')
+        Utils.debugLog('DCLib.Account.get()', _config.loglevel)
+        Utils.debugLog('DCLib.Account.sign(raw_msg)', _config.loglevel)
+        Utils.debugLog('DCLib.Account.exportPrivateKey()', _config.loglevel)
+        Utils.debugLog('DCLib.Account.info(callback)', _config.loglevel)
+        Utils.debugLog('DCLib.Account.reset() - remove localstorage data', _config.loglevel)
+        console.groupEnd()
+      }
+    }
+
+=======
       logInfo(' 👤 New account created:', _wallet.openkey)
     } else {
       logInfo(' 🔑 Account ' + this._wallet.openkey + ' restored from localStorage')
     }
 
+>>>>>>> upstream/develop
     this.unlockAccount()
   }
 
   /**
    * @ignore
    */
-  getAccountFromServer () {
-    if (localStorage.account_from_server) {
-      if (localStorage.account_from_server === 'wait') {
+  getAccountFromServer (localStorageStatusKey = 'statusGetAccountfromServer') {
+    const status = localStorage.getItem(localStorageStatusKey)
+
+    if (status) {
+      if (status === 'wait') {
         return new Promise((resolve, reject) => {
           let waitTimer = () => {
             setTimeout(() => {
-              if (localStorage.account_from_server.privateKey) {
-                resolve(localStorage.account_from_server)
+              const newStatus = localStorage.getItem(localStorageStatusKey)
+              if (typeof newStatus === 'object' && newStatus.privateKey) {
+                resolve(newStatus)
               } else {
                 waitTimer()
               }
@@ -102,6 +134,22 @@ export default class Account {
       return
     }
 
+<<<<<<< HEAD
+    localStorage.setItem(localStorageStatusKey, 'wait')
+
+    return fetch('https://platform.dao.casino/faucet?get=account')
+      .then(res => res.json())
+      .then(acc => {
+        Utils.debugLog(['Server account data:', acc], _config.loglevel)
+        localStorage.setItem(localStorageStatusKey, JSON.stringify(acc))
+        this._wallet.openkey = acc.address
+        return acc.privateKey
+      })
+      .catch(e => {
+        Utils.debugLog(e)
+        return false
+      })
+=======
     localStorage.account_from_server = 'wait'
     /* global fetch */
     return fetch('https://platform.dao.casino/faucet?get=account').then(res => {
@@ -115,6 +163,7 @@ export default class Account {
     }).catch(e => {
       return false
     })
+>>>>>>> upstream/develop
   }
 
   /**
@@ -160,7 +209,7 @@ export default class Account {
     this.signTransaction = this._wallet.signTransaction
 
     // Init ERC20 contract
-    ERC20 = new this.web3.eth.Contract(
+    this._ERC20 = new this.web3.eth.Contract(
       this._config.contracts.erc20.abi,
       this._config.contracts.erc20.address
     )
@@ -244,11 +293,11 @@ export default class Account {
    * @extends {Account}
    */
   sign (raw) {
-    logInfo('call %web3.eth.accounts.sign', ['font-weight:bold;'])
-    logInfo('More docs: http://web3js.readthedocs.io/en/1.0/web3-eth-accounts.html#sign')
+    Utils.debugLog(['call %web3.eth.accounts.sign', ['font-weight:bold;']], _config.loglevel)
+    Utils.debugLog('More docs: http://web3js.readthedocs.io/en/1.0/web3-eth-accounts.html#sign', _config.loglevel)
 
     raw = Utils.remove0x(raw)
-    logInfo(raw)
+    Utils.debugLog(raw, _config.loglevel)
     return this._wallet.sign(raw)
   }
 
@@ -301,14 +350,14 @@ export default class Account {
         gasPrice: this._config.gasPrice,
         gas: (await this._ERC20.methods.transfer(to, amount).estimateGas({from: this.get().openkey}))
       })
-      .on('transactionHash', transactionHash => { logInfo('transactionHash:', transactionHash) })
-      .on('receipt', receipt => { logInfo('receipt:', receipt) })
+      .on('transactionHash', transactionHash => { Utils.debugLog('transactionHash:', transactionHash) })
+      .on('receipt', receipt => { Utils.debugLog('receipt:', receipt) })
       .then(
         receipt => {
           if (callback) callback(receipt)
           return receipt
         },
-        err => logError('Send bets .catch ', err)
+        err => Utils.debugLog('Send bets .catch ', err)
       )
   }
 }

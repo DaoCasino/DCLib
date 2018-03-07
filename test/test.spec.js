@@ -4,13 +4,9 @@
 describe('DCLib', () => {
   let sandbox
 
-  beforeEach(function () {
-    sandbox = sinon.sandbox.create()
-  })
+  beforeEach(() => { sandbox = sinon.sandbox.create() })
 
-  afterEach(function () {
-    sandbox.restore()
-  })
+  afterEach(() => { sandbox.restore() })
 
   it('should return random hash', () => {
     const randomHash = DCLib.randomHash()
