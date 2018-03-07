@@ -2,7 +2,7 @@
   "name": "dclib",
   "description": "Eth lib",
   "version": "3.0.0-beta.0",
-  "author": "name <team@dao.casino>",
+  "author": "DAO casino team <team@dao.casino>",
   "private": false,
   "scripts": {
     "commit": "git-cz",
