@@ -5,7 +5,7 @@
   "author": "name <team@dao.casino>",
   "private": false,
   "scripts": {
-    "commit": "git-cz",
+    "cm": "git-cz",
     "start": "node scripts/start.js",
     "lint": "eslint --ext=.js,.tag ./src ./test",
     "prebuild": "npm run lint && npm run test",
@@ -14,7 +14,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint && npm run test"
+      "pre-commit": "npm test",
+      "pre-push": "npm test"
     }
   },
   "keywords": [
