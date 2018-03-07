@@ -24,8 +24,8 @@ jobs:
           command: npm install
 
       - run:
-          name: Build Packages
-          command: npm run prebuild
+          name: Run tests
+          command: npm test
 
       - run:
           name: Send coverage report to codacy

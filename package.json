@@ -5,18 +5,11 @@
   "author": "name <team@dao.casino>",
   "private": false,
   "scripts": {
-    "cm": "git-cz",
+    "commit": "git-cz",
     "start": "node scripts/start.js",
-    "lint": "eslint --ext=.js,.tag ./src ./test",
-    "prebuild": "npm run lint && npm run test",
     "build": "node scripts/build.js",
-    "test": "karma start"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm test",
-      "pre-push": "npm test"
-    }
+    "lint": "eslint --ext=.js,.tag ./src ./test",
+    "test": "npm run lint && karma start"
   },
   "keywords": [
     "DCLib"
@@ -83,6 +76,7 @@
     "object-assign": "4.1.1",
     "postcss-flexbugs-fixes": "3.0.0",
     "postcss-loader": "2.0.5",
+    "pre-commit": "^1.2.2",
     "promise": "7.1.1",
     "puppeteer": "^1.1.1",
     "react-dev-utils": "^3.0.0",
