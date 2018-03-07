@@ -1,6 +1,8 @@
 /* global localStorage fetch */
 import conf from 'config/config'
 import * as Utils from 'utils/utils'
+import WEB3 from 'web3'
+import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
 let _config = {}
 let ERC20   = {}
@@ -40,7 +42,6 @@ export default class Account {
     callback()
   }
 
-<<<<<<< HEAD
   async initAccount (log = true) {
     const web3wallet = localStorage.getItem('web3wallet')
 
@@ -53,26 +54,6 @@ export default class Account {
     }
 
     if (!this._wallet.openkey) {
-=======
-
-  /**
-   * Init user account
-   *
-   * @async
-   * @returns - none
-   */
-  async initAccount (log = true) {
-    // Try to restore
-    // wallet from localstorage
-    if (localStorage.web3wallet) {
-      try {
-        _wallet.openkey = '0x' + JSON.parse(localStorage.web3wallet).address
-      } catch (e) { Utils.debugLog(['Error!', e], 'error') }
-    }
-
-    // Create new
-    if (!_wallet.openkey) {
->>>>>>> upstream/develop
       const privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
       localStorage.setItem('web3wallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
@@ -82,7 +63,6 @@ export default class Account {
       ))
       this.web3.eth.accounts.wallet.add(privateKey)
 
-<<<<<<< HEAD
       if (log) Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
     }
 
@@ -99,13 +79,6 @@ export default class Account {
       }
     }
 
-=======
-      logInfo(' 👤 New account created:', _wallet.openkey)
-    } else {
-      logInfo(' 🔑 Account ' + this._wallet.openkey + ' restored from localStorage')
-    }
-
->>>>>>> upstream/develop
     this.unlockAccount()
   }
 
@@ -134,7 +107,6 @@ export default class Account {
       return
     }
 
-<<<<<<< HEAD
     localStorage.setItem(localStorageStatusKey, 'wait')
 
     return fetch('https://platform.dao.casino/faucet?get=account')
@@ -149,21 +121,6 @@ export default class Account {
         Utils.debugLog(e)
         return false
       })
-=======
-    localStorage.account_from_server = 'wait'
-    /* global fetch */
-    return fetch('https://platform.dao.casino/faucet?get=account').then(res => {
-      return res.json()
-    }).then(acc => {
-      Utils.debugLog(['Server account data:', acc], _config.loglevel)
-
-      localStorage.account_from_server = JSON.stringify(acc)
-      this._wallet.openkey = acc.address
-      return acc.privateKey
-    }).catch(e => {
-      return false
-    })
->>>>>>> upstream/develop
   }
 
   /**
@@ -299,6 +256,34 @@ export default class Account {
     raw = Utils.remove0x(raw)
     Utils.debugLog(raw, _config.loglevel)
     return this._wallet.sign(raw)
+  }
+
+  /**
+   * ## DCLib.Account.signHash(hash)
+   * method sign hashMessage
+   *
+   *
+   * @example
+   * > DCLib.Account.signHash("0xAb23..")
+     *
+   * @example
+   * // method return
+   * > `0x6a1bcec4ff132aadb511cfd83131e456fab8b94d92c219448113697b5d75308b3b805
+   *  ef93c60b561b72d7c985fac11a574be0c2b2e4f3a8701cd01afa8e6edd71b`
+   *
+   * @param {String} hash - message which need turn in hash
+   * @returns {String} - hashed Message
+   *
+   * @memberOf {Account}
+   */
+  signHash (hash) {
+    hash = Utils.add0x(hash)
+    if (!this.web3.utils.isHexStrict(hash)) {
+      console.log(hash + ' is not correct hex')
+      console.log('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash')
+    }
+
+    return signHash(hash, Utils.add0x(this.exportPrivateKey()))
   }
 
   /**
