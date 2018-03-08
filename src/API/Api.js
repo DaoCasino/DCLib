@@ -1,9 +1,11 @@
 /* global fetch */
 
-let _config = {}
+/**
+ * @ignore
+ */
 export default class Api {
-  constructor (config) {
-    _config = config
+  constructor (config = {}) {
+    this._config = config
   }
 
   request (params, advPath = '') {
@@ -11,20 +13,9 @@ export default class Api {
       .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
       .join('&')
 
-    return fetch(_config.api_url + advPath + '?' + query)
+    return fetch(this._config.api_url + advPath + '?' + query)
   }
 
-  // call faucet
-  /**
-   *
-   * @example
-   * const d = 1;
-   *
-   * @param {any} address
-   * @returns Promise
-   *
-   * @memberOf Api
-   */
   addBets (address, callback = false) {
     return fetch('https://platform.dao.casino/faucet?to=' + address).then(r => {
       return r.json()

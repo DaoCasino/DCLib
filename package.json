@@ -8,11 +8,16 @@
     "commit": "git-cz",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
-    "lint": "eslint --ext=.js,.tag ./src ./test",
-    "test": "npm run lint && karma start",
+    "lint:eslint": "eslint ./src ./test",
+    "lint:docs": "documentation lint src/index.js",
+    "lint": "npm run lint:eslint && npm run lint:docs",
+    "test:karma": "karma start",
+    "test": "npm run lint && npm run test:karma",
     "release": "release-it",
     "docs:serve": "documentation serve --watch src/index.js",
-    "docs": "rimraf docs/* && documentation build src/index.js -f html -o docs && gh-pages -d docs -r  https://${GH_TOKEN}@github.com/jarick/DCLib.git"
+    "docs:build": "rimraf docs/* && documentation build src/index.js -f html -o docs",
+    "docs:publish": "gh-pages -d docs -r  https://${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git",
+    "docs": "npm run docs:build && npm run docs:publish"
   },
   "keywords": [
     "DCLib"

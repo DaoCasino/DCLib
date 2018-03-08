@@ -30,8 +30,8 @@ export const debugLog = function (data, loglevel = _config.loglevel, enable = tr
 
 /**
  * Convert BET from decimal, to "human" format, ex: 110000000 = 1.1BET
- * @param  {number} bets
- * @param  {number} toFixed - values after zero
+ * @param  {number} val - bets
+ * @param  {number} r - values after zero
  * @return {number} - bet in human format
  */
 export function dec2bet (val, r = 2) {
@@ -41,7 +41,6 @@ export function dec2bet (val, r = 2) {
 /**
  * Conver decimal, to BET format
  *
- * @export
  * @param {number} val - value in decimal format
  * @returns {number} - value in BETS FIRMAT
  *

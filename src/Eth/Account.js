@@ -18,7 +18,6 @@ let _wallet = { openkey: false }
  * Accounts play a central role in Ethereum. There are two types of accounts: externally owned accounts (EOAs) and contract accounts. Here we focus on externally owned accounts, which will be referred to simply as accounts. Contract accounts will be referred to as contracts and are discussed in detail in Contracts. This generic notion of account subsuming both externally owned accounts and contracts is justified in that these entities are so called state objects. These entities have a state: accounts have balance and contracts have both balance and contract storage. The state of all accounts is the state of the Ethereum network which is updated with every block and which the network really needs to reach a consensus about. Accounts are essential for users to interact with the Ethereum blockchain via transactions.
  * If we restrict Ethereum to only externally owned accounts and allow only transactions between them, we arrive at an “altcoin” system that is less powerful than bitcoin itself and can only be used to transfer ether.
  *
- * @export
  * @class Account
  * @extends {DCLib}
  */
@@ -141,10 +140,8 @@ export default class Account {
    *   privateKey: "0xd8c226915b298530ee9ede352a1c9fe49f15a78167477e34731e26ccc7f577aa"
    * }
    *
-   * @param {String} [password=false] - User password for decrypt privateKey and unlock user account
+   * @param {string} [password=false] - User password for decrypt privateKey and unlock user account
    * @returns {Object} - _wallet object for the work of the Account
-   *
-   * @extends {Account}
    */
   unlockAccount (password = false) {
     password = password || this._config.wallet_pass
@@ -187,8 +184,6 @@ export default class Account {
    *
    * @param {string} [password=false] - user passwod for decrypt privateKey
    * @returns {string} - Private key for user account
-   *
-   * @extends {Account}
    */
   exportPrivateKey (password = false) {
     return this.unlockAccount(password).privateKey
@@ -213,8 +208,6 @@ export default class Account {
    * }
    *
    * @returns {Object} - account info and user method's
-   *
-   * @extends {Account}
    */
   get () {
     let w = Object.assign({}, this._wallet)
@@ -246,8 +239,6 @@ export default class Account {
    *
    * @param {string} raw - message for sign
    * @returns {Object} - sign data
-   *
-   * @extends {Account}
    */
   sign (raw) {
     Utils.debugLog(['call %web3.eth.accounts.sign', ['font-weight:bold;']], _config.loglevel)
@@ -271,10 +262,8 @@ export default class Account {
    * > `0x6a1bcec4ff132aadb511cfd83131e456fab8b94d92c219448113697b5d75308b3b805
    *  ef93c60b561b72d7c985fac11a574be0c2b2e4f3a8701cd01afa8e6edd71b`
    *
-   * @param {String} hash - message which need turn in hash
-   * @returns {String} - hashed Message
-   *
-   * @memberOf {Account}
+   * @param {string} hash - message which need turn in hash
+   * @returns {string} - hashed Message
    */
   signHash (hash) {
     hash = Utils.add0x(hash)
@@ -292,9 +281,6 @@ export default class Account {
    *
    * @example
    * DCLib.Account.reset()
-   *
-   * @returns - none
-   * @memberOf {Account}
    */
   reset () { localStorage.setItem('web3wallet', '') }
 
@@ -308,8 +294,6 @@ export default class Account {
    * sendBets from current account to another account
    * you can use it with "await"
    *
-   * @async
-   *
    * @example
    * const r = await DCLib.Account.sendBets('0xAb5', 10)
    *
@@ -317,12 +301,10 @@ export default class Account {
    * // or classic callback
    * DCLib.Account.sendBets('0xAb5...', 10, function(receipt){ ... })
    *
-   * @param  {string} to - bytes32 address
-   * @param  {number} amount - how many bets send, 1 - 1BET, 22 - 22BET
+   * @param  {string} toInput - bytes32 address
+   * @param  {number} amountInput - how many bets send, 1 - 1BET, 22 - 22BET
    * @param  {onTxMined} callback - callback, when transacrion mined
-   * @return {Promise.receipt} - return web3.send promise,
-   *
-   * @memberOf {Account}
+   * @return {Promise<Object>} - return web3.send promise,
    */
   async sendBets (toInput, amountInput, callback = false) {
     const to = Utils.add0x(toInput)
