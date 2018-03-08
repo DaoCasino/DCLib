@@ -30,6 +30,13 @@ jobs:
       - run:
           name: Send coverage report to codacy
           command: cat ./coverage/lcov.info | ./node_modules/.bin/codacy-coverage
+      
+      - run:
+          name: Deploy API docs to github pages
+          command: npm run docs
+          filters:
+            branches:
+              only: develop
 
       - save_cache:
           name: Save node_modules cache

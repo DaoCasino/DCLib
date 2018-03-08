@@ -1,6 +1,6 @@
 {
   "name": "dclib",
-  "description": "Eth lib",
+  "description": "DCLib is javascript library for integrate dao.casino blockchain protocol.",
   "version": "3.0.0-beta.0",
   "author": "DAO casino team <team@dao.casino>",
   "private": false,
@@ -10,7 +10,9 @@
     "build": "node scripts/build.js",
     "lint": "eslint --ext=.js,.tag ./src ./test",
     "test": "npm run lint && karma start",
-    "release": "release-it"
+    "release": "release-it",
+    "docs:serve": "documentation serve --watch src/index.js",
+    "docs": "rimraf docs/* && documentation build src/index.js -f html -o docs && gh-pages -d docs"
   },
   "keywords": [
     "DCLib"
@@ -46,6 +48,7 @@
     "css-loader": "^0.28.4",
     "cz-conventional-changelog": "^2.1.0",
     "debug": "^3.1.0",
+    "documentation": "^6.0.0",
     "dotenv": "4.0.0",
     "eslint": "^4.16.0",
     "eslint-config-standard": "^11.0.0-beta.0",
@@ -60,6 +63,7 @@
     "fetch-mock": "^6.0.1",
     "file-loader": "0.11.1",
     "fs-extra": "3.0.1",
+    "gh-pages": "^1.1.0",
     "html-webpack-plugin": "2.28.0",
     "husky": "^0.15.0-rc.8",
     "karma": "^2.0.0",
@@ -82,6 +86,7 @@
     "puppeteer": "^1.1.1",
     "react-dev-utils": "^3.0.0",
     "release-it": "^5.0.0",
+    "rimraf": "^2.6.2",
     "serve": "^5.2.1",
     "sinon": "^4.4.2",
     "style-loader": "^0.18.1",
