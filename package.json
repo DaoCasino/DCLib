@@ -12,7 +12,7 @@
     "test": "npm run lint && karma start",
     "release": "release-it",
     "docs:serve": "documentation serve --watch src/index.js",
-    "docs": "rimraf docs/* && documentation build src/index.js -f html -o docs && gh-pages -d docs"
+    "docs": "rimraf docs/* && documentation build src/index.js -f html -o docs && gh-pages -d docs -r  https://${GH_TOKEN}@github.com/jarick/DCLib.git"
   },
   "keywords": [
     "DCLib"
