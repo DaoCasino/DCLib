@@ -16,7 +16,7 @@
     "release": "release-it",
     "docs:serve": "documentation serve --watch src/index.js",
     "docs:build": "rimraf docs/* && documentation build src/index.js -f html -o docs",
-    "docs:publish": "gh-pages -d docs -r  https://${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git",
+    "docs:publish": "gh-pages -d docs -r  https://${GH_TOKEN}@github.com/jarick/DCLib.git",
     "docs": "npm run docs:build && npm run docs:publish"
   },
   "keywords": [
