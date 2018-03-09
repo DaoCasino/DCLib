@@ -14,7 +14,7 @@ import PayChannelLogic from './paychannel'
  *
  * @todo write description
  *
- * @param {Function} logic - DApp logic
+ * @param {Function} Logic - DApp logic
  */
 const payChannelWrap = function (Logic) {
   let payChannel = new PayChannelLogic()
@@ -59,7 +59,6 @@ const EC = function () {}; EE(EC.prototype)
  * })
  *
  *
- * @export
  * @class DApp
  * @extends {DCLib}
  */
@@ -148,9 +147,9 @@ export default class DApp {
    * DApp.connect({bankroller : "auto", paychannel:{deposit:1}}, function(connected, info){})
    *
    * @param  {Object} params
-   * @param  {Object.string} bankroller - address or 'auto' for autofind bankroller
-   * @param  {Object.Object} optional - paychannel config
-   * @param  {Object.Object.string} deposit - paychannel deposit
+   * @param  {string} params.bankroller - address or 'auto' for autofind bankroller
+   * @param  {Object} params.optional - paychannel config
+   * @param  {string} params.deposit - paychannel deposit
    * @return {[type]}
    */
   async connect (params = {}, callback = false) {
@@ -275,10 +274,7 @@ export default class DApp {
    * window.MyDApp.openChannel(0.15)
    *
    * @param {Object} params - object for params open channel
-   * @param {Object.number} deposit - quantity bets for game
-   * @returns - none
-   *
-   * @memberOf DApp
+   * @param {number} params.deposit - quantity bets for game
    */
   openChannel (params, game_data = false) {
     if (this.debug) Utils.debugLog([' 🔐 Open channel with deposit', params.deposit], _config.loglevel)
@@ -397,12 +393,9 @@ export default class DApp {
   /**
    * @todo write description and example
    *
-   * @param {any} function_name - name contract method
-   * @param {any} [function_args=[]]
+   * @param {string} function_name - name contract method
+   * @param {[any]} [function_args=[]]
    * @param {any} callback
-   * @returns
-   *
-   * @memberOf DApp
    */
   call (function_name, function_args = [], callback) {
     if (typeof this.logic[function_name] !== 'function') {
@@ -471,8 +464,6 @@ export default class DApp {
    * @param {Object} params
    * @param {Object.object} params.paychannel -
    * @param {boolean} [callback=false]
-   *
-   * @memberOf DApp
    */
   async disconnect (params, callback = false) {
     let result = {}
@@ -494,9 +485,6 @@ export default class DApp {
    * @todo write description and example
    *
    * @param {Object} params
-   * @returns
-   *
-   * @memberOf DApp
    */
   closeChannel (params = false) {
     const profit = this.logic.payChannel._getProfit()
@@ -781,8 +769,6 @@ export default class DApp {
      * @param {Function} [callback=false] - callback function
      * @param {boolean} [Room=false] - info on room
      * @returns {Promise}
-     *
-     * @memberOf DApp
      */
   request (params, callback = false, Room = false) {
     Room = Room || this.Room || this.sharedRoom
@@ -825,8 +811,6 @@ export default class DApp {
      * @param {Object} request_data - the object in which data from response
      * @param {Object} response - answer from bankroller
      * @param {boolean} [Room=false] - info on room
-     *
-     * @memberOf DApp
      */
   response (request_data, response, Room = false) {
     Room = Room || this.Room || this.sharedRoom
@@ -844,10 +828,8 @@ export default class DApp {
      * window.MyDApp.findBankroller(1)
      * > 0x6e9bf3f9612d7099aee7c3895ba09b9c4b9474e2
      *
-     * @param {Number} [deposit=false] - bets for game
-     * @returns {String} - bankroller openkey
-     *
-     * @memberOf DApp
+     * @param {number} [deposit=false] - bets for game
+     * @returns {string} - bankroller openkey
      */
   findBankroller (deposit = false) {
     if (this.debug) Utils.debugLog(' 🔎 Find bankrollers in shared Dapp room...', _config.loglevel)

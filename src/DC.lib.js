@@ -40,7 +40,6 @@ let _ready = false
  * Interact with [bankroller](https://github.com/DaoCasino/BankRollerApp), use [Signidice random algorithm](https://github.com/DaoCasino/Whitepaper/blob/master/DAO.Casino%20WP.md#35-algorithm-implemented-in-mvp-of-daocasino-protocol), and paymentchannels.
  *
  *
- * @export
  * @class DCLib
  * @version 0.2.2
  */
@@ -93,25 +92,6 @@ export default class DCLib {
      */
     this.web3 = this.Account.web3
 
-    /**
-     * ## Get ETH account information
-     * @param {string} address - Addres Ethereum account wallet
-     * @param {accessBalance} callback - callback function then access balance information
-     * @returns {Object} - return balance information
-     *
-     * @example
-     * > DCLib.Account.info('0x4d750610062f1b3ce35117ee3e19cfb657ef6e59').then( r => {})
-     *
-     * @example
-     * // method return
-     * Object {
-     *    openkey: address,
-     *    Object {
-     *       bets : 992.21
-     *       eth  : "1.748053851"
-     *    }
-     * }
-     */
     this.Account.info = async (address = false, callback = false) => {
       if (!callback && typeof address === 'function') {
         callback = address
@@ -167,8 +147,6 @@ export default class DCLib {
    *
    * @param {Event} event - event name
    * @param {eventCallback} callback - function then functional for event
-   *
-   * @memberOf DCLib
    */
   on (event, callback) {
     if (_ready) callback(_ready)
@@ -190,8 +168,6 @@ export default class DCLib {
    * > "confirm(0x26157e636aea611dd8bb7bee2258fcf84e6714a75112392886ceafe6b19bf03f)"
    *
    * @returns - random Hash
-   *
-   * @memberOf DCLib
    */
   randomHash () { return 'confirm(' + Utils.makeSeed() + ')' }
 
@@ -213,8 +189,6 @@ export default class DCLib {
    * @param {number} [min=0] - min value for generate default = 0
    * @param {number} [max=100] - max value for generate default = 100
    * @returns {number} - Random number
-   *
-   * @memberOf DCLib
    */
   numFromHash (randomHash, min = 0, max = 100) {
     if (min > max) { let c = min; min = max; max = c }
@@ -230,7 +204,6 @@ export default class DCLib {
   /**
    * ## DCLib.fauset(address=false)
    * method need for add free bets on account
-   * @async
    *
    * @example
    * // example for method initialization without param
@@ -244,10 +217,7 @@ export default class DCLib {
    *
    * @param {string} [address=false] - account address
    * @returns {Promise<Object>}
-   *
-   * @memberOf DCLib
    */
-
   async faucet (address = false, callback = false) {
     address = address || this.Account.get().openkey
     const recipe = await ourApi.addBets(address)
@@ -278,8 +248,6 @@ export default class DCLib {
    * @param {string} rawMsg - hash message for recover.
    * @param {string} signedMsg - signature message for recover.
    * @returns {string} - the Ethereum address used to sign this data.
-   *
-   * @memberOf DCLib
    */
   sigRecover (rawMsg, signedMsg) {
     rawMsg = Utils.remove0x(rawMsg)
@@ -310,8 +278,6 @@ export default class DCLib {
    * @param {string} rawMsg - hash message for recover.
    * @param {string} signedMsg - signature message for recover.
    * @returns {string} - the Ethereum address used to sign this data.
-   *
-   * @memberOf DCLib
    */
   sigHashRecover (rawMsg, signedMsg) {
     return this.web3.eth.accounts.recover(rawMsg, signedMsg).toLowerCase()
@@ -348,8 +314,6 @@ export default class DCLib {
    * @param {string} signedMsg - signature message
    * @param {string} needAddress - check address
    * @returns {boolean} - true/false
-   *
-   * @memberOf DCLib
    */
   checkSig (rawMsg, signedMsg, needAddress) {
     rawMsg = Utils.remove0x(rawMsg)
@@ -390,8 +354,6 @@ export default class DCLib {
    * @param {string} signedMsg - message signature for chek
    * @param {string} needAddress - address which the need check
    * @returns {bollean} - true/false
-   *
-   * @memberOf DCLib
    */
   checkHashSig (rawMsg, signedMsg, needAddress) {
     return (needAddress.toLowerCase() === this.web3.eth.accounts.recover(rawMsg, signedMsg).toLowerCase())

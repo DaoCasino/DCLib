@@ -15,7 +15,6 @@ const web3 = Account.web3
 /**
  * Class with some helpers
  *
- * @export
  * @class EthHelpers
  * @extends {DCLib}
  */
@@ -57,9 +56,9 @@ export default class EthHelpers {
   /**
    * ## Getting balances for Bets and Ethereum
    *
-   * @param {String} address - Addres Ethereum account wallet
+   * @param {string} address - Addres Ethereum account wallet
    * @param {accessBalance} callback - callback function then access balance information
-   * @returns {Object} - return balance information
+   * @returns {Promise<Object>} - return balance information
    *
    * @example
    * > DCLib.Eth.getBalances('0x4d750610062f1b3ce35117ee3e19cfb657ef6e59') // '0x4d75..' address account
@@ -71,8 +70,6 @@ export default class EthHelpers {
    *   bets : 992.21
    *   eth  : "1.748053851"
    * }
-   *
-   * @memberOf DCLib
    */
   async getBalances (address, callback = false) {
     const [bets, eth] = await Promise.all([
@@ -98,11 +95,9 @@ export default class EthHelpers {
    *
    * > 1.692211283
    *
-   * @param {String} [address=false] - account addres for check balance
+   * @param {string} [address=false] - account addres for check balance
    * @param {Function} [callback=false] - access Ethereum balance promise
-   * @returns {Promise} - ETH balance
-   *
-   * @memberOf DCLib
+   * @returns {Promise<number>} - ETH balance
    */
   getEthBalance (address = false, callback = false) {
     if (!address) return
@@ -133,11 +128,9 @@ export default class EthHelpers {
    *
    * > 977.61
    *
-   * @param {String} [address=false] - account addres for check balance
+   * @param {string} [address=false] - account addres for check balance
    * @param {Function} [callback=false] - access Ethereum balance promise
-   * @returns {Promise} - BET balance
-   *
-   * @memberOf DCLib
+   * @returns {Promise<number>} - BET balance
    */
   getBetBalance (address = false, callback = false) {
     if (!address) return
@@ -167,10 +160,8 @@ export default class EthHelpers {
    * > `0x6a1bcec4ff132aadb511cfd83131e456fab8b94d92c219448113697b5d75308b3b805
    *  ef93c60b561b72d7c985fac11a574be0c2b2e4f3a8701cd01afa8e6edd71b`
    *
-   * @param {String} hash - message which need turn in hash
-   * @returns {String} - hashed Message
-   *
-   * @memberOf {Account}
+   * @param {string} hash - message which need turn in hash
+   * @returns {string} - hashed Message
    */
   signHash (hash) {
     hash = Utils.add0x(hash)

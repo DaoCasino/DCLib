@@ -2,18 +2,14 @@ import * as Utils from 'utils/utils'
 import _config    from '../config/config'
 /** max items in history */
 const h_max   = 100
-
-/** @ignore */
 const deposit = {
   player     : false,
   bankroller : false
 }
-/** @ignore */
 const balance = {
   player     : 0,
   bankroller : 0
 }
-/** @ignore */
 let _profit  = 0
 /** Game history  */
 let _history = []
@@ -29,7 +25,6 @@ let _history = []
  * ## what is paychannel
  * Payment Channel Contract is class of techniques designed to allow users to make multiple transactions without commiting all of the transactions to the block chain. In a payment channel, only two transactions are added to the block chain but an unlimited or nearly unlimted number of payments can be made between the participants.
  *
- * @export
  * @class PayChannel
  * @extends {DApp}
  */
@@ -65,10 +60,8 @@ export default class PayChannel {
      * > PayChannel::User deposit set 100000000, now user balance: 100000000
      * > 100000000
      *
-     * @param {Number} d - number value to set deposit
-     * @returns {Number} - New deposit
-     *
-     * @memberOf PayChannel
+     * @param {number} d - number value to set deposit
+     * @returns {number} - New deposit
      */
   setDeposit (d) {
     if (deposit.player !== false) {
@@ -92,9 +85,7 @@ export default class PayChannel {
      *
      * > PayChannel::getDeposit: 1
      *
-     * @returns {Number} - Game deposit
-     *
-     * @memberOf PayChannel
+     * @returns {number} - Game deposit
      */
   getDeposit () {
     Utils.debugLog(['PayChannel::getDeposit', deposit.player], _config.loglevel)
@@ -109,9 +100,7 @@ export default class PayChannel {
      *
      * > PayChannel::getBalance: 1
      *
-     * @returns {Number} - Game balance
-     *
-     * @memberOf PayChannel
+     * @returns {number} - Game balance
      */
   getBalance () {
     Utils.debugLog(['PayChannel::getBalance', balance.player], _config.loglevel)
@@ -135,9 +124,7 @@ export default class PayChannel {
      *
      * > PayChannel::getProfit: 0
      *
-     * @returns {Number} - Game proffit
-     *
-     * @memberOf PayChannel
+     * @returns {number} - Game proffit
      */
   getProfit () {
     Utils.debugLog(['PayChannel::getProfit', _profit], _config.loglevel)
@@ -163,7 +150,7 @@ export default class PayChannel {
      *
      * .payChannel.printLog( -2.5 )
      *
-     * @param {string|int} profit - TX value in BETs
+     * @param {string|int} p - TX value in BETs
      * @param {bool} convert - convet from BET to microbet, default - true
      */
   addTX (p, convert = true) {
@@ -226,8 +213,6 @@ export default class PayChannel {
      * window.MyDApp.logic.payChannel.reset()
      *
      * > 'PayChannel::reset, set deposit balance profit to 0'
-     *
-     * @memberOf PayChannel
      */
   reset () {
     Utils.debugLog('PayChannel::reset, set deposit balance profit to 0', _config.loglevel)
