@@ -166,7 +166,7 @@ export default class PayChannel {
      * @param {string|int} profit - TX value in BETs
      * @param {bool} convert - convet from BET to microbet, default - true
      */
-  addTX (p, convert = true) {
+  addTX (p, convert = false) {
     Utils.debugLog('PayChannel::addTX', _config.loglevel)
 
     if (convert) {

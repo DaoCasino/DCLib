@@ -4,7 +4,7 @@
  */
 
 /* global DCLib */
-DCLib.defineDAppLogic('dicetest_v11', function () {
+DCLib.defineDAppLogic('dicetest_v12', function () {
   const _self = this
 
   const MAX_RAND_NUM = 65535

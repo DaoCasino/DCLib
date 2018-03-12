@@ -1,0 +1,13 @@
+sudo: required
+addons:
+  chrome: stable
+language: node_js
+node_js:
+  - stable
+before_install:
+  - google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost &
+  - npm i -g npx
+script:
+  - npm run lint
+  - npm run test
+  - cat ./coverage/lcov.info | npx codacy-coverage

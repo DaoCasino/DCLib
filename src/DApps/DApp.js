@@ -195,8 +195,8 @@ export default class DApp {
     let connectionResult = false
     let conT = setTimeout(() => {
       this.Status.emit('error', {code: 'timeout', 'text': 'Connection timeout'})
-      Utils.debugLog('⌛ Connection timeout.... 🤐🤐🤐 ', 'error')
-      callback(connectionResult, null)
+      throw new Error('⌛ Connection timeout.... 🤐🤐🤐 ', 'error')
+      // callback(connectionResult, null)
     }, 7777)
 
     /**    Ifomation fromconnection(id, room_name, bankroller_address) */
@@ -541,6 +541,10 @@ export default class DApp {
 
       clearInterval(dots_i)
 
+      if (receipt.error) {
+        return new Error(receipt.error)
+      }
+
       if (receipt.transactionHash) {
         Utils.debugLog('🎉 Channel closed https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
         Utils.debugLog(receipt, _config.loglevel)
@@ -576,6 +580,8 @@ export default class DApp {
 
     const hash = Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool)
     const signed_args = Eth.signHash(hash)
+
+    Utils.debugLog(['params', channel_id, player_balance, bankroller_balance, session, bool])
 
     if (DCLib.checkHashSig(hash, signed_args, player_address) === false) {
       Utils.debugLog(['🚫 invalid sig on update state', player_address], 'error')
