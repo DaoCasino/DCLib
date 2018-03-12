@@ -1,5 +1,5 @@
 
-module.exports = {
+export default {
   upd : '17.10.2017',
 
   wallet_pass : '1234',
@@ -7,7 +7,8 @@ module.exports = {
   db_name   : 'DCLib',
   rtc_room  : 'dc-room1',
   rtc_store : 'rtc_msgs',
-  loglevel  : 'none',
+  logname   : 'dclib',
+  loglevel  : window.LOG_LEVEL || 'hight',
 
   network   : 'ropsten',
   rpc_url   : 'https://ropsten.infura.io/JCnK5ifEPH9qcQkX0Ahl',
