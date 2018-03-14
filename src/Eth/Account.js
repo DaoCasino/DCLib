@@ -53,7 +53,9 @@ export default class Account {
       }
     }
 
-    if (!this._wallet.openkey) {
+    console.log(this._config)
+
+    if (!_wallet.openkey) {
       const privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
       localStorage.setItem('web3wallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
