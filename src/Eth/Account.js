@@ -37,6 +37,7 @@ export default class Account {
     /**
      * @ignore
      */
+
     this.web3 = new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
 
     callback()
@@ -53,10 +54,12 @@ export default class Account {
       }
     }
 
-    console.log(this._config)
-
     if (!_wallet.openkey) {
-      const privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
+      let privateKey
+      (!process.env.DC_NETWORK || process.env.DC_NETWORK === 'ropsten')
+        ? privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
+        : privateKey = Utils.add0x(_config.privateKeys[0])
+
       localStorage.setItem('web3wallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
           privateKey,
@@ -169,8 +172,8 @@ export default class Account {
 
     // Init ERC20 contract
     this._ERC20 = new this.web3.eth.Contract(
-      this._config.contracts.erc20.abi,
-      this._config.contracts.erc20.address
+      _config.contracts.erc20.abi,
+      _config.contracts.erc20.address
     )
 
     return _wallet

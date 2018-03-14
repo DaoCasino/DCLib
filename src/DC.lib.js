@@ -8,6 +8,8 @@ import Account    from './Eth/Account'
 import DApp       from './DApps/DApp'
 import printDocs  from './docs.js'
 
+console.log(_config)
+
 /**
  * @ignore
  */
