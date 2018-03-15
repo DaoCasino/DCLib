@@ -18,7 +18,7 @@ module.exports = {
 
   network: 'ropsten',
   rpc_url: 'https://ropsten.infura.io/JCnK5ifEPH9qcQkX0Ahl',
-  api_url: 'https://platform.dao.casino/api/',
+  api_url: 'https://platform.dao.casino/faucet',
 
   contracts: {
     erc20: erc20,

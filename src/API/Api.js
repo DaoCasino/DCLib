@@ -26,7 +26,8 @@ export default class Api {
    * @memberOf Api
    */
   addBets (address, callback = false) {
-    return fetch('https://platform.dao.casino/faucet?to=' + address).then(r => {
+    if (!address) return
+    return fetch(_config.api_url + '?to=' + address).then(r => {
       return r.json()
     }).then(json => {
       if (callback) callback(json)

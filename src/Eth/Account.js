@@ -55,10 +55,7 @@ export default class Account {
     }
 
     if (!_wallet.openkey) {
-      let privateKey
-      (!process.env.DC_NETWORK || process.env.DC_NETWORK === 'ropsten')
-        ? privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
-        : privateKey = Utils.add0x(_config.privateKeys[0])
+      let privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
 
       localStorage.setItem('web3wallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
@@ -114,7 +111,7 @@ export default class Account {
 
     localStorage.setItem(localStorageStatusKey, 'wait')
 
-    return fetch('https://platform.dao.casino/faucet?get=account')
+    return fetch(_config.api_url + '?get=account')
       .then(res => res.json())
       .then(acc => {
         Utils.debugLog(['Server account data:', acc], _config.loglevel)
