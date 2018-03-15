@@ -96,8 +96,8 @@ export default class DApp {
     /** Add contract's */
     if (params.contract) {
       if (this.debug) Utils.debugLog('Your contract is add', _config.loglevel)
-      this.contract_address = params.contract.contract_address
-      this.contract_abi = params.contract.contract_abi
+      this.contract_address = params.contract.address
+      this.contract_abi = params.contract.abi
     } else {
       if (this.debug) Utils.debugLog('Standart payChannel contract is add', _config.loglevel)
       this.contract_address = _config.contracts.paychannel.address
@@ -212,11 +212,16 @@ export default class DApp {
         address: bankroller_address
       })
 
-      if (!connection.id) {
+      if (!connection.id || !connection.n) {
         this.Status.emit('error', {code: 'unknow', 'text': 'Cant establish connection'})
         Utils.debugLog('😓 Cant establish connection....', 'error')
         return callback(connectionResult, null)
       }
+
+      this.playerRSA.create(connection.n)
+
+      params.paychannel.RSA_n = this.playerRSA.RSA.n.toString(16)
+      params.paychannel.RSA_e = this.playerRSA.RSA.e.toString(16)
 
       clearTimeout(conT)
 
@@ -319,19 +324,23 @@ export default class DApp {
 
       // Open channel args
 
-      const channel_id = Utils.makeSeed()
-      const player_address = Account.get().openkey
+      const channel_id         = Utils.makeSeed()
+      const player_address     = Account.get().openkey
       const bankroller_address = params.bankroller_address
-      const player_deposit = params.deposit
+      const player_deposit     = params.deposit
       const bankroller_deposit = params.deposit * 2
-      const session = 0
-      const ttl_blocks = 120
+      const RSA_e              = `0x0${params.RSA_e}`
+      const RSA_n              = Utils.add0x(params.RSA_n)
+      const session            = 0
+      const ttl_blocks         = 100
       // window.paychannel         = new PaychannelLogic(parseInt(bankroller_deposit))
+
+      console.log(RSA_e, RSA_n)
 
       if (this.debug) Utils.debugLog([channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data], _config.loglevel)
 
       // Sign hash from args
-      const signed_args = Eth.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data))
+      const signed_args = Eth.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data, RSA_n, RSA_e))
 
       if (this.debug) Utils.debugLog(bankroller_deposit, _config.loglevel)
       if (this.debug) Utils.debugLog('🙏 ask the bankroller to open the channel', _config.loglevel)
@@ -347,18 +356,20 @@ export default class DApp {
       })
 
       let response = await this.request({
-        action: 'open_channel',
-        deposit: params.deposit,
-        paychannel: contract_address,
-        open_args: {
-          channel_id: channel_id,
-          player_address: player_address,
-          player_deposit: player_deposit,
-          bankroller_address: bankroller_address,
-          session: session,
-          ttl_blocks: ttl_blocks,
-          gamedata: game_data,
-          signed_args: signed_args
+        action     : 'open_channel',
+        deposit    : params.deposit,
+        paychannel : contract_address,
+        open_args  : {
+          channel_id         : channel_id,
+          player_address     : player_address,
+          player_deposit     : player_deposit,
+          bankroller_address : bankroller_address,
+          session            : session,
+          ttl_blocks         : ttl_blocks,
+          gamedata           : game_data,
+          RSA_n              : RSA_n,
+          RSA_e              : RSA_e,
+          signed_args        : signed_args
         }
       })
 
@@ -370,10 +381,12 @@ export default class DApp {
       if (response.more) {
         Utils.debugLog('the previous transaction was not completed', _config.loglevel)
       }
-      response.channel_id = channel_id
-      response.player_deposit = params.deposit
+
+      response.channel_id         = channel_id
+      response.player_deposit     = params.deposit
       response.bankroller_deposit = params.deposit * 2
-      response.session = 0
+      response.session            = 0
+
       if (this.debug) Utils.debugLog(response, _config.loglevel)
       this.logic.payChannel.setDeposit(Utils.dec2bet(player_deposit))
 
@@ -511,7 +524,7 @@ export default class DApp {
       const channel_id         = open_data.channel_id // bytes32 id,
       const player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance()) // profit + open_data.player_deposit // uint playerBalance,
       const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance()) // -profit + open_data.bankroller_deposit // uint bankrollBalance,
-      const session            = params.session || 0 // uint session=0px
+      const session            = params.session || 1 // uint session=0px
       const bool               = true
       // console.log('@@@@@@@@', player_balance, bankroller_balance)
       // Sign hash from args

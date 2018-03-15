@@ -30,10 +30,6 @@ module.exports = {
     erc20: {
       address: require('contracts.json').ERC20,
       abi: require('contracts/ERC20.json').abi
-    },
-    paychannel: {
-      address: require('../ropsten/contracts/paychannel').address,
-      abi: require('../ropsten/contracts/paychannel').abi
     }
   },
 
