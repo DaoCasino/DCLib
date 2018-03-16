@@ -2,10 +2,10 @@ import debug   from 'debug'
 import _config from '../config/config'
 
 export const bigInt = require('big-integer')
+const web3_utils = require('web3-utils/src/')
+// const web3sha3 = require('web3-utils/src/soliditySha3.js')
 
-const web3sha3 = require('web3-utils/src/soliditySha3.js')
-
-export const sha3 = web3sha3
+export const sha3 = web3_utils.soliditySha3
 
 export const debugLog = function (data, loglevel = _config.loglevel, enable = true) {
   let log = debug(_config.logname)
@@ -35,7 +35,8 @@ export const debugLog = function (data, loglevel = _config.loglevel, enable = tr
  * @return {number} - bet in human format
  */
 export function dec2bet (val, r = 2) {
-  return +(val / 100000000).toFixed(r)
+  return web3_utils.fromWei(val + '')
+  // return +(val / 100000000).toFixed(r)
 }
 
 /**
@@ -50,7 +51,7 @@ export function dec2bet (val, r = 2) {
  * return: 310248.92
  */
 export function bet2dec (val) {
-  let b = '' + (val * 100000000)
+  let b = web3_utils.toWei(val + '') // '' + (val * 100000000)
   if (b.indexOf('.') > -1) {
     b = b.split('.')[0] * 1
   }
@@ -72,7 +73,7 @@ export const checksum = function (string) {
 }
 
 export const hashName = name => {
-  return web3sha3(name).substr(2, 8)
+  return sha3(name).substr(2, 8)
 }
 
 export const toFixed = (value, precision) => {
@@ -135,7 +136,7 @@ export const makeSeed = () => {
     }
   }
 
-  return web3sha3(numToHex(str))
+  return sha3(numToHex(str))
 }
 
 export const concatUint8Array = function (buffer1, buffer2) {
