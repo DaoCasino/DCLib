@@ -68,19 +68,6 @@ export default class Account {
       if (log) Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
     }
 
-    if (log) {
-      Utils.debugLog(' 🔑 Account ' + _wallet.openkey + ' restored from localStorage', _config.loglevel)
-      if (_config.loglevel !== 'none') {
-        console.groupCollapsed('Methods DCLib.Account')
-        Utils.debugLog('DCLib.Account.get()', _config.loglevel)
-        Utils.debugLog('DCLib.Account.sign(raw_msg)', _config.loglevel)
-        Utils.debugLog('DCLib.Account.exportPrivateKey()', _config.loglevel)
-        Utils.debugLog('DCLib.Account.info(callback)', _config.loglevel)
-        Utils.debugLog('DCLib.Account.reset() - remove localstorage data', _config.loglevel)
-        console.groupEnd()
-      }
-    }
-
     this.unlockAccount()
   }
 
