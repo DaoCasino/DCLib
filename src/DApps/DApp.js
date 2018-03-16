@@ -869,6 +869,7 @@ export default class DApp {
      * @memberOf DApp
      */
   findBankroller (deposit = false) {
+    console.log(deposit)
     if (this.debug) Utils.debugLog(' 🔎 Find bankrollers in shared Dapp room...', _config.loglevel)
     const Status = this.Status
     let noBankroller = setTimeout(function noInf (params) {
