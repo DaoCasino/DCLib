@@ -14,7 +14,7 @@ coverage
 api
 build
 docs
-dist
+/dist
 public/FindTheEthereum
 size-report.txt
 
