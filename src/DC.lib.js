@@ -7,6 +7,9 @@ import EthHelpers from './Eth/helpers'
 import Account    from './Eth/Account'
 import DApp       from './DApps/DApp'
 import printDocs  from './docs.js'
+import dotenv     from 'dotenv'
+
+dotenv.config()
 
 console.log(_config)
 

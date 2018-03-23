@@ -1,12 +1,12 @@
 /* global DCLib */
 
-import _config from 'config/config'
+import _config from '../config/config'
 import Rtc from 'dc-messaging'
-import EthHelpers from 'Eth/helpers'
+import EthHelpers from '../Eth/helpers'
 import RSA from '../API/rsa'
-import Acc from 'Eth/Account'
+import Acc from '../Eth/Account'
 import EE from 'event-emitter'
-import * as Utils from 'utils/utils'
+import * as Utils from '../utils/utils'
 
 import PayChannelLogic from './paychannel'
 

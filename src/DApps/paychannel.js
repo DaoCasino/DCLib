@@ -1,4 +1,4 @@
-import * as Utils from 'utils/utils'
+import * as Utils from '../utils/utils'
 import _config    from '../config/config'
 /** max items in history */
 const h_max   = 100
