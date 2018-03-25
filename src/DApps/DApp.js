@@ -110,7 +110,8 @@ export default class DApp {
     this.sharedRoom = new Rtc(Account.get().openkey, 'dapp_room_' + this.hash)
 
     /** @ignore */
-    this.Status = new EC()
+    this.Status       = new EC()
+    this.info_channel = EE()
 
     if (this.debug && _config.loglevel !== 'none') {
       console.groupCollapsed('DApp %c' + this.slug + ' %ccreated', 'color:orange', 'color:default')
@@ -141,6 +142,8 @@ export default class DApp {
       console.groupEnd()
     }
   }
+
+  listen (event, callback) { this.info_channel.on(event, callback) }
 
   /**
    * Connection of a player with a bankroll
@@ -189,6 +192,7 @@ export default class DApp {
     if (bankroller_address === 'auto') {
       this.Status.emit('connect::info', {status: 'findBankroller', data: {deposit: deposit}})
       bankroller_address = await this.findBankroller(deposit)
+      this.info_channel.emit('bankroller_address', bankroller_address)
     }
     if (this.debug) Utils.debugLog(['📫 Bankroller address:', bankroller_address], _config.loglevel)
 
