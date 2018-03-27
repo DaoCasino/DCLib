@@ -530,9 +530,10 @@ export default class DApp {
       const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance()) // -profit + open_data.bankroller_deposit // uint bankrollBalance,
       const session            = params.session || 1 // uint session=0px
       const bool               = true
+      const totalAmount        = Utils.bet2dec(params.totalAmount)
       // console.log('@@@@@@@@', player_balance, bankroller_balance)
       // Sign hash from args
-      const signed_args = Eth.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool))
+      const signed_args = Eth.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, totalAmount, session, bool))
 
       Utils.debugLog('🙏 ask  the bankroller to close the channel', _config.loglevel)
 
@@ -550,6 +551,7 @@ export default class DApp {
           player_address: Account.get().openkey,
           player_balance: player_balance,
           bankroller_balance: bankroller_balance,
+          totalAmount: totalAmount,
           session: session,
           bool: bool,
           signed_args: signed_args
