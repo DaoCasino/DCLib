@@ -1,7 +1,7 @@
 /* global DCLib */
 
 import _config from '../config/config'
-import Rtc from 'dc-messaging'
+import * as messaging  from 'dc-messaging'
 import EthHelpers from '../Eth/helpers'
 import RSA from '../API/rsa'
 import Acc from '../Eth/Account'
@@ -36,7 +36,7 @@ const Eth = new EthHelpers()
  * @ignore
  */
 const EC = function () {}; EE(EC.prototype)
-
+messaging.upIPFS(_config.signal)
 /*
  * DApp constructor
  */
@@ -107,7 +107,7 @@ export default class DApp {
     /** @ignore */
     this.Room = false
     /** @ignore */
-    this.sharedRoom = new Rtc(Account.get().openkey, 'dapp_room_' + this.hash)
+    this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
 
     /** @ignore */
     this.Status       = new EC()
@@ -232,7 +232,7 @@ export default class DApp {
       if (this.debug) Utils.debugLog(['🔗 Connection established ', connection], _config.loglevel)
       this.Status.emit('connect::info', {status: 'connected', data: {connection: connection}})
 
-      this.Room = new Rtc(Account.get().openkey, this.hash + '_' + connection.id)
+      this.Room = new messaging.RTC(Account.get().openkey, this.hash + '_' + connection.id)
 
       this.connection_info.id = connection.id
       this.connection_info.room_name = this.hash + '_' + connection.id
