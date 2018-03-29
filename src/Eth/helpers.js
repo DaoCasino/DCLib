@@ -204,7 +204,7 @@ export default class EthHelpers {
         Utils.debugLog('Call .approve on ERC20', _config.loglevel)
         Utils.debugLog('Allow paychannel to withdraw from your account, multiple times, up to the ' + amount + ' amount.', _config.loglevel)
 
-        const approveAmount = amount * 9
+        const approveAmount = amount * 20
 
         const gasLimit = await this.ERC20.methods.approve(spender, approveAmount).estimateGas({from: Account.get().openkey})
         const receipt = await this.ERC20.methods.approve(
@@ -212,7 +212,7 @@ export default class EthHelpers {
           approveAmount
         ).send({
           from: Account.get().openkey,
-          gasPrice: 1.4 * _config.gasPrice,
+          gasPrice: 1.2 * _config.gasPrice,
           gas: gasLimit
         }).on('transactionHash', transactionHash => {
           Utils.debugLog(['# approve TX pending', transactionHash], _config.loglevel)
