@@ -143,8 +143,6 @@ export default class DApp {
     }
   }
 
-  listen (event, callback) { this.info_channel.on(event, callback) }
-
   /**
    * Connection of a player with a bankroll
    * @example
@@ -192,7 +190,7 @@ export default class DApp {
     if (bankroller_address === 'auto') {
       this.Status.emit('connect::info', {status: 'findBankroller', data: {deposit: deposit}})
       bankroller_address = await this.findBankroller(deposit)
-      this.info_channel.emit('bankroller_address', bankroller_address)
+      this.Status.emit('connect::info', {status: 'find_compleate', data: bankroller_address})
     }
     if (this.debug) Utils.debugLog(['📫 Bankroller address:', bankroller_address], _config.loglevel)
 
