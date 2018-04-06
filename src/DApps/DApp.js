@@ -272,7 +272,7 @@ export default class DApp {
 
     connectionResult = true
     if (callback) callback(connectionResult, this.connection_info)
-    this.updateState()
+    // this.updateState()
   }
 
   /**
@@ -578,56 +578,45 @@ export default class DApp {
     if (typeof this.connection_info.channel === 'undefined') return
     // if (typeof this.connection_info.channel.channel_id === 'undefined') return
 
-    const channel_id = this.connection_info.channel.channel_id
-    const player_address = Account.get().openkey
-    const bool = true
+    const channel_id     = this.connection_info.channel.channel_id
+    const session        = params.session
+    const player_amount  = params.amount
+    const player_num     = params.num
+    const random_hash    = params.random_hash
+    const player_address = Account.get(),openkey
 
-    let player_balance
-    let bankroller_balance
-    let session
-
-    if (typeof params.player_balance !== 'undefined' && typeof params.bankroller_balance !== 'undefined' && typeof params.session !== 'undefined') {
-      session = params.session
-    } else {
-      session = 0
-    }
-
-    player_balance = Utils.bet2dec(this.logic.payChannel.getBalance())
-    bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance())
-
-    const hash = Utils.sha3(channel_id, player_balance, bankroller_balance, session, bool)
+    const hash        = Utils.sha3(channel_id, session, player_amount, player_num, random_hash)
     const signed_args = Eth.signHash(hash)
 
-    Utils.debugLog(['params', channel_id, player_balance, bankroller_balance, session, bool])
-
-    if (DCLib.checkHashSig(hash, signed_args, player_address) === false) {
-      Utils.debugLog(['🚫 invalid sig on update state', player_address], 'error')
-      this.response(params, {error: 'Invalid sig'})
-      return
-    }
-
     const receipt = await this.request({
-      action: 'update_state',
-      update_args: {
-        channel_id: channel_id,
-        player_address: player_address,
-        player_balance: player_balance,
-        bankroller_balance: bankroller_balance,
-        session: session,
-        bool: bool,
-        signed_args: signed_args
+      action      : 'update_state',
+      update_args : {
+        channel_id     : channel_id,
+        player_amount  : player_amount,
+        player_address : player_address,
+        session        : session,
+        player_num     : player_num,
+        random_hash    : random_hash,
+        signed_args    : signed_args
       }
     })
 
-    if (receipt) {
+    if (receipt && receipt.signedRSA_bankroller) {
       if (this.debug) Utils.debugLog(' 🎉 State updated', _config.loglevel)
       this.playerRSA.create(receipt.bankroller_rsa_n)
       const verify = this.playerRSA.verify(receipt.signed_bankroller, receipt.signedRSA_bankroller)
+
       if (verify) {
-        console.log(' 🎉 State updated with rsa')
+        Utils.debugLog(' 🎉 State updated with rsa', _config.loglevel)
       } else {
-        console.error('🚫 invalid rsa sig')
-        return
+        Utils.debugLog('Start disput open', _config.loglevel)
+        // this.updateChannel({
+        //   channel_id,
+        //   session,
+        //   player_amount,
+        //   player_num,
+        //   random_hash
+        // })
       }
     }
 
@@ -651,54 +640,75 @@ export default class DApp {
 
   /** TODO - Доделывать */
   async updateChannel (params, callback = false) {
-    // console.log('PARAMS_UPDATE_CHANNEL@', params)
-    const channel_id = this.connection_info.channel.channel_id
-    const player_balance = params.player_balance
+    const channel_id         = this.connection_info.channel.channel_id
+    const player_balance     = params.player_balance
     const bankroller_balance = params.bankroller_balance
-    const session = params.session
-    const signed_args = params.signed_args
-    // const signed_args2    = params.signed_args2
-    const bankroll_address = this.connection_info.bankroller_address
+    const session            = params.session
+    const total_amount       = params.total_amount
+    const bankroll_address   = this.connection_info.bankroller_address
+    const player_amount      = params.amount
+    const player_num         = params.num
+    const random_hash        = params.random_hash
 
-    const hash = Utils.sha3(channel_id, player_balance, bankroller_balance, session)
+    const hash = Utils.sha3(channel_id, player_balance, bankroller_balance, total_amount, session)
+    const signed_args = Eth.signHash(hash)
 
-    if (DCLib.checkHashSig(hash, signed_args, bankroll_address) === false) {
-      Utils.debugLog('🚫 invalid sig on update channel', _config.loglevel)
-      this.response(params, {error: 'Invalid sig'})
-      return
-    }
+    const receipt = await this.request({
+      action: 'update_channel',
+      update_args: {
+        bankroller_balance : bankroller_balance,
+        player_balance     : player_balance,
+        total_amount       : total_amount,
+        signed_args        : signed_args,
+        channel_id         : channel_id,
+        session            : session
+      }
+    })
 
-    const gasLimit = 900000
-    const receipt = await this.PayChannel().methods
-      .updateChannel(
+    if (!receipt.bankroller_sign || DCLib.checkHashSig(hash, receipt.bankroller_sign, bankroll_address)) {
+      Utils.debugLog('Start open dispute', _config.loglevel)
+      this.openDispute({
         channel_id,
-        player_balance,
-        bankroller_balance,
         session,
-        signed_args
-      ).send({
-        gas: gasLimit,
-        gasPrice: 1.2 * _config.gasPrice,
-        from: Account.get().openkey
+        player_amount,
+        player_num,
+        random_hash
       })
-      .on('transactionHash', transactionHash => {
-        Utils.debugLog(['# updateChannel TX pending', transactionHash], _config.loglevel)
-        Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
-        Utils.debugLog('⏳ wait receipt...', _config.loglevel)
-      }).on('error', err => {
-        Utils.debugLog(['Update channel error', err], 'error')
-        this.response(params, {error: 'cant update channel', more: err})
-      })
-
-    if (receipt.transactionHash) {
-      Utils.debugLog('🎉 Channel updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
-      // console.groupCollapsed('close receipt')
-      Utils.debugLog(receipt, _config.loglevel)
-      // console.groupEnd()
     }
 
-    this.response(params, {receipt: receipt})
-    if (callback) callback(receipt)
+    if (receipt.bankroller_sign && DCLib.checkHashSig(hash, receipt.bankroller_sign, bankroll_address)) {
+      // Utils.debugLog('🚫 invalid sig on update channel', _config.loglevel)
+      Utils.debugLog('Start update channel', _config.loglevel)
+
+      const gasLimit = 900000
+      const receipt = await this.PayChannel().methods
+        .updateChannel(
+          channel_id,
+          player_balance,
+          bankroller_balance,
+          total_amount,
+          session,
+          signed_args
+        ).send({
+          gas      : gasLimit,
+          gasPrice : 1.2 * _config.gasPrice,
+          from     : Account.get().openkey
+        }).on('transactionHash', transactionHash => {
+          Utils.debugLog(['# updateChannel TX pending', transactionHash], _config.loglevel)
+          Utils.debugLog(`https://ropsten.etherscan.io/tx/${transactionHash}`, _config.loglevel)
+          Utils.debugLog('⏳ wait receipt...', _config.loglevel)
+        }).on('error', err => {
+          Utils.debugLog(['Update channel error', err], 'error')
+          this.Status.emit('error', {code: 'update error', 'text': 'update channel error', err: err})
+        })
+
+      if (receipt.transactionHash) {
+        Utils.debugLog('🎉 Channel updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
+        Utils.debugLog(receipt, _config.loglevel)
+      }
+
+      if (callback) callback(receipt)
+    }
   }
 
   /** TODO - Доделывать */
