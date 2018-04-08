@@ -583,7 +583,7 @@ export default class DApp {
     const player_amount  = params.amount
     const player_num     = params.num
     const random_hash    = params.random_hash
-    const player_address = Account.get(),openkey
+    const player_address = Account.get().openkey
 
     const hash        = Utils.sha3(channel_id, session, player_amount, player_num, random_hash)
     const signed_args = Eth.signHash(hash)
