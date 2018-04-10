@@ -104,6 +104,10 @@ export default class DApp {
       this.contract_abi = _config.contracts.paychannel.abi
     }
 
+    this.PayChannel = new web3.eth.Contract(this.contract_abi, this.contract_address)
+
+    console.log(this.PayChannel)
+
     /** @ignore */
     this.Room = false
     /** @ignore */
@@ -336,8 +340,6 @@ export default class DApp {
       const session            = 0
       const ttl_blocks         = 100
       // window.paychannel         = new PaychannelLogic(parseInt(bankroller_deposit))
-
-      console.log(RSA_e, RSA_n)
 
       if (this.debug) Utils.debugLog([channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data], _config.loglevel)
 
@@ -581,6 +583,7 @@ export default class DApp {
     const channel_id     = this.connection_info.channel.channel_id
     const session        = params.session
     const player_amount  = params.amount
+    const total_amount   = params.total_amount
     const player_num     = params.num
     const random_hash    = params.random_hash
     const player_address = Account.get().openkey
@@ -605,44 +608,35 @@ export default class DApp {
       if (this.debug) Utils.debugLog(' 🎉 State updated', _config.loglevel)
       this.playerRSA.create(receipt.bankroller_rsa_n)
       const verify = this.playerRSA.verify(receipt.signed_bankroller, receipt.signedRSA_bankroller)
-
       if (verify) {
         Utils.debugLog(' 🎉 State updated with rsa', _config.loglevel)
+        this.updateChannel({
+          channel_id    : channel_id,
+          session       : session,
+          player_amount : player_amount,
+          total_amount  : total_amount,
+          player_num    : player_num,
+          random_hash   : random_hash
+        })
       } else {
-        Utils.debugLog('Start disput open', _config.loglevel)
-        // this.updateChannel({
-        //   channel_id,
-        //   session,
-        //   player_amount,
-        //   player_num,
-        //   random_hash
-        // })
+        this.openDispute({
+          channel_id    : channel_id,
+          session       : session,
+          player_amount : player_amount,
+          player_num    : player_num,
+          random_hash   : random_hash
+        })
       }
     }
 
     if (callback) callback(receipt)
   }
 
-  PayChannel () {
-    if (this.PayChannelContract) return this.PayChannelContract
-
-    let pay_contract_abi = ''
-    let pay_contract_address = ''
-
-    if (typeof this.contract_address !== 'undefined' && typeof this.contract_abi !== 'undefined') {
-      pay_contract_abi = this.contract_abi
-      pay_contract_address = this.contract_address
-    }
-
-    this.PayChannelContract = new web3.eth.Contract(pay_contract_abi, pay_contract_address)
-    return this.PayChannelContract
-  }
-
   /** TODO - Доделывать */
   async updateChannel (params, callback = false) {
     const channel_id         = this.connection_info.channel.channel_id
-    const player_balance     = params.player_balance
-    const bankroller_balance = params.bankroller_balance
+    const player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance())
+    const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance())
     const session            = params.session
     const total_amount       = params.total_amount
     const bankroll_address   = this.connection_info.bankroller_address
@@ -650,12 +644,12 @@ export default class DApp {
     const player_num         = params.num
     const random_hash        = params.random_hash
 
-    const hash = Utils.sha3(channel_id, player_balance, bankroller_balance, total_amount, session)
+    const hash        = Utils.sha3(channel_id, player_balance, bankroller_balance, total_amount, session)
     const signed_args = Eth.signHash(hash)
-
-    const receipt = await this.request({
-      action: 'update_channel',
-      update_args: {
+    const receipt     = await this.request({
+      action         : 'update_channel',
+      player_address : Account.get().openkey,
+      update_args    : {
         bankroller_balance : bankroller_balance,
         player_balance     : player_balance,
         total_amount       : total_amount,
@@ -665,23 +659,10 @@ export default class DApp {
       }
     })
 
-    if (!receipt.bankroller_sign || DCLib.checkHashSig(hash, receipt.bankroller_sign, bankroll_address)) {
-      Utils.debugLog('Start open dispute', _config.loglevel)
-      this.openDispute({
-        channel_id,
-        session,
-        player_amount,
-        player_num,
-        random_hash
-      })
-    }
-
-    if (receipt.bankroller_sign && DCLib.checkHashSig(hash, receipt.bankroller_sign, bankroll_address)) {
-      // Utils.debugLog('🚫 invalid sig on update channel', _config.loglevel)
+    if (!receipt.bankroller_sign || !DCLib.checkHashSig(hash, signed_args, bankroll_address)) {
       Utils.debugLog('Start update channel', _config.loglevel)
-
-      const gasLimit = 900000
-      const receipt = await this.PayChannel().methods
+      const gasLimit = 4600000
+      const receipt = await this.PayChannel.methods
         .updateChannel(
           channel_id,
           player_balance,
@@ -691,7 +672,7 @@ export default class DApp {
           signed_args
         ).send({
           gas      : gasLimit,
-          gasPrice : 1.2 * _config.gasPrice,
+          gasPrice : 1.4 * _config.gasPrice,
           from     : Account.get().openkey
         }).on('transactionHash', transactionHash => {
           Utils.debugLog(['# updateChannel TX pending', transactionHash], _config.loglevel)
@@ -705,85 +686,52 @@ export default class DApp {
       if (receipt.transactionHash) {
         Utils.debugLog('🎉 Channel updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
         Utils.debugLog(receipt, _config.loglevel)
+        this.openDispute({
+          channel_id,
+          session,
+          player_amount,
+          player_num,
+          random_hash
+        })
+      }
+    } else {
+      this.state_data = {
+        channel_id         : channel_id,
+        player_amount      : player_amount,
+        player_balance     : player_balance,
+        bankroller_balance : bankroller_balance,
+        total_amount       : total_amount,
+        player_num         : player_num,
+        session            : session,
+        random_hash        : random_hash,
+        signed_args        : receipt.bankroller_sign
       }
 
+      Utils.debugLog('channel info updated', _config.loglevel)
       if (callback) callback(receipt)
     }
   }
 
   /** TODO - Доделывать */
-  async updateGame (params, callback = false) {
-    const channel_id = this.connection_info.channel.channel_id
-    const session = params.session
-    const round = params.round
-    const seed = params.seed
-    const game_data = params.game_data
-    const sig_player = params.sig_player
-    const sig_bankroll = params.sig_bankroll
-    const player_address = Account.get().openkey
-    const bankroll_address = this.connection_info.bankroller_address
-
-    const hash = Utils.sha3(channel_id, session, round, seed, game_data)
-
-    if (DCLib.checkHashSig(hash, sig_player, player_address) === false || DCLib.checkHashSig(hash, sig_bankroll, bankroll_address) === false) {
-      Utils.debugLog('🚫 invalid sig on update game', 'error')
-      this.response(params, {error: 'Invalid sig'})
-      return
-    }
-
-    const gasLimit = 900000
-    const receipt = await this.PayChannel().methods
-      .updateGame(
-        channel_id,
-        session,
-        round,
-        seed,
-        game_data.value,
-        sig_player,
-        sig_bankroll
-      ).send({
-        gas: gasLimit,
-        gasPrice: 1.2 * _config.gasPrice,
-        from: Account.get().openkey
-      })
-      .on('transactionHash', transactionHash => {
-        Utils.debugLog(['# openchannel TX pending', transactionHash], _config.loglevel)
-        Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
-        Utils.debugLog('⏳ wait receipt...', _config.loglevel)
-      }).on('error', err => {
-        Utils.debugLog(['Open channel error', err], _config.loglevel)
-        this.response(params, {error: 'cant open channel', more: err})
-      })
-
-    if (receipt.transactionHash) {
-      Utils.debugLog('🎉 Game updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
-      // console.groupCollapsed('close receipt')
-      Utils.debugLog(receipt, _config.loglevel)
-      // console.groupEnd()
-    }
-
-    this.response(params, {receipt: receipt})
-    if (callback) callback(receipt)
-  }
-
-  /** TODO - Доделывать */
   async openDispute (params, callback = false) {
-    const open_data = this.connection_info.channel
-    const channel_id = open_data.channel_id
-    const round = params.round
-    const dispute_seed = params.dispute_seed
-    const game_data = params.gamedata
-    const session = params.session
+    const channel_id    = params.channel_id
+    const session       = params.session
+    const player_amount = params.player_amount
+    const player_num    = params.player_num
+    const random_hash   = params.random_hash
 
+    const hash        = Utils.sha3(channel_id, session, player_amount, player_num, random_hash)
+    const signed_args = Eth.signHash(hash)
     // console.log('PARAMS', channel_id, round, dispute_seed, game_data)
     const gasLimit = 900000
-    const receipt = this.PayChannel().methods
+    const receipt = this.PayChannel.methods
       .openDispute(
         channel_id,
         session,
-        round,
-        dispute_seed,
-        game_data.value
+        player_amount,
+        player_num,
+        random_hash,
+        signed_args
       ).send({
         gas: gasLimit,
         gasPrice: 1.2 * _config.gasPrice,
@@ -798,8 +746,10 @@ export default class DApp {
         this.response(params, {error: 'cant open channel', more: err})
       })
 
-    this.response(params, {receipt: receipt})
-    if (callback) callback(receipt)
+    if (receipt.transactionHash) {
+      this.response(params, {receipt: receipt})
+      if (callback) callback(receipt)
+    }
   }
 
   /**

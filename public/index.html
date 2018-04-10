@@ -22,6 +22,8 @@
 /* eslint-disable indent */
 /* global fetch $ DCLib Game MyDApp */
 
+      let session = 0
+      let total_amount = 0
       $(document).ready(function () {
         // Create our DApp
         DCLib.on('ready', function () {
@@ -40,8 +42,8 @@
 
           getGameContract(function(gameContract) {
             window.MyDApp = new DCLib.DApp({
-              slug: 'dicetest_v7',
-              contract: gameContract
+              slug: 'dicetest_v32',
+              contract: false
             })
           })
         })
@@ -80,9 +82,10 @@
       }
 
       function callDAppFunc (user_bet, user_num) {
+        const random_hash = DCLib.randomHash()
         MyDApp.call(
           // function name and args
-          'roll', [ user_bet, user_num, DCLib.randomHash() ],
+          'roll', [ user_bet, user_num, random_hash ],
 
           // result
           function (res, advanced) {
@@ -90,7 +93,15 @@
             console.log('advanced', advanced)
 
             renderGames()
-
+            session++
+            total_amount += user_bet
+            MyDApp.updateState({
+              num          : user_num,
+              amount       : DCLib.Utils.bet2dec(user_bet),
+              session      : session,
+              random_hash  : random_hash,
+              total_amount : DCLib.Utils.bet2dec(total_amount)
+            })
             var ubets = Game.payChannel.getBalance()
             $('#user_bet').max = ubets
           },

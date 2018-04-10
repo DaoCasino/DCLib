@@ -29,7 +29,7 @@ export default class Account {
   constructor (config, callback = false) {
     callback = callback || (() => {})
 
-    _config      = Object.assign(conf, config)
+    _config = Object.assign(conf, config)
     // this._wallet = _wallet
     this._config = _config
     this._ERC20  = ERC20
