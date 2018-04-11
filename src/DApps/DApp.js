@@ -103,10 +103,11 @@ export default class DApp {
       this.contract_address = _config.contracts.paychannel.address
       this.contract_abi = _config.contracts.paychannel.abi
     }
+    this.web3 = web3
+    this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
 
-    this.PayChannel = new web3.eth.Contract(this.contract_abi, this.contract_address)
-
-    console.log(this.PayChannel)
+    this.web3.eth.defaultAccount = Account.get().openkey
+    console.log('def', this.web3.eth.defaultAccount)
 
     /** @ignore */
     this.Room = false
@@ -402,6 +403,7 @@ export default class DApp {
       if (response.receipt) {
         // Set deposit in logic
         response.contract_address = response.receipt.to
+        this.session = session
 
         if (this.debug && _config.loglevel !== 'none') {
           console.log('🎉 Channel opened https://ropsten.etherscan.io/tx/' + response.receipt.transactionHash)
@@ -426,7 +428,7 @@ export default class DApp {
    *
    * @memberOf DApp
    */
-  call (function_name, function_args = [], callback) {
+  call (function_name, function_args = [], random_hash, callback) {
     if (typeof this.logic[function_name] !== 'function') {
       throw new Error(function_name + ' not exist')
     }
@@ -437,16 +439,29 @@ export default class DApp {
 
     Utils.debugLog('Call function ' + function_name + '...', _config.loglevel)
     return new Promise(async (resolve, reject) => {
+      this.session++
+
       let res = await this.request({
-        action: 'call',
-        func: {
-          name: function_name,
-          args: function_args
+        action : 'call',
+        func   : {
+          name        : function_name,
+          args        : function_args,
+          random_hash : random_hash,
+          session     : this.session,
+          channel_id  : this.connection_info.channel.channel_id
         }
       })
 
-      let local_returns = this.logic[function_name].apply(this, res.args)
+      if (!this.playerRSA.verify(res.hash, res.rsa_sign)) {
+        throw new Error('Sorry this data is not bankroller sign')
+      }
 
+      let local_returns = this.logic[function_name].apply(this, res.args)
+      this.updateChannel({
+        args         : res.args,
+        session      : this.session
+        // total_amount : this.total_amount
+      })
       // timestamps broke this check
       // if (JSON.stringify(local_returns) != JSON.stringify(res.returns)) {
       //  console.warn('💣💣💣 the call function results do not converge!')
@@ -533,7 +548,7 @@ export default class DApp {
       const channel_id         = open_data.channel_id // bytes32 id,
       const player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance()) // profit + open_data.player_deposit // uint playerBalance,
       const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance()) // -profit + open_data.bankroller_deposit // uint bankrollBalance,
-      const session            = params.session || 1 // uint session=0px
+      const session            = this.session // uint session=0px
       const bool               = true
       const totalAmount        = Utils.bet2dec(params.totalAmount)
       // console.log('@@@@@@@@', player_balance, bankroller_balance)
@@ -580,63 +595,6 @@ export default class DApp {
     })
   }
 
-  /** Save state this game */
-  async updateState (params = false, callback = false) {
-    if (typeof this.connection_info.channel === 'undefined') return
-    // if (typeof this.connection_info.channel.channel_id === 'undefined') return
-
-    const channel_id     = this.connection_info.channel.channel_id
-    const session        = params.session
-    const player_amount  = params.amount
-    const total_amount   = params.total_amount
-    const player_num     = params.num
-    const random_hash    = params.random_hash
-    const player_address = Account.get().openkey
-
-    const hash        = Utils.sha3(channel_id, session, player_amount, player_num, random_hash)
-    const signed_args = Eth.signHash(hash)
-
-    const receipt = await this.request({
-      action      : 'update_state',
-      update_args : {
-        channel_id     : channel_id,
-        player_amount  : player_amount,
-        player_address : player_address,
-        session        : session,
-        player_num     : player_num,
-        random_hash    : random_hash,
-        signed_args    : signed_args
-      }
-    })
-
-    if (receipt && receipt.signedRSA_bankroller) {
-      if (this.debug) Utils.debugLog(' 🎉 State updated', _config.loglevel)
-      this.playerRSA.create(receipt.bankroller_rsa_n)
-      const verify = this.playerRSA.verify(receipt.signed_bankroller, receipt.signedRSA_bankroller)
-      if (verify) {
-        Utils.debugLog(' 🎉 State updated with rsa', _config.loglevel)
-        this.updateChannel({
-          channel_id    : channel_id,
-          session       : session,
-          player_amount : player_amount,
-          total_amount  : total_amount,
-          player_num    : player_num,
-          random_hash   : random_hash
-        })
-      } else {
-        this.openDispute({
-          channel_id    : channel_id,
-          session       : session,
-          player_amount : player_amount,
-          player_num    : player_num,
-          random_hash   : random_hash
-        })
-      }
-    }
-
-    if (callback) callback(receipt)
-  }
-
   /** TODO - Доделывать */
   async updateChannel (params, callback = false) {
     const channel_id         = this.connection_info.channel.channel_id
@@ -645,11 +603,9 @@ export default class DApp {
     const session            = params.session
     const total_amount       = params.total_amount
     const bankroll_address   = this.connection_info.bankroller_address
-    const player_amount      = params.amount
-    const player_num         = params.num
-    const random_hash        = params.random_hash
+    const game_args          = params.args
 
-    const hash        = Utils.sha3(channel_id, player_balance, bankroller_balance, total_amount, session)
+    const hash        = Utils.sha3(channel_id, player_balance, bankroller_balance, /* total_amount, */ session)
     const signed_args = Eth.signHash(hash)
     const receipt     = await this.request({
       action         : 'update_channel',
@@ -657,14 +613,14 @@ export default class DApp {
       update_args    : {
         bankroller_balance : bankroller_balance,
         player_balance     : player_balance,
-        total_amount       : total_amount,
+        // total_amount       : total_amount,
         signed_args        : signed_args,
         channel_id         : channel_id,
         session            : session
       }
     })
 
-    if (!receipt.bankroller_sign || !DCLib.checkHashSig(hash, signed_args, bankroll_address)) {
+    if (!receipt.bankroller_sign || !DCLib.checkHashSig(hash, receipt.bankroller_sign, bankroll_address)) {
       Utils.debugLog('Start update channel', _config.loglevel)
       const gasLimit = 4600000
       const receipt = await this.PayChannel.methods
@@ -672,7 +628,7 @@ export default class DApp {
           channel_id,
           player_balance,
           bankroller_balance,
-          total_amount,
+          // total_amount,
           session,
           signed_args
         ).send({
@@ -692,23 +648,19 @@ export default class DApp {
         Utils.debugLog('🎉 Channel updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
         Utils.debugLog(receipt, _config.loglevel)
         this.openDispute({
-          channel_id,
-          session,
-          player_amount,
-          player_num,
-          random_hash
+          channel_id : channel_id,
+          session    : session,
+          game_args  : game_args
         })
       }
     } else {
       this.state_data = {
         channel_id         : channel_id,
-        player_amount      : player_amount,
         player_balance     : player_balance,
         bankroller_balance : bankroller_balance,
+        game_args          : game_args,
         total_amount       : total_amount,
-        player_num         : player_num,
         session            : session,
-        random_hash        : random_hash,
         signed_args        : receipt.bankroller_sign
       }
 
@@ -721,11 +673,9 @@ export default class DApp {
   async openDispute (params, callback = false) {
     const channel_id    = params.channel_id
     const session       = params.session
-    const player_amount = params.player_amount
-    const player_num    = params.player_num
-    const random_hash   = params.random_hash
+    const game_args     = params.game_args
 
-    const hash        = Utils.sha3(channel_id, session, player_amount, player_num, random_hash)
+    const hash        = Utils.sha3(channel_id, session, ...game_args)
     const signed_args = Eth.signHash(hash)
     // console.log('PARAMS', channel_id, round, dispute_seed, game_data)
     const gasLimit = 900000
@@ -733,9 +683,7 @@ export default class DApp {
       .openDispute(
         channel_id,
         session,
-        player_amount,
-        player_num,
-        random_hash,
+        ...game_args,
         signed_args
       ).send({
         gas: gasLimit,
