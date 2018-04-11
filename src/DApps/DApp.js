@@ -176,6 +176,11 @@ export default class DApp {
 
     let deposit = (params.paychannel && params.paychannel.deposit) ? params.paychannel.deposit : 0
 
+    if (Number(deposit) === 0) {
+      this.Status.emit('error', {code: 'deposit null', 'text': 'your deposit can not be 0'})
+      throw new Error('😓 Your deposit can not be 0')
+    }
+
     deposit = Utils.bet2dec(deposit)
     if (params.paychannel && params.paychannel.deposit) {
       params.paychannel.deposit = deposit
@@ -738,7 +743,7 @@ export default class DApp {
         from: Account.get().openkey
       })
       .on('transactionHash', transactionHash => {
-        Utils.debugLog(['# openchannel TX pending', transactionHash], _config.loglevel)
+        Utils.debugLog(['# open dispute TX pending', transactionHash], _config.loglevel)
         Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
         Utils.debugLog('⏳ wait receipt...', _config.loglevel)
       }).on('error', err => {
