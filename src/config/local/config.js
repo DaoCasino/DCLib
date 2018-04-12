@@ -12,6 +12,7 @@ module.exports = {
   network: 'local',
   rpc_url: 'http://localhost:9545/',
   api_url: 'http://localhost:8181/',
+  signal : '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star/',
 
   contracts: {
     erc20: {

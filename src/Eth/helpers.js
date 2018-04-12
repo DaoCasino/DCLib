@@ -198,22 +198,16 @@ export default class EthHelpers {
 
       Utils.debugLog(['💸 allowance:', allowance], _config.loglevel)
 
-      if (allowance < amount) {
-        Utils.debugLog('allowance lower than need deposit', _config.loglevel)
+      if (allowance < amount || (amount === 0 && allowance !== 0)) {
+        const approveAmount = amount
 
-        Utils.debugLog('Call .approve on ERC20', _config.loglevel)
-        Utils.debugLog('Allow paychannel to withdraw from your account, multiple times, up to the ' + amount + ' amount.', _config.loglevel)
-
-        const approveAmount = amount * 20
-
-        const gasLimit = await this.ERC20.methods.approve(spender, approveAmount).estimateGas({from: Account.get().openkey})
         const receipt = await this.ERC20.methods.approve(
           spender,
           approveAmount
         ).send({
           from: Account.get().openkey,
           gasPrice: 1.2 * _config.gasPrice,
-          gas: gasLimit
+          gas: _config.gasLimit
         }).on('transactionHash', transactionHash => {
           Utils.debugLog(['# approve TX pending', transactionHash], _config.loglevel)
           Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
@@ -222,11 +216,12 @@ export default class EthHelpers {
           reject(err, true)
         })
 
-        Utils.debugLog(['📌 ERC20.approve receipt:', receipt], _config.loglevel)
+        if (receipt.status !== '0x01') {
+          reject(receipt, true)
+          return
+        }
 
-        allowance = await this.ERC20.methods.allowance(Account.get().openkey, spender).call()
-
-        Utils.debugLog(['💸💸💸 allowance:', allowance], _config.loglevel)
+        resolve(receipt, true)
       }
 
       resolve(null, true)

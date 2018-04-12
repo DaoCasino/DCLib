@@ -36,7 +36,7 @@ const Eth = new EthHelpers()
  * @ignore
  */
 const EC = function () {}; EE(EC.prototype)
-// messaging.upIPFS(_config.signal)
+
 /*
  * DApp constructor
  */
@@ -113,6 +113,7 @@ export default class DApp {
     this.Room = false
     /** @ignore */
     this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
+    // check this.sharedRoom.on('all', console.log)
 
     /** @ignore */
     this.Status       = new EC()
@@ -230,17 +231,20 @@ export default class DApp {
         return callback(connectionResult, null)
       }
 
-      this.playerRSA.create(connection.n)
+      clearTimeout(conT)
 
+      this.playerRSA.create(connection.n)
       params.paychannel.RSA_n = this.playerRSA.RSA.n.toString(16)
       params.paychannel.RSA_e = this.playerRSA.RSA.e.toString(16)
-
-      clearTimeout(conT)
 
       if (this.debug) Utils.debugLog(['🔗 Connection established ', connection], _config.loglevel)
       this.Status.emit('connect::info', {status: 'connected', data: {connection: connection}})
 
-      this.Room = new messaging.RTC(Account.get().openkey, this.hash + '_' + connection.id)
+      this.Room = new messaging.RTC(
+        Account.get().openkey,
+        this.hash + '_' + connection.id,
+        {privKey:Account.exportPrivateKey(), allowed_users:[bankroller_address]}
+      )
 
       this.connection_info.id = connection.id
       this.connection_info.room_name = this.hash + '_' + connection.id
@@ -299,6 +303,7 @@ export default class DApp {
    */
   openChannel (params, game_data = false) {
     if (this.debug) Utils.debugLog([' 🔐 Open channel with deposit', params.deposit], _config.loglevel)
+
     return new Promise(async (resolve, reject) => {
       let contract_address
       this.contract_address
@@ -332,10 +337,10 @@ export default class DApp {
         data: {}
       })
 
+      await Eth.ERC20approve(contract_address, 0)
       await Eth.ERC20approve(contract_address, params.deposit)
 
       // Open channel args
-
       const channel_id         = Utils.makeSeed()
       const player_address     = Account.get().openkey
       const bankroller_address = params.bankroller_address
@@ -353,7 +358,7 @@ export default class DApp {
       const signed_args = Eth.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data, RSA_n, RSA_e))
 
       if (this.debug) Utils.debugLog(bankroller_deposit, _config.loglevel)
-      if (this.debug) Utils.debugLog('🙏 ask the bankroller to open the channel', _config.loglevel)
+      if (this.debug) Utils.debugLog('🙏 open the channel', _config.loglevel)
 
       let dots_i = setInterval(() => {
         const items = ['wait', 'just moment', 'bankroller work, wait ))', '..', '...', 'wait when bankroller open channel', 'yes its not so fast', 'this is Blockchain 👶', 'TX mine...']

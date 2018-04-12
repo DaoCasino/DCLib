@@ -69,8 +69,9 @@
           console.log('connect result:', connected)
           console.log('connect info:', info)
           if (!connected) return
+            // 1000000000000000000
 
-          let maxbet = DCLib.Utils.bet2dec(info.channel.player_deposit)
+          let maxbet = DCLib.Utils.dec2bet(info.channel.player_deposit)
 
           $('#user_bet')[0].max = Math.ceil(maxbet)
           $('#user_bet').val((maxbet * 0.1).toFixed(2))

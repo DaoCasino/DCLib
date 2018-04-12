@@ -49,11 +49,12 @@ export default class DCLib {
   /**
   * @ignore
   */
-  constructor (signal = '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star') {
+  constructor (signal = false) {
     this.version = '0.2.2'
+    this.config = _config
 
     // Add signal
-    if (process.env.DC_NETWORK !== 'local') messaging.upIPFS(signal)
+    messaging.upIPFS((signal || _config.signal))
 
     /**
     * little utilities
