@@ -7,8 +7,7 @@ import EthHelpers from './Eth/helpers'
 import Account    from './Eth/Account'
 import DApp       from './DApps/DApp'
 import printDocs  from './docs.js'
-
-console.log(_config)
+import * as messaging  from 'dc-messaging'
 
 /**
  * @ignore
@@ -50,8 +49,11 @@ export default class DCLib {
   /**
   * @ignore
   */
-  constructor () {
+  constructor (signal = '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star') {
     this.version = '0.2.2'
+
+    // Add signal
+    if (process.env.DC_NETWORK !== 'local') messaging.upIPFS(signal)
 
     /**
     * little utilities

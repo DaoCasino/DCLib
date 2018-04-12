@@ -36,7 +36,7 @@ const Eth = new EthHelpers()
  * @ignore
  */
 const EC = function () {}; EE(EC.prototype)
-messaging.upIPFS(_config.signal)
+// messaging.upIPFS(_config.signal)
 /*
  * DApp constructor
  */
