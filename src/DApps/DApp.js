@@ -97,11 +97,11 @@ export default class DApp {
     if (params.contract) {
       if (this.debug) Utils.debugLog('Your contract is add', _config.loglevel)
       this.contract_address = params.contract.address
-      this.contract_abi = params.contract.abi
+      this.contract_abi     = params.contract.abi
     } else {
       if (this.debug) Utils.debugLog('Standart payChannel contract is add', _config.loglevel)
       this.contract_address = _config.contracts.paychannel.address
-      this.contract_abi = _config.contracts.paychannel.abi
+      this.contract_abi     = _config.contracts.paychannel.abi
     }
     this.web3 = web3
     this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
@@ -366,6 +366,8 @@ export default class DApp {
         return
       }
 
+      console.log('OC addresses', args.player_address,
+          b_args.args.bankroller_address)
       // Send open channel TX
       const gasLimit = 4600000
       const receipt = await this.PayChannel.methods
@@ -373,9 +375,9 @@ export default class DApp {
           args.channel_id,
           args.player_address,
           b_args.args.bankroller_address,
-          '' + args.player_deposit,
-          '' + b_args.args.bankroller_deposit,
-          b_args.args.opening_block,
+          +args.player_deposit,
+          +b_args.args.bankroller_deposit,
+          +b_args.args.opening_block,
           args.game_data,
           b_args.args._N,
           b_args.args._E,
@@ -386,11 +388,13 @@ export default class DApp {
           from     : args.player_address
         })
         .on('transactionHash', transactionHash => {
-
+          console.log('open channel', transactionHash)
         })
         .on('error', err => {
           console.error(err)
         })
+
+      console.log('open channel receipt', receipt)
 
       if (!receipt.status || receipt.status !== '0x01') {
         console.error('Error when open channel', receipt)
