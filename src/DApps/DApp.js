@@ -225,17 +225,13 @@ export default class DApp {
         address: bankroller_address
       })
 
-      if (!connection.id || !connection.n) {
+      if (!connection.id) {
         this.Status.emit('error', {code: 'unknow', 'text': 'Cant establish connection'})
         Utils.debugLog('😓 Cant establish connection....', 'error')
         return callback(connectionResult, null)
       }
 
       clearTimeout(conT)
-
-      this.playerRSA.create(connection.n)
-      params.paychannel.RSA_n = this.playerRSA.RSA.n.toString(16)
-      params.paychannel.RSA_e = this.playerRSA.RSA.e.toString(16)
 
       if (this.debug) Utils.debugLog(['🔗 Connection established ', connection], _config.loglevel)
       this.Status.emit('connect::info', {status: 'connected', data: {connection: connection}})
@@ -319,107 +315,86 @@ export default class DApp {
       if (mineth !== false && user_balance.eth * 1 < mineth * 1) {
         Utils.debugLog(user_balance.eth + ' is very low, you need minimum ' + mineth, 'error')
         reject(new Error({error: 'low balance'}))
-        // throw new Error('Low ETHs balance')
         return false
       }
 
       if (minbet !== false && user_balance.bets * 1 < minbet * 1) {
         Utils.debugLog('Your BET balance ' + user_balance.bets + ' <  ' + minbet, 'error')
         reject(new Error({error: 'low balance'}))
-        // throw new Error('Low BETs balance')
         return false
       }
       if (this.debug) Utils.debugLog(contract_address, _config.loglevel)
       if (this.debug) Utils.debugLog(params.deposit, _config.loglevel)
 
-      this.Status.emit('connect::info', {
-        status: 'ERC20approve',
-        data: {}
-      })
-
+      // Approve ERC20
+      this.Status.emit('connect::info', { status: 'ERC20approve', data: {} })
       await Eth.ERC20approve(contract_address, 0)
       await Eth.ERC20approve(contract_address, params.deposit)
 
-      // Open channel args
-      const channel_id         = Utils.makeSeed()
-      const player_address     = Account.get().openkey
-      const bankroller_address = params.bankroller_address
-      const player_deposit     = params.deposit
-      const bankroller_deposit = params.deposit * 2
-      const RSA_e              = `0x0${params.RSA_e}`
-      const RSA_n              = Utils.add0x(params.RSA_n)
-      const session            = 0
-      const ttl_blocks         = 100
-      // window.paychannel         = new PaychannelLogic(parseInt(bankroller_deposit))
-
-      if (this.debug) Utils.debugLog([channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data], _config.loglevel)
-
-      // Sign hash from args
-      const signed_args = Eth.signHash(Utils.sha3(channel_id, player_address, bankroller_address, player_deposit, bankroller_deposit, session, ttl_blocks, game_data, RSA_n, RSA_e))
-
-      if (this.debug) Utils.debugLog(bankroller_deposit, _config.loglevel)
-      if (this.debug) Utils.debugLog('🙏 open the channel', _config.loglevel)
-
-      let dots_i = setInterval(() => {
-        const items = ['wait', 'just moment', 'bankroller work, wait ))', '..', '...', 'wait when bankroller open channel', 'yes its not so fast', 'this is Blockchain 👶', 'TX mine...']
-        if (this.debug) Utils.debugLog('⏳ ' + items[Math.floor(Math.random() * items.length)], _config.loglevel)
-      }, 1500)
-
-      this.Status.emit('connect::info', {
-        status: 'openChannel',
-        data: {}
+      // Ask data from bankroller for open channel
+      const args = {
+        channel_id     : Utils.makeSeed(),
+        player_address : Account.get().openkey,
+        player_deposit : params.deposit,
+        game_data      : [0]
+      }
+      // args and sign from bankroller
+      const b_args = await this.request({
+        action : 'open_channel_1',
+        args   : args
       })
 
-      let response = await this.request({
-        action     : 'open_channel',
-        deposit    : params.deposit,
-        paychannel : contract_address,
-        open_args  : {
-          channel_id         : channel_id,
-          player_address     : player_address,
-          player_deposit     : player_deposit,
-          bankroller_address : bankroller_address,
-          session            : session,
-          ttl_blocks         : ttl_blocks,
-          gamedata           : game_data,
-          RSA_n              : RSA_n,
-          RSA_e              : RSA_e,
-          signed_args        : signed_args
-        }
-      })
-
-      this.Status.emit('connect::info', {
-        status: 'channelOpened',
-        data: response
-      })
-
-      if (response.more) {
-        Utils.debugLog('the previous transaction was not completed', _config.loglevel)
+      // Проверяем возвращаемые банкроллером аргументы путем валидации хеша
+      const to_verify_hash = [
+        {t: 'bytes32', v: args.channel_id                      },
+        {t: 'address', v: args.player_address                  },
+        {t: 'address', v: b_args.args.bankroller_address       },
+        {t: 'uint',    v: '' + args.player_deposit             },
+        {t: 'uint',    v: '' + b_args.args.bankroller_deposit  },
+        {t: 'uint',    v: b_args.args.opening_block            },
+        {t: 'uint',    v: args.game_data                       },
+        {t: 'bytes',   v: b_args.args._N                       },
+        {t: 'bytes',   v: b_args.args._E                       }
+      ]
+      const recover_openkey = web3.eth.accounts.recover(Utils.sha3(...to_verify_hash), b_args.signed_args)
+      if (recover_openkey.toLowerCase() !== params.bankroller_address.toLowerCase()) {
+        this.Status.emit('connect::error', {
+          status : 'error',
+          msg    : 'Bankroller open channel args invalid',
+          data   : {}
+        })
+        return
       }
 
-      response.channel_id         = channel_id
-      response.player_deposit     = params.deposit
-      response.bankroller_deposit = params.deposit * 2
-      response.session            = 0
+      // Send open channel TX
+      const gasLimit = 4600000
+      const receipt = await this.PayChannel.methods
+        .openChannel(
+          args.channel_id,
+          args.player_address,
+          b_args.args.bankroller_address,
+          '' + args.player_deposit,
+          '' + b_args.args.bankroller_deposit,
+          b_args.args.opening_block,
+          args.game_data,
+          b_args.args._N,
+          b_args.args._E,
+          b_args.signed_args
+        ).send({
+          gas      : gasLimit,
+          gasPrice : 1.2 * _config.network.gasPrice,
+          from     : args.player_address
+        })
+        .on('transactionHash', transactionHash => {
 
-      if (this.debug) Utils.debugLog(response, _config.loglevel)
-      this.logic.payChannel.setDeposit(Utils.dec2bet(player_deposit))
+        })
+        .on('error', err => {
+          console.error(err)
+        })
 
-      if (response.receipt) {
-        // Set deposit in logic
-        response.contract_address = response.receipt.to
-        this.session = session
-
-        if (this.debug && _config.loglevel !== 'none') {
-          console.log('🎉 Channel opened https://ropsten.etherscan.io/tx/' + response.receipt.transactionHash)
-          console.groupCollapsed('channel info')
-          console.log(response)
-          console.groupEnd()
-        }
+      if (!receipt.status || receipt.status !== '0x01') {
+        console.error('Error when open channel', receipt)
       }
-      clearInterval(dots_i)
-      resolve(response)
-      // if (this.debug) console.groupEnd()
     })
   }
 
