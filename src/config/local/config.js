@@ -7,7 +7,8 @@ module.exports = {
   rtc_room  : 'dc-room1',
   rtc_store : 'rtc_msgs',
   logname   : 'dclib',
-  loglevel  : 'hight',
+  loglevel  : 'none',
+  // loglevel  : 'hight',
 
   network: 'local',
   rpc_url: 'http://localhost:9545/',

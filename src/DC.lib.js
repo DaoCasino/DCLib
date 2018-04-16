@@ -6,7 +6,7 @@ import Api        from './API/Api'
 import EthHelpers from './Eth/helpers'
 import Account    from './Eth/Account'
 import DApp       from './DApps/DApp'
-import printDocs  from './docs.js'
+// import printDocs  from './docs.js'
 import * as messaging  from 'dc-messaging'
 
 /**
@@ -78,7 +78,7 @@ export default class DCLib {
         ourApi.addBets(this.Account.get().openkey)
       }
 
-      printDocs(window.DCLib)
+      // printDocs(window.DCLib)
 
       Event.emit('ready')
       _ready = true

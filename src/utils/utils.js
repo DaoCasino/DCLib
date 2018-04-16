@@ -35,8 +35,9 @@ export const debugLog = function (data, loglevel = _config.loglevel, enable = tr
  * @return {number} - bet in human format
  */
 export function dec2bet (val, r = 2) {
-  return web3_utils.fromWei(val + '')
-  // return +(val / 100000000).toFixed(r)
+  if (!val) return 0
+  let n = web3_utils.fromWei(val + '')
+  return (+n).toFixed(r)
 }
 
 /**

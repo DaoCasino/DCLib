@@ -192,11 +192,7 @@ export default class EthHelpers {
    */
   async ERC20approve (spender, amount, callback = false) {
     return new Promise(async (resolve, reject) => {
-      Utils.debugLog('Check how many tokens user ' + Account.get().openkey + ' is still allowed to withdraw from contract ' + spender + ' . . . ', _config.loglevel)
-
       let allowance = await this.ERC20.methods.allowance(Account.get().openkey, spender).call()
-
-      Utils.debugLog(['💸 allowance:', allowance], _config.loglevel)
 
       if (allowance < amount || (amount === 0 && allowance !== 0)) {
         const approveAmount = amount
@@ -210,7 +206,6 @@ export default class EthHelpers {
           gas: _config.gasLimit
         }).on('transactionHash', transactionHash => {
           Utils.debugLog(['# approve TX pending', transactionHash], _config.loglevel)
-          Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
         }).on('error', err => {
           Utils.debugLog(err, 'error')
           reject(err, true)

@@ -69,13 +69,10 @@ export default class DApp {
    */
   constructor (params) {
     if (!params.slug) {
-      Utils.debugLog(['Create DApp error', params], 'error')
       throw new Error('slug option is required')
     }
 
     if (!window.DAppsLogic[params.slug] || !window.DAppsLogic[params.slug]) {
-      Utils.debugLog('First you need define your DApp logic', _config.loglevel)
-      Utils.debugLog('Example DCLib.defineDAppLogic("' + params.slug + '", function(){...})', _config.loglevel)
       throw new Error('Cant find DApp logic')
     }
 
@@ -95,11 +92,9 @@ export default class DApp {
 
     /** Add contract's */
     if (params.contract) {
-      if (this.debug) Utils.debugLog('Your contract is add', _config.loglevel)
       this.contract_address = params.contract.address
       this.contract_abi     = params.contract.abi
     } else {
-      if (this.debug) Utils.debugLog('Standart payChannel contract is add', _config.loglevel)
       this.contract_address = _config.contracts.paychannel.address
       this.contract_abi     = _config.contracts.paychannel.abi
     }
@@ -118,35 +113,6 @@ export default class DApp {
     /** @ignore */
     this.Status       = new EC()
     this.info_channel = EE()
-
-    if (this.debug && _config.loglevel !== 'none') {
-      console.groupCollapsed('DApp %c' + this.slug + ' %ccreated', 'color:orange', 'color:default')
-      console.info(params)
-      console.info(' >>> Unique DApp logic checksum/hash would be used for connect to bankrollers:')
-      console.info('%c SHA3: %c' + this.hash, 'background:#333; padding:3px 0px 3px 3px;', 'color:orange; background:#333; padding:3px 10px 3px 3px;')
-
-      console.groupCollapsed('Logic string')
-      console.log(Utils.clearcode(window.DAppsLogic[params.slug]))
-      console.groupEnd()
-
-      console.groupCollapsed('DApp.sharedRoom / messaging methods now available')
-      console.group('send(data, callback=false, repeat=5)')
-      console.log('Send message to room, in callback args pass delivered=true')
-      console.groupEnd()
-
-      console.group('on(event, callback)')
-      console.log(['Listen room messages',
-        'Ex.events: all, action::bankroller_active, user_id:0xsd...',
-        ' room.send({action:"myaction", somedata:{}})',
-        ' room.on("action::myaction", function(data){})'
-      ].join('\n'))
-      console.log('For send message to specific user write send({address:"0xUserOpenkey"})')
-      console.groupEnd()
-
-      console.groupEnd()
-
-      console.groupEnd()
-    }
   }
 
   /**
@@ -168,7 +134,6 @@ export default class DApp {
     params = Object.assign(def_params, params)
 
     if (params.paychannel && (!params.paychannel.deposit || isNaN(params.paychannel.deposit * 1))) {
-      Utils.debugLog('Oops, paychannel.deposit*1 - is not a number', 'error')
       throw new Error(' 💴 Deposit is required to open paychannel')
     }
 
@@ -190,14 +155,6 @@ export default class DApp {
 
     let bankroller_address = params.bankroller || 'auto'
 
-    if (this.debug && _config.loglevel !== 'none') {
-      console.log('params:')
-      console.table(Object.assign(params, {
-        deposit: deposit,
-        bankroller: bankroller_address
-      }))
-    }
-
     if (bankroller_address === 'auto') {
       this.Status.emit('connect::info', {status: 'findBankroller', data: {deposit: deposit}})
       bankroller_address = await this.findBankroller(deposit)
@@ -213,16 +170,14 @@ export default class DApp {
     }, 7777)
 
     /**    Ifomation fromconnection(id, room_name, bankroller_address) */
-    this.connection_info = {
-      bankroller_address: bankroller_address
-    }
+    this.connection_info = { bankroller_address: bankroller_address }
 
     try {
       this.Status.emit('connect::info', {status: 'connect', data: {bankroller_address: bankroller_address}})
       const connection = await this.request({
-        action: 'connect',
-        slug: this.slug,
-        address: bankroller_address
+        action  : 'connect',
+        slug    : this.slug,
+        address : bankroller_address
       })
 
       if (!connection.id) {
@@ -250,28 +205,9 @@ export default class DApp {
       return callback(connectionResult, null)
     }
 
-    if (this.debug && _config.loglevel !== 'none') {
-      console.groupCollapsed(' 🚪 Personal user<->bankroller room created')
-      console.log('personal room name: ', this.Room.name)
-      console.groupEnd()
-      console.groupCollapsed('Now you can call logic functions')
-      console.log('MyDApp.call("function_name", [arg1, arg2], function(result){})')
-      console.groupEnd()
-
-      console.groupEnd()
-    }
-
     if (params.paychannel) {
       // Check than payChannel logic exist
       if (typeof this.logic.payChannel !== 'object' && _config.loglevel !== 'none') {
-        console.log('')
-        console.log('')
-
-        console.log('If you want to use paychannel, you need to use .payChannel functions in your logic')
-        console.log('this is reseved property, for get user wins in BETs')
-        console.log('it need for check results on bankroller side')
-        console.log('DONT REMOVE .payChannel from your logic')
-        console.log('')
         throw new Error('logic.payChannel - required')
       }
 
@@ -282,7 +218,6 @@ export default class DApp {
 
     connectionResult = true
     if (callback) callback(connectionResult, this.connection_info)
-    // this.updateState()
   }
 
   /**
@@ -323,8 +258,6 @@ export default class DApp {
         reject(new Error({error: 'low balance'}))
         return false
       }
-      if (this.debug) Utils.debugLog(contract_address, _config.loglevel)
-      if (this.debug) Utils.debugLog(params.deposit, _config.loglevel)
 
       // Approve ERC20
       this.Status.emit('connect::info', { status: 'ERC20approve', data: {} })
@@ -340,7 +273,7 @@ export default class DApp {
       }
       // args and sign from bankroller
       const b_args = await this.request({
-        action : 'open_channel_1',
+        action : 'open_channel',
         args   : args
       })
 
@@ -366,8 +299,6 @@ export default class DApp {
         return
       }
 
-      console.log('OC addresses', args.player_address,
-          b_args.args.bankroller_address)
       // Send open channel TX
       const gasLimit = 4600000
       const receipt = await this.PayChannel.methods
@@ -390,14 +321,33 @@ export default class DApp {
         .on('transactionHash', transactionHash => {
           console.log('open channel', transactionHash)
         })
+        .on('confirmation', async (confirmationNumber) => {
+          if (confirmationNumber >= 2) {
+            console.log('Ask bankroller to check channel')
+            const result = await this.request({
+              action : 'open_channel_2'
+            })
+
+            resolve(result)
+          } else {
+            console.log('openChannel confirmation', confirmationNumber)
+          }
+        })
         .on('error', err => {
           console.error(err)
+          reject(err)
         })
-
-      console.log('open channel receipt', receipt)
 
       if (!receipt.status || receipt.status !== '0x01') {
         console.error('Error when open channel', receipt)
+        return
+      }
+
+      const check = await this.request({action : 'check_open_channel'})
+      if (!check.error && check.status === 'ok') {
+        resolve(Object.assign(check.info, args))
+      } else {
+        reject(receipt)
       }
     })
   }
@@ -770,7 +720,6 @@ export default class DApp {
      * @memberOf DApp
      */
   findBankroller (deposit = false) {
-    console.log(deposit)
     if (this.debug) Utils.debugLog(' 🔎 Find bankrollers in shared Dapp room...', _config.loglevel)
     const Status = this.Status
     let noBankroller = setTimeout(function noInf (params) {
