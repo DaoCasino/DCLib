@@ -65,7 +65,7 @@ module.exports = function(config) {
       ],
 
       resolve: {
-        modules: ['src', 'node_modules', 'packages']
+        modules: ['../protocol/build/', 'src', 'node_modules', 'packages']
       },
       devtool: 'inline-source-map'
     },

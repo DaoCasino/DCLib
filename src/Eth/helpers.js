@@ -175,6 +175,7 @@ export default class EthHelpers {
   signHash (hash) {
     hash = Utils.add0x(hash)
     if (!web3.utils.isHexStrict(hash)) {
+      console.log('err')
       Utils.debugLog(hash + ' is not correct hex', _config.loglevel)
       Utils.debugLog('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash', _config.loglevel)
     }

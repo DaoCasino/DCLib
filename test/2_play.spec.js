@@ -2,8 +2,11 @@
 /* global DCLib fetch sinon  fetchMock */
 
 let MyDApp
-const dapp_slug = 'dicetest_v32'
+
+const dapp_slug    = 'dicetest_v32'
 const dapp_deposit = 2
+const user_bet     = 1
+const user_num     = 30000
 
 const initDCLibAndDApp = function (callback) {
   DCLib.defineDAppLogic(dapp_slug, function () {
@@ -15,10 +18,8 @@ const initDCLibAndDApp = function (callback) {
     let history = []
 
     var Roll = function (user_bet, user_num, random_hash) {
-      // convert 1BET to 100000000
       user_bet = DCLib.Utils.bet2dec(user_bet)
 
-      // generate random number
       const random_num = DCLib.numFromHash(random_hash, 0, MAX_RAND_NUM)
 
       let profit = -user_bet
@@ -118,12 +119,22 @@ describe('Play', () => {
         if (!connected) return
         console.log('')
         console.log('')
-        done()
+
+        setTimeout(function () {
+          done()
+        }, 2222)
       })
     })
 
-    it('Roll', function (done) {
-      done()
+    it('Call logic function Play', function (done) {
+      const rnd = DCLib.randomHash({bet:user_bet, gamedata:[user_num]})
+      console.log('rnd', rnd)
+
+      MyDApp.call('roll', [user_bet, user_num, rnd], function (result, advanced) {
+        console.log('result', result)
+        console.log('advanced', advanced)
+        done()
+      })
     })
   })
 })

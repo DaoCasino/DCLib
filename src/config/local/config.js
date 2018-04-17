@@ -17,8 +17,8 @@ module.exports = {
 
   contracts: {
     erc20: {
-      address : require('../../../../protocol/build/contracts.json').ERC20,
-      abi     : require('../../../../protocol/build/contracts/ERC20.json').abi
+      address : require('contracts.json').ERC20,
+      abi     : require('contracts/ERC20.json').abi
     }
   },
 

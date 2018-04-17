@@ -362,68 +362,110 @@ export default class DApp {
    *
    * @memberOf DApp
    */
-  call (function_name, function_args = [], random_hash, callback) {
+  call (function_name, function_args = [], callback) {
     if (typeof this.logic[function_name] !== 'function') {
       throw new Error(function_name + ' not exist')
     }
+
     if (!this.Room) {
+      console.log('no room')
       Utils.debugLog('You need .connect() before call!', _config.loglevel)
       return
     }
 
+    console.log('call')
     Utils.debugLog('Call function ' + function_name + '...', _config.loglevel)
     return new Promise(async (resolve, reject) => {
+      this.session = this.session || 0
       this.session++
 
+      // Find rnd object
+      let gamedata = []
+      let user_bet = 0
+      function_args.forEach(arg => {
+        if (typeof arg === 'object' && arg.rnd && arg.rnd.gamedata && arg.rnd.bet) {
+          gamedata = arg.rnd.gamedata
+          user_bet = Utils.bet2dec(arg.rnd.bet)
+        }
+      })
+
+      const data = {
+        channel_id : this.connection_info.channel.channel_id,
+        session    : +this.session,
+        user_bet   : user_bet,
+        gamedata   : gamedata,
+        seed       : Utils.makeSeed()
+      }
+
+      console.log('sign')
+      const to_sign = [
+        {t: 'bytes32', v: data.channel_id    },
+        {t: 'uint',    v: data.session       },
+        {t: 'uint',    v: '' + data.user_bet },
+        {t: 'uint',    v: data.gamedata      },
+        {t: 'bytes32', v: data.seed          }
+      ]
+      const sign = Eth.signHash(Utils.sha3(...to_sign))
+      // const sign = Utils.sha3(...to_sign)
+
+      console.log('send reuqest ')
       let res = await this.request({
         action : 'call',
+        data   : data,
+        sign   : sign,
         func   : {
-          name        : function_name,
-          args        : function_args,
-          random_hash : random_hash,
-          session     : this.session,
-          channel_id  : this.connection_info.channel.channel_id
+          name : function_name,
+          args : function_args
         }
       })
+      console.log(res)
 
-      if (!this.playerRSA.verify(res.hash, res.rsa_sign)) {
-        throw new Error('Sorry this data is not bankroller sign')
-      }
+      // res.args
+     
+      // this.response(data, {
+      //   args     : confirmed.args,
+      //   rnd_hash : confirmed.rnd_hash,
+      //   rnd_sign : confirmed.rnd_sign,
+      //   returns  : returns
+      // }, user.room)
 
-      let local_returns = this.logic[function_name].apply(this, res.args)
-      this.updateChannel({
-        args         : res.args,
-        session      : this.session
-        // total_amount : this.total_amount
-      })
-      // timestamps broke this check
-      // if (JSON.stringify(local_returns) != JSON.stringify(res.returns)) {
-      //  console.warn('💣💣💣 the call function results do not converge!')
-      //  console.log(JSON.stringify(local_returns), JSON.stringify(res.returns))
+      // return
+
+      // // res
+      // let local_returns = this.logic[function_name].apply(this, res.args)
+      // this.updateChannel({
+      //   args         : res.args,
+      //   session      : this.session
+      //   // total_amount : this.total_amount
+      // })
+      // // timestamps broke this check
+      // // if (JSON.stringify(local_returns) != JSON.stringify(res.returns)) {
+      // //  console.warn('💣💣💣 the call function results do not converge!')
+      // //  console.log(JSON.stringify(local_returns), JSON.stringify(res.returns))
+      // // }
+
+      // if (_config.loglevel !== 'none') {
+      //   console.groupCollapsed('call "' + function_name + '" log:')
+      //   Utils.debugLog(['You send args:', function_args], _config.loglevel)
+      //   Utils.debugLog(['Bankroller signed args:', res.args], _config.loglevel)
+      //   Utils.debugLog(['Bankroller call result:', res.returns], _config.loglevel)
+      //   Utils.debugLog(['You local call result:', local_returns], _config.loglevel)
+      //   console.groupEnd()
       // }
 
-      if (_config.loglevel !== 'none') {
-        console.groupCollapsed('call "' + function_name + '" log:')
-        Utils.debugLog(['You send args:', function_args], _config.loglevel)
-        Utils.debugLog(['Bankroller signed args:', res.args], _config.loglevel)
-        Utils.debugLog(['Bankroller call result:', res.returns], _config.loglevel)
-        Utils.debugLog(['You local call result:', local_returns], _config.loglevel)
-        console.groupEnd()
-      }
+      // const adv = {
+      //   bankroller: {
+      //     args: res.args,
+      //     result: res.returns
+      //   },
+      //   local: {
+      //     args: function_args,
+      //     result: local_returns
+      //   }
+      // }
 
-      const adv = {
-        bankroller: {
-          args: res.args,
-          result: res.returns
-        },
-        local: {
-          args: function_args,
-          result: local_returns
-        }
-      }
-
-      resolve(res.returns, adv)
-      if (callback) callback(res.returns, adv)
+      // resolve(res.returns, adv)
+      // if (callback) callback(res.returns, adv)
     })
   }
 

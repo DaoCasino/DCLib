@@ -198,7 +198,13 @@ export default class DCLib {
    *
    * @memberOf DCLib
    */
-  randomHash () { return 'confirm(' + Utils.makeSeed() + ')' }
+  randomHash (data) {
+    if (!data || !data.bet || !data.gamedata || typeof data.gamedata !== 'object') {
+      throw new Error('Invalid data for randomHash, need: {bet:100, gamedata:array} ')
+    }
+
+    return {rnd:data}
+  }
 
   /**
    * ## DCLib.numFromHash(randomHash, min=0, max=10)

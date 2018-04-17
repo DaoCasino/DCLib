@@ -59,10 +59,12 @@ function startGame (deposit) {
 }
 
 function callDAppFunc (user_bet, user_num) {
-  const random_hash = DCLib.randomHash()
+
+  const random_hash = DCLib.randomHash({bet:user_bet, gamedata:[user_num]})
+
   MyDApp.call(
     // function name and args
-    'roll', [ user_bet, user_num], random_hash,
+    'roll', [ user_bet, user_num, random_hash],
 
     // result
     function (res, advanced) {
