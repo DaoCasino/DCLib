@@ -41,8 +41,8 @@ export default class PayChannel {
     deposit.bankroller = bankroller_deposit
 
     if (_config.loglevel !== 'none') {
-      Utils.debugLog('paychannel injected in dapp logic', _config.loglevel)
-      Utils.debugLog('Now your logic has methods for work with payment channel', _config.loglevel)
+      // Utils.debugLog('paychannel injected in dapp logic', _config.loglevel)
+      // Utils.debugLog('Now your logic has methods for work with payment channel', _config.loglevel)
       console.table({
         getDeposit : 'for get start deposit',
         getBalance : 'current user balance',

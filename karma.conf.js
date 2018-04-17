@@ -2,6 +2,8 @@
 // Generated on Sat Feb 24 2018 11:25:09 GMT+0200 (EET)
 /* eslint-disable */
 
+const webpack = require('webpack')
+
 module.exports = function(config) {
   config.set({
 
@@ -54,6 +56,14 @@ module.exports = function(config) {
           }
         ]
       },
+      plugins:[
+        new webpack.DefinePlugin({
+            'process.env': {
+                DC_NETWORK: '"'+process.env.DC_NETWORK+'"',
+            },
+        })
+      ],
+
       resolve: {
         modules: ['src', 'node_modules', 'packages']
       },

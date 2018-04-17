@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 /* global DCLib expect sinon localStorage fetchMock */
 
-describe('Account', () => {
+describe.skip('Account', () => {
   let sandbox
 
   beforeEach(() => { sandbox = sinon.sandbox.create() })

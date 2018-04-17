@@ -7,7 +7,7 @@ module.exports = {
   rtc_room  : 'dc-room1',
   rtc_store : 'rtc_msgs',
   logname   : 'dclib',
-  loglevel  : 'none',
+  loglevel  : window.LOG_LEVEL || 'none',
   // loglevel  : 'hight',
 
   network: 'local',
@@ -17,8 +17,8 @@ module.exports = {
 
   contracts: {
     erc20: {
-      address : require('contracts.json').ERC20,
-      abi     : require('contracts/ERC20.json').abi
+      address : require('../../../../protocol/build/contracts.json').ERC20,
+      abi     : require('../../../../protocol/build/contracts/ERC20.json').abi
     }
   },
 

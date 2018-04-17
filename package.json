@@ -9,7 +9,7 @@
     "start": "DC_NETWORK=local node scripts/start.js",
     "build": "DC_NETWORK=local node scripts/build.js",
     "lint": "eslint --ext=.js,.tag ./src ./test",
-    "test": "npm run lint && karma start",
+    "test": "npm run lint && DC_NETWORK=local karma start",
     "release": "release-it",
     "docs:serve": "documentation serve --watch src/index.js",
     "docs": "rimraf docs/* && documentation build src/index.js -f html -o docs && gh-pages -d docs"

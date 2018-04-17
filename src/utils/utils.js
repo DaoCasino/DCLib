@@ -112,14 +112,12 @@ export const buf2bytes32 = buffer => {
 export const remove0x = (str) => {
   if (str.length > 2 && str.substr(0, 2) === '0x') {
     str = str.substr(2)
-    debugLog('0x prefix removed from  ' + str.substr(0, 8) + '...')
   }
   return str
 }
 
 export const add0x = (str) => {
   if (str.substr(0, 2) !== '0x') {
-    debugLog('0x prefix added to ' + str.substr(0, 8) + '...')
     str = '0x' + str
   }
   return str
