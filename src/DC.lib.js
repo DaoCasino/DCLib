@@ -203,6 +203,8 @@ export default class DCLib {
       throw new Error('Invalid data for randomHash, need: {bet:100, gamedata:array} ')
     }
 
+    data.bet = Utils.bet2dec(data.bet)
+
     return {rnd:data}
   }
 

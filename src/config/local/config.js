@@ -15,6 +15,8 @@ module.exports = {
   api_url: 'http://localhost:8181/',
   signal : '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star/',
 
+  tx_confirmations:0,
+
   contracts: {
     erc20: {
       address : require('contracts.json').ERC20,

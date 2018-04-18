@@ -1,6 +1,7 @@
 {
     "extends": "standard",
     "rules": {
+        "no-debugger"                        : ["warn"],
         "no-multi-spaces"                    : ["off"],
         "key-spacing"                        : ["off"],
         "camelcase"                          : ["off"],

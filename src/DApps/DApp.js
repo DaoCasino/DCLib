@@ -83,9 +83,10 @@ export default class DApp {
     /** @ignore */
     this.hash = Utils.checksum(this.slug)
     /** DApp logic */
-    this.logic     = payChannelWrap(logic)
-    this.playerRSA = new RSA()
-    this.debug     = true
+    this.logic = payChannelWrap(logic)
+    this.RSA   = new RSA()
+    this.debug = true
+
     if (typeof params.debug !== 'undefined') {
       this.debug = params.debug
     }
@@ -299,9 +300,13 @@ export default class DApp {
         return
       }
 
+      // Создаем RSA с ключем банкроллера
+      // для дальнейшей верификации сообщения от него
+      this.RSA.create(Utils.remove0x(b_args.args._N))
+
       // Send open channel TX
       const gasLimit = 4600000
-      const receipt = await this.PayChannel.methods
+      this.PayChannel.methods
         .openChannel(
           args.channel_id,
           args.player_address,
@@ -322,33 +327,19 @@ export default class DApp {
           console.log('open channel', transactionHash)
         })
         .on('confirmation', async (confirmationNumber) => {
-          if (confirmationNumber >= 2) {
-            console.log('Ask bankroller to check channel')
-            const result = await this.request({
-              action : 'open_channel_2'
-            })
-
-            resolve(result)
-          } else {
-            console.log('openChannel confirmation', confirmationNumber)
+          if (confirmationNumber >= _config.tx_confirmations) {
+            const check = await this.request({action : 'check_open_channel'})
+            if (!check.error && check.status === 'ok') {
+              resolve(Object.assign(check.info, args))
+            } else {
+              reject(check)
+            }
           }
         })
         .on('error', err => {
           console.error(err)
           reject(err)
         })
-
-      if (!receipt.status || receipt.status !== '0x01') {
-        console.error('Error when open channel', receipt)
-        return
-      }
-
-      const check = await this.request({action : 'check_open_channel'})
-      if (!check.error && check.status === 'ok') {
-        resolve(Object.assign(check.info, args))
-      } else {
-        reject(receipt)
-      }
     })
   }
 
@@ -368,48 +359,49 @@ export default class DApp {
     }
 
     if (!this.Room) {
-      console.log('no room')
+      console.error('no room')
       Utils.debugLog('You need .connect() before call!', _config.loglevel)
       return
     }
 
-    console.log('call')
     Utils.debugLog('Call function ' + function_name + '...', _config.loglevel)
     return new Promise(async (resolve, reject) => {
+      // Up session
       this.session = this.session || 0
       this.session++
 
       // Find rnd object
+      let rnd_i = null
       let gamedata = []
       let user_bet = 0
-      function_args.forEach(arg => {
+      function_args.forEach((arg, i) => {
         if (typeof arg === 'object' && arg.rnd && arg.rnd.gamedata && arg.rnd.bet) {
+          rnd_i    = i
           gamedata = arg.rnd.gamedata
-          user_bet = Utils.bet2dec(arg.rnd.bet)
+          user_bet = arg.rnd.bet
         }
       })
 
+      // Sign call data
       const data = {
         channel_id : this.connection_info.channel.channel_id,
         session    : +this.session,
-        user_bet   : user_bet,
+        user_bet   : '' + user_bet,
         gamedata   : gamedata,
         seed       : Utils.makeSeed()
       }
-
-      console.log('sign')
       const to_sign = [
         {t: 'bytes32', v: data.channel_id    },
         {t: 'uint',    v: data.session       },
-        {t: 'uint',    v: '' + data.user_bet },
+        {t: 'uint',    v: data.user_bet },
         {t: 'uint',    v: data.gamedata      },
         {t: 'bytes32', v: data.seed          }
       ]
       const sign = Eth.signHash(Utils.sha3(...to_sign))
-      // const sign = Utils.sha3(...to_sign)
 
-      console.log('send reuqest ')
-      let res = await this.request({
+      // Call function in bankroller side
+      console.log('send data', data)
+      const res = await this.request({
         action : 'call',
         data   : data,
         sign   : sign,
@@ -418,21 +410,33 @@ export default class DApp {
           args : function_args
         }
       })
-      console.log(res)
 
-      // res.args
-     
-      // this.response(data, {
-      //   args     : confirmed.args,
-      //   rnd_hash : confirmed.rnd_hash,
-      //   rnd_sign : confirmed.rnd_sign,
-      //   returns  : returns
-      // }, user.room)
+      // Проверяем корректность подписи
+      const rnd_hash_args = [
+        {t: 'bytes32', v: data.channel_id },
+        {t: 'uint',    v: data.session    },
+        {t: 'uint',    v: data.user_bet   },
+        {t: 'uint',    v: data.gamedata   },
+        {t: 'bytes32', v: data.seed       }
+      ]
+      const rnd_hash = Utils.sha3(...rnd_hash_args)
 
-      // return
+      if (!this.RSA.verify(rnd_hash, res.rnd_sign)) {
+        console.error('Invalid sign for random!')
+        return
+      }
+
+      // Проверяем что рандом сделан из этой подписи
+      if (res.args[rnd_i] !== Utils.sha3(res.rnd_sign)) {
+        console.error('Invalid random!')
+        return
+      }
+
+      // Вызываем функцию в локальном gamelogic
+      let local_returns = this.logic[function_name].apply(this, res.args)
+      console.log('local_returns', local_returns)
 
       // // res
-      // let local_returns = this.logic[function_name].apply(this, res.args)
       // this.updateChannel({
       //   args         : res.args,
       //   session      : this.session
