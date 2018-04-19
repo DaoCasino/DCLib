@@ -1,12 +1,14 @@
 /* eslint-env mocha */
 /* global DCLib fetch sinon  fetchMock */
 
+window.LOG_LEVEL = 'none'
+
 let MyDApp
 
 const dapp_slug    = 'dicetest_v32'
 const dapp_deposit = 2
-const user_bet     = 1
-const user_num     = 30000
+// const user_num     = 30000
+// const user_bet     = 1
 
 const initDCLibAndDApp = function (callback) {
   DCLib.defineDAppLogic(dapp_slug, function () {
@@ -105,34 +107,54 @@ describe('Play', () => {
   })
 
   describe('Play', function () {
+    let connection = {}
     before(function (done) {
-      console.log('')
-      console.log('Connect!')
-      console.log('')
       MyDApp.connect({
         bankroller : 'auto',
         paychannel : { deposit : dapp_deposit },
         gamedata   : {type:'uint', value:[1, 2, 3]}
       },
       function (connected, info) {
-        console.log('connect result:', connected)
-        if (!connected) return
-        console.log('')
-        console.log('')
-
-        setTimeout(function () {
-          done()
-        }, 2222)
+        connection = {connected:connected, info:info}
+        setTimeout(function () { done() }, 2222)
       })
     })
 
-    it('Call logic function Play', function (done) {
-      const rnd = DCLib.randomHash({bet:user_bet, gamedata:[user_num]})
-      console.log('rnd', rnd)
+    it('Check connection', function (done) {
+      if (connection.connected) {
+        done()
+      } else {
+        console.error(connection.info)
+      }
+    })
 
-      MyDApp.call('roll', [user_bet, user_num, rnd], function (result, advanced) {
-        console.log('result', result)
-        console.log('advanced', advanced)
+    const Roll = function (ok) {
+      let bet = Math.random()
+      let num = Math.floor(Math.random() * (40000 - 20000 + 1)) + 20000
+      console.log('bet:', bet, 'num:', num)
+
+      const rnd = DCLib.randomHash({bet:bet, gamedata:[num]})
+      MyDApp.call('roll', [bet, num, rnd], function (result, advanced) {
+        console.log('profit:', result.profit)
+        ok()
+      })
+    }
+
+    it('Call logic function Play 1', function (done) {
+      Roll(done)
+    })
+    it('Call logic function Play 2', function (done) {
+      Roll(done)
+    })
+    it('Call logic function Play 3', function (done) {
+      Roll(done)
+    })
+  })
+
+  describe('End game', function () {
+    it('Disconnect', function (done) {
+      MyDApp.disconnect({}, function (res) {
+        console.log('disconnect result', res)
         done()
       })
     })
