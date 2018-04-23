@@ -27,8 +27,8 @@ export default class PayChannel {
 
     deposit.player     = +player
     deposit.bankroller = +bankroller
-    balance.player     = 1*deposit.player
-    balance.bankroller = 1*deposit.bankroller
+    balance.player     = 1 * deposit.player
+    balance.bankroller = 1 * deposit.bankroller
 
     return balance
   }

@@ -12,14 +12,14 @@ const dapp_deposit = 2
 
 const initDCLibAndDApp = function (callback) {
   DCLib.defineDAppLogic(dapp_slug, function () {
-   const _self = this
+    const _self = this
 
-   const MAX_RAND_NUM = 65535
-   const HOUSEEDGE    = 0.02 // 2%
+    const MAX_RAND_NUM = 65535
+    const HOUSEEDGE    = 0.02 // 2%
 
-   let history = []
+    let history = []
 
-   var Roll = function (user_bet, user_num, random_hash) {
+    var Roll = function (user_bet, user_num, random_hash) {
      // convert 1BET to 100000000
      user_bet = DCLib.Utils.bet2dec(user_bet)
 
@@ -50,12 +50,12 @@ const initDCLibAndDApp = function (callback) {
      history.push(roll_item)
 
      return roll_item
-   }
+    }
 
-   return {
+    return {
      roll    : Roll,
      history : history
- }
+   }
   })
 
   DCLib.on('ready', async function () {
@@ -155,7 +155,7 @@ describe('Play', () => {
 
   describe('End game', function () {
     it('Disconnect', function (done) {
-      MyDApp.disconnect({}, function (res) {
+      MyDApp.disconnect(function (res) {
         console.log('disconnect result', res)
         done()
       })

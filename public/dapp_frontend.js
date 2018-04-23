@@ -84,7 +84,7 @@ function callDAppFunc (user_bet, user_num) {
 }
 
 function endGame () {
-  MyDApp.disconnect({session:1}, function (res) {
+  MyDApp.disconnect(function (res) {
     console.log('disconnect result', res)
   })
 }

@@ -488,18 +488,28 @@ export default class DApp {
         {t: 'uint',    v: state_data._totalBet          },
         {t: 'uint',    v: state_data._session           }
       )
-      console.log('state_data', state_data);
       const recover_openkey = web3.eth.accounts.recover(state_hash, res.state._sign)
       if (recover_openkey.toLowerCase() !== this.connection_info.bankroller_address.toLowerCase()) {
-        console.error('State '+recover_openkey + '!=' + this.connection_info.bankroller_address)
+        console.error('State ' + recover_openkey + '!=' + this.connection_info.bankroller_address)
         return
       }
-
+      // Сохраняем состояние с подписью банкроллера
       channelState.set(Object.assign(
         {'_sign' : res.state._sign },
         state_data
       ))
 
+      // Отправляем банкроллеру свою подпись состояния
+      // const updstate = await this.request({
+      await this.request({
+        action : 'update_state',
+        state  : Object.assign(
+          channelState.get(),
+          {'_sign' : Eth.signHash(state_hash) }
+        )
+      })
+
+      // Возвращаем результат вызова функции
       const adv = {
         bankroller: {
           args   : res.args,
@@ -523,23 +533,22 @@ export default class DApp {
    * window.MyDApp.disconnect({...})
    *
    * @param {Object} params
-   * @param {Object.object} params.paychannel -
    * @param {boolean} [callback=false]
    *
    * @memberOf DApp
    */
-  async disconnect (params, callback = false) {
+  async disconnect (callback = false) {
     let result = {}
 
     if (this.connection_info.channel) {
-      result.channel = await this.closeChannel(params)
+      result.channel = await this.closeByConsent()
     }
 
     result.connection = await this.request({action: 'disconnect'})
 
     this.connection_info = {}
 
-    if (callback) callback(result)
+    if (typeof callback==='function') callback(result)
   }
 
   /**
@@ -552,174 +561,61 @@ export default class DApp {
    *
    * @memberOf DApp
    */
-  closeChannel (params = false) {
-    const profit = this.logic.payChannel._getProfit()
-    if (this.connection_info.channel === false) return
-
-    Utils.debugLog(['  Close channel with profit', profit], _config.loglevel)
-
+  closeByConsent () {
     return new Promise(async (resolve, reject) => {
-      const open_data = this.connection_info.channel
-
-      // close channel args
-      const channel_id         = open_data.channel_id // bytes32 id,
-      const player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance()) // profit + open_data.player_deposit // uint playerBalance,
-      const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance()) // -profit + open_data.bankroller_deposit // uint bankrollBalance,
-      const session            = this.session // uint session=0px
-      const bool               = true
-      const totalAmount        = Utils.bet2dec(params.totalAmount)
-      // console.log('@@@@@@@@', player_balance, bankroller_balance)
-      // Sign hash from args
-      const signed_args = Eth.signHash(Utils.sha3(channel_id, player_balance, bankroller_balance, totalAmount, session, bool))
-
-      Utils.debugLog('🙏 ask  the bankroller to close the channel', _config.loglevel)
-
-      let dots_i = setInterval(() => {
-        const items = ['wait', 'closing...', 'yes its really not so easy', '..', '...', 'bankroller verify checksums of results...', '']
-        Utils.debugLog('⏳ ' + items[Math.floor(Math.random() * items.length)], _config.loglevel)
-      }, 1500)
-
-      const receipt = await this.request({
-        action: 'close_channel',
-        profit: profit,
-        paychannel: open_data.contract_address,
-        close_args: {
-          channel_id: channel_id,
-          player_address: Account.get().openkey,
-          player_balance: player_balance,
-          bankroller_balance: bankroller_balance,
-          totalAmount: totalAmount,
-          session: session,
-          bool: bool,
-          signed_args: signed_args
-        }
+      const close_data = await this.request({
+        action: 'close_by_consent'
       })
 
-      clearInterval(dots_i)
+      const last_state = channelState.get()
+      let close_data_hash = Utils.sha3(
+        {t: 'bytes32', v: last_state._id                },
+        {t: 'uint', v: last_state._playerBalance     },
+        {t: 'uint', v: last_state._bankrollerBalance },
+        {t: 'uint', v: last_state._totalBet          },
+        {t: 'uint', v: last_state._session           },
+        {t: 'bool', v: true                          }
+      )
 
-      if (receipt.error) {
-        return new Error(receipt.error)
+      const recover_openkey = web3.eth.accounts.recover(close_data_hash, close_data.sign)
+      if (recover_openkey.toLowerCase() !== this.connection_info.bankroller_address.toLowerCase()) {
+        console.error('State ' + recover_openkey + '!=' + this.connection_info.bankroller_address)
+        return
       }
 
-      if (receipt.transactionHash) {
-        Utils.debugLog('🎉 Channel closed https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
-        Utils.debugLog(receipt, _config.loglevel)
-      }
-
-      this.logic.payChannel.reset()
-      this.connection_info.channel = false
-      resolve(receipt)
-    })
-  }
-
-  /** TODO - Доделывать */
-  async updateChannel (params, callback = false) {
-    const channel_id         = this.connection_info.channel.channel_id
-    const player_balance     = Utils.bet2dec(this.logic.payChannel.getBalance())
-    const bankroller_balance = Utils.bet2dec(this.logic.payChannel.getBankrollBalance())
-    const session            = params.session
-    const total_amount       = params.total_amount
-    const bankroll_address   = this.connection_info.bankroller_address
-    const game_args          = params.args
-
-    const hash        = Utils.sha3(channel_id, player_balance, bankroller_balance, /* total_amount, */ session)
-    const signed_args = Eth.signHash(hash)
-    const receipt     = await this.request({
-      action         : 'update_channel',
-      player_address : Account.get().openkey,
-      update_args    : {
-        bankroller_balance : bankroller_balance,
-        player_balance     : player_balance,
-        // total_amount       : total_amount,
-        signed_args        : signed_args,
-        channel_id         : channel_id,
-        session            : session
-      }
-    })
-
-    if (!receipt.bankroller_sign || !DCLib.checkHashSig(hash, receipt.bankroller_sign, bankroll_address)) {
-      Utils.debugLog('Start update channel', _config.loglevel)
+      // Send open channel TX
       const gasLimit = 4600000
-      const receipt = await this.PayChannel.methods
-        .updateChannel(
-          channel_id,
-          player_balance,
-          bankroller_balance,
-          // total_amount,
-          session,
-          signed_args
+      this.PayChannel.methods
+        .closeByConsent(
+          last_state._id,
+          last_state._playerBalance,
+          last_state._bankrollerBalance,
+          last_state._totalBet,
+          last_state._session,
+          true,
+          close_data.sign
         ).send({
           gas      : gasLimit,
-          gasPrice : 1.4 * _config.gasPrice,
+          gasPrice : 1.2 * _config.network.gasPrice,
           from     : Account.get().openkey
-        }).on('transactionHash', transactionHash => {
-          Utils.debugLog(['# updateChannel TX pending', transactionHash], _config.loglevel)
-          Utils.debugLog(`https://ropsten.etherscan.io/tx/${transactionHash}`, _config.loglevel)
-          Utils.debugLog('⏳ wait receipt...', _config.loglevel)
-        }).on('error', err => {
-          Utils.debugLog(['Update channel error', err], 'error')
-          this.Status.emit('error', {code: 'update error', 'text': 'update channel error', err: err})
         })
-
-      if (receipt.transactionHash) {
-        Utils.debugLog('🎉 Channel updated https://ropsten.etherscan.io/tx/' + receipt.transactionHash, _config.loglevel)
-        Utils.debugLog(receipt, _config.loglevel)
-        this.openDispute({
-          channel_id : channel_id,
-          session    : session,
-          game_args  : game_args
+        .on('transactionHash', transactionHash => {
+          console.log('closeByConsent channel', transactionHash)
         })
-      }
-    } else {
-      this.state_data = {
-        channel_id         : channel_id,
-        player_balance     : player_balance,
-        bankroller_balance : bankroller_balance,
-        game_args          : game_args,
-        total_amount       : total_amount,
-        session            : session,
-        signed_args        : receipt.bankroller_sign
-      }
-
-      Utils.debugLog('channel info updated', _config.loglevel)
-      if (callback) callback(receipt)
-    }
-  }
-
-  /** TODO - Доделывать */
-  async openDispute (params, callback = false) {
-    const channel_id    = params.channel_id
-    const session       = params.session
-    const game_args     = params.game_args
-
-    const hash        = Utils.sha3(channel_id, session, ...game_args)
-    const signed_args = Eth.signHash(hash)
-    // console.log('PARAMS', channel_id, round, dispute_seed, game_data)
-    const gasLimit = 900000
-    const receipt = this.PayChannel.methods
-      .openDispute(
-        channel_id,
-        session,
-        ...game_args,
-        signed_args
-      ).send({
-        gas: gasLimit,
-        gasPrice: 1.2 * _config.gasPrice,
-        from: Account.get().openkey
-      })
-      .on('transactionHash', transactionHash => {
-        Utils.debugLog(['# open dispute TX pending', transactionHash], _config.loglevel)
-        Utils.debugLog('https://ropsten.etherscan.io/tx/' + transactionHash, _config.loglevel)
-        Utils.debugLog('⏳ wait receipt...', _config.loglevel)
-      }).on('error', err => {
-        Utils.debugLog(['Open channel error', err], 'error')
-        this.response(params, {error: 'cant open channel', more: err})
-      })
-
-    if (receipt.transactionHash) {
-      this.response(params, {receipt: receipt})
-      if (callback) callback(receipt)
-    }
+        .on('confirmation', async (confirmationNumber) => {
+          if (confirmationNumber >= _config.tx_confirmations) {
+            const understand = await this.request({action : 'channel_closed'})
+            console.log('understand:',understand)
+            this.logic.payChannel.reset()
+            this.connection_info.channel = false
+            resolve({status:'ok'})
+          }
+        })
+        .on('error', err => {
+          console.error(err)
+          reject(err)
+        })
+    })
   }
 
   /**
