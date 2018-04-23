@@ -26,7 +26,7 @@ DCLib.defineDAppLogic('dicetest_v32', function () {
     }
 
     // add result to paychannel
-    _self.payChannel.addTX(DCLib.Utils.dec2bet(profit), true)
+    _self.payChannel.addTX(profit)
     _self.payChannel.printLog()
 
     // push all data to our log

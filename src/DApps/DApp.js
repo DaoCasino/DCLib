@@ -36,6 +36,34 @@ const Eth = new EthHelpers()
  */
 const EC = function () {}; EE(EC.prototype)
 
+const channelState = (function () {
+  let state = {
+    '_id'                : '',
+    '_playerBalance'     : '',
+    '_bankrollerBalance' : '',
+    '_totalBet'          : '',
+    '_session'           : '',
+    '_sign'              : ''
+  }
+
+  return {
+    set (data) {
+      let new_state = {}
+      for (let k in state) {
+        if (!data[k]) {
+          console.error('Invalid channel state format in channelState.set')
+          console.error('Missing ' + k)
+        }
+        new_state[k] = data[k]
+      }
+      state = Object.assign({}, new_state)
+    },
+    get () {
+      return state
+    }
+  }
+})()
+
 /*
  * DApp constructor
  */
@@ -329,6 +357,12 @@ export default class DApp {
           if (confirmationNumber >= _config.tx_confirmations) {
             const check = await this.request({action : 'check_open_channel'})
             if (!check.error && check.status === 'ok') {
+              // Set deposit to paychannel in game logic
+              this.logic.payChannel._setDeposits(
+                args.player_deposit,
+                b_args.args.bankroller_deposit
+              )
+
               resolve(Object.assign(check.info, args))
             } else {
               reject(check)
@@ -381,6 +415,11 @@ export default class DApp {
         }
       })
 
+      if (!this.connection_info.channel._totalBet) {
+        this.connection_info.channel._totalBet = 0
+      }
+      this.connection_info.channel._totalBet += user_bet
+
       // Sign call data
       const data = {
         channel_id : this.connection_info.channel.channel_id,
@@ -410,7 +449,7 @@ export default class DApp {
         }
       })
 
-      // Проверяем корректность подписи
+      // Проверяем корректность подписи рандома
       const rnd_hash_args = [
         {t: 'bytes32', v: data.channel_id },
         {t: 'uint',    v: data.session    },
@@ -433,50 +472,49 @@ export default class DApp {
 
       // Вызываем функцию в локальном gamelogic
       let local_returns = this.logic[function_name].apply(this, res.args)
-      console.log('local_returns', local_returns)
 
-      // // res
-      // this.updateChannel({
-      //   args         : res.args,
-      //   session      : this.session
-      //   // total_amount : this.total_amount
-      // })
-      // // timestamps broke this check
-      // // if (JSON.stringify(local_returns) != JSON.stringify(res.returns)) {
-      // //  console.warn('💣💣💣 the call function results do not converge!')
-      // //  console.log(JSON.stringify(local_returns), JSON.stringify(res.returns))
-      // // }
+      // проверяем подпись состояния канала
+      const state_data = {
+        '_id'                : this.connection_info.channel.channel_id,
+        '_playerBalance'     : '' + this.logic.payChannel._getBalance().player,
+        '_bankrollerBalance' : '' + this.logic.payChannel._getBalance().bankroller,
+        '_totalBet'          : '' + this.connection_info.channel._totalBet,
+        '_session'           : this.session
+      }
+      const state_hash = Utils.sha3(
+        {t: 'bytes32', v: state_data._id                },
+        {t: 'uint',    v: state_data._playerBalance     },
+        {t: 'uint',    v: state_data._bankrollerBalance },
+        {t: 'uint',    v: state_data._totalBet          },
+        {t: 'uint',    v: state_data._session           }
+      )
+      console.log('state_data', state_data);
+      const recover_openkey = web3.eth.accounts.recover(state_hash, res.state._sign)
+      if (recover_openkey.toLowerCase() !== this.connection_info.bankroller_address.toLowerCase()) {
+        console.error('State '+recover_openkey + '!=' + this.connection_info.bankroller_address)
+        return
+      }
 
-      // if (_config.loglevel !== 'none') {
-      //   console.groupCollapsed('call "' + function_name + '" log:')
-      //   Utils.debugLog(['You send args:', function_args], _config.loglevel)
-      //   Utils.debugLog(['Bankroller signed args:', res.args], _config.loglevel)
-      //   Utils.debugLog(['Bankroller call result:', res.returns], _config.loglevel)
-      //   Utils.debugLog(['You local call result:', local_returns], _config.loglevel)
-      //   console.groupEnd()
-      // }
+      channelState.set(Object.assign(
+        {'_sign' : res.state._sign },
+        state_data
+      ))
 
-      // const adv = {
-      //   bankroller: {
-      //     args: res.args,
-      //     result: res.returns
-      //   },
-      //   local: {
-      //     args: function_args,
-      //     result: local_returns
-      //   }
-      // }
+      const adv = {
+        bankroller: {
+          args   : res.args,
+          result : res.returns
+        },
+        local: {
+          args   : function_args,
+          result : local_returns
+        }
+      }
 
-      // resolve(res.returns, adv)
-      // if (callback) callback(res.returns, adv)
+      resolve(res.returns, adv)
+      if (callback) callback(res.returns, adv)
     })
   }
-
-  // responseOnline(params) {
-
-  //  console.log('PARAMS@@@',params)
-  //  this.response(params, {msg: 'msg'})
-  // }
 
   /**
    * which produces a trip from the game and bankroller
