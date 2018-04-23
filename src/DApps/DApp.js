@@ -1,13 +1,12 @@
 /* global DCLib */
 
-import _config from '../config/config'
+import _config         from '../config/config'
 import * as messaging  from 'dc-messaging'
-import EthHelpers from '../Eth/helpers'
-import RSA from '../API/rsa'
-import Acc from '../Eth/Account'
-import EE from 'event-emitter'
-import * as Utils from '../utils/utils'
-
+import EthHelpers      from '../Eth/helpers'
+import RSA             from '../API/rsa'
+import Acc             from '../Eth/Account'
+import EE              from 'event-emitter'
+import * as Utils      from '../utils/utils'
 import PayChannelLogic from './paychannel'
 
 /**
@@ -195,7 +194,7 @@ export default class DApp {
       this.Room = new messaging.RTC(
         Account.get().openkey,
         this.hash + '_' + connection.id,
-        {privKey:Account.exportPrivateKey(), allowed_users:[bankroller_address]}
+        {privateKey:Account.exportPrivateKey(), allowed_users:[bankroller_address]}
       )
 
       this.connection_info.id = connection.id
