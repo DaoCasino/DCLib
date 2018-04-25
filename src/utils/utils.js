@@ -35,8 +35,9 @@ export const debugLog = function (data, loglevel = _config.loglevel, enable = tr
  * @return {number} - bet in human format
  */
 export function dec2bet (val, r = 2) {
-  return web3_utils.fromWei(val + '')
-  // return +(val / 100000000).toFixed(r)
+  if (!val) return 0
+  let n = web3_utils.fromWei(val + '')
+  return (+n).toFixed(r)
 }
 
 /**
@@ -111,14 +112,12 @@ export const buf2bytes32 = buffer => {
 export const remove0x = (str) => {
   if (str.length > 2 && str.substr(0, 2) === '0x') {
     str = str.substr(2)
-    debugLog('0x prefix removed from  ' + str.substr(0, 8) + '...')
   }
   return str
 }
 
 export const add0x = (str) => {
   if (str.substr(0, 2) !== '0x') {
-    debugLog('0x prefix added to ' + str.substr(0, 8) + '...')
     str = '0x' + str
   }
   return str

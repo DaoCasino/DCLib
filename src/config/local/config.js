@@ -7,11 +7,15 @@ module.exports = {
   rtc_room  : 'dc-room1',
   rtc_store : 'rtc_msgs',
   logname   : 'dclib',
-  loglevel  : 'hight',
+  loglevel  : window.LOG_LEVEL || 'none',
+  // loglevel  : 'hight',
 
   network: 'local',
   rpc_url: 'http://localhost:9545/',
   api_url: 'http://localhost:8181/',
+  signal : '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star/',
+
+  tx_confirmations:0,
 
   contracts: {
     erc20: {

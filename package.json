@@ -6,10 +6,11 @@
   "private": false,
   "scripts": {
     "commit": "git-cz",
-    "start": "node scripts/start.js",
-    "build": "node scripts/build.js",
+    "start": "DC_NETWORK=local node scripts/start.js",
+    "build": "DC_NETWORK=local node scripts/build.js",
     "lint": "eslint --ext=.js,.tag ./src ./test",
-    "test": "npm run lint && karma start",
+    "_test": "npm run lint && DC_NETWORK=local karma start",
+    "test": "DC_NETWORK=local karma start",
     "release": "release-it",
     "docs:serve": "documentation serve --watch src/index.js",
     "docs": "rimraf docs/* && documentation build src/index.js -f html -o docs && gh-pages -d docs"
@@ -20,7 +21,7 @@
   "main": "./src/index.js",
   "dependencies": {
     "big-integer": "^1.6.23",
-    "dc-messaging": "DaoCasino/dc-messaging",
+    "dc-messaging": "github:DaoCasino/dc-messaging",
     "event-emitter": "^0.3.5",
     "js-cryptico": "^1.0.2",
     "remove": "^0.1.5",
@@ -49,7 +50,6 @@
     "cz-conventional-changelog": "^2.1.0",
     "debug": "^3.1.0",
     "documentation": "^6.0.0",
-    "dotenv": "4.0.0",
     "eslint": "^4.16.0",
     "eslint-config-standard": "^11.0.0-beta.0",
     "eslint-loader": "1.7.1",

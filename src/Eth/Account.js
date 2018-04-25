@@ -1,6 +1,6 @@
 /* global localStorage fetch */
-import conf from 'config/config'
-import * as Utils from 'utils/utils'
+import conf from '../config/config'
+import * as Utils from '../utils/utils'
 import WEB3 from 'web3'
 import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
@@ -29,7 +29,7 @@ export default class Account {
   constructor (config, callback = false) {
     callback = callback || (() => {})
 
-    _config      = Object.assign(conf, config)
+    _config = Object.assign(conf, config)
     // this._wallet = _wallet
     this._config = _config
     this._ERC20  = ERC20
@@ -66,19 +66,6 @@ export default class Account {
       this.web3.eth.accounts.wallet.add(privateKey)
 
       if (log) Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
-    }
-
-    if (log) {
-      Utils.debugLog(' 🔑 Account ' + _wallet.openkey + ' restored from localStorage', _config.loglevel)
-      if (_config.loglevel !== 'none') {
-        console.groupCollapsed('Methods DCLib.Account')
-        Utils.debugLog('DCLib.Account.get()', _config.loglevel)
-        Utils.debugLog('DCLib.Account.sign(raw_msg)', _config.loglevel)
-        Utils.debugLog('DCLib.Account.exportPrivateKey()', _config.loglevel)
-        Utils.debugLog('DCLib.Account.info(callback)', _config.loglevel)
-        Utils.debugLog('DCLib.Account.reset() - remove localstorage data', _config.loglevel)
-        console.groupEnd()
-      }
     }
 
     this.unlockAccount()

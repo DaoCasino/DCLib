@@ -6,9 +6,8 @@ import Api        from './API/Api'
 import EthHelpers from './Eth/helpers'
 import Account    from './Eth/Account'
 import DApp       from './DApps/DApp'
-import printDocs  from './docs.js'
-
-console.log(_config)
+// import printDocs  from './docs.js'
+import * as messaging  from 'dc-messaging'
 
 /**
  * @ignore
@@ -50,8 +49,12 @@ export default class DCLib {
   /**
   * @ignore
   */
-  constructor () {
+  constructor (signal = false) {
     this.version = '0.2.2'
+    this.config = _config
+
+    // Add signal
+    messaging.upIPFS((signal || _config.signal))
 
     /**
     * little utilities
@@ -75,7 +78,7 @@ export default class DCLib {
         ourApi.addBets(this.Account.get().openkey)
       }
 
-      printDocs(window.DCLib)
+      // printDocs(window.DCLib)
 
       Event.emit('ready')
       _ready = true
@@ -195,7 +198,15 @@ export default class DCLib {
    *
    * @memberOf DCLib
    */
-  randomHash () { return 'confirm(' + Utils.makeSeed() + ')' }
+  randomHash (data) {
+    if (!data || !data.bet || !data.gamedata || typeof data.gamedata !== 'object') {
+      throw new Error('Invalid data for randomHash, need: {bet:100, gamedata:array} ')
+    }
+
+    data.bet = Utils.bet2dec(data.bet)
+
+    return {rnd:data}
+  }
 
   /**
    * ## DCLib.numFromHash(randomHash, min=0, max=10)
