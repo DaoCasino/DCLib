@@ -15,6 +15,7 @@ $(document).ready(function () {
           abi: JSON.parse(localGameContract.abi)
         })
       }).catch(function() {
+        console.clear()
         callback(false)
       })
     }
@@ -175,8 +176,8 @@ function renderGames (history) {
   $('#games_list').html(ghtml)
 }
 
-function check_account() {
-  const current_acc = '0x' + JSON.parse(localStorage.getItem('web3wallet')).address
+function check_account () {
+  const current_acc = DCLib.Account.get().openkey
   if (!current_acc) window.location.reload()
 
   DCLib.Eth.getBetBalance(current_acc, res => {

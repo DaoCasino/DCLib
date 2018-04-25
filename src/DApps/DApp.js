@@ -565,7 +565,7 @@ export default class DApp {
     if (this.connection_info.channel) {
       result.channel = await this.closeByConsent()
     }
-    
+
     result.txHash     = this.connection_info.txHash
     result.connection = await this.request({action: 'disconnect'})
 
