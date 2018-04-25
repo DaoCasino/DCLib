@@ -8,4 +8,4 @@
 
 import DCLib   from './DC.lib.js'
 window.DCLib = new DCLib()
-export default DCLib
+export default window.DCLib

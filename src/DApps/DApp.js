@@ -1,5 +1,3 @@
-/* global DCLib */
-
 import _config         from '../config/config'
 import * as messaging  from 'dc-messaging'
 import EthHelpers      from '../Eth/helpers'
@@ -130,7 +128,6 @@ export default class DApp {
     this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
 
     this.web3.eth.defaultAccount = Account.get().openkey
-    console.log('def', this.web3.eth.defaultAccount)
 
     /** @ignore */
     this.Room = false
@@ -351,7 +348,8 @@ export default class DApp {
           from     : args.player_address
         })
         .on('transactionHash', transactionHash => {
-          console.log('open channel', transactionHash)
+          this.connection_info.txHash = transactionHash
+          Utils.debugLog(`Open channel transaction ${transactionHash}`, _config.loglevel)
         })
         .on('confirmation', async (confirmationNumber) => {
           if (confirmationNumber >= _config.tx_confirmations) {

@@ -212,7 +212,7 @@ export default class EthHelpers {
           reject(err, true)
         })
 
-        if (receipt.status !== '0x01') {
+        if (receipt.status !== '0x1') {
           reject(receipt, true)
           return
         }

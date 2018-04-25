@@ -20,10 +20,13 @@ $(document).ready(function () {
     getGameContract(function (gameContract) {
       window.MyDApp = new DCLib.DApp({
         slug: 'dicetest_v32',
-        contract: gameContract
+        contract: false
       })
     })
   })
+
+  // check old accounts and clear
+  check_account()
 
   // Init interface
   initView({
@@ -168,4 +171,17 @@ function renderGames (history) {
   ghtml = '<table><thead><tr><th>bet</th><th>num</th><th>hash</th><th>random</th><th>profit</th></tr></thead><tbody>' + ghtml + '</tbody><tfoot><tr><th colspan="5">Game Balance: ' + Game.payChannel.getBalance() + '</th></tr></tfoot></table>'
 
   $('#games_list').html(ghtml)
+}
+
+function check_account() {
+  const current_acc = DCLib.Account.get().openkey
+
+  if (!current_acc) window.location.reload()
+
+  DCLib.Eth.getBetBalance(current_acc, res => {
+    if (res < 0.01) {
+      localStorage.clear()
+      window.location.reload()
+    }
+  })
 }
