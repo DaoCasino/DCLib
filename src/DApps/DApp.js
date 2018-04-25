@@ -368,7 +368,11 @@ export default class DApp {
           }
         })
         .on('error', err => {
-          console.error(err)
+          this.Status.emit('connect::error', {
+            status : 'error',
+            msg    : err,
+            data   : {}
+          })
           reject(err)
         })
     })
@@ -390,7 +394,11 @@ export default class DApp {
     }
 
     if (!this.Room) {
-      console.error('no room')
+      this.Status.emit('connect::error', {
+        status : 'error',
+        msg    : 'No room',
+        data   : {}
+      })
       Utils.debugLog('You need .connect() before call!', _config.loglevel)
       return
     }
@@ -457,13 +465,21 @@ export default class DApp {
       const rnd_hash = Utils.sha3(...rnd_hash_args)
 
       if (!this.RSA.verify(rnd_hash, res.rnd_sign)) {
-        console.error('Invalid sign for random!')
+        this.Status.emit('connect::error', {
+          status : 'error',
+          msg    : 'Invalid sign for random!',
+          data   : {}
+        })
         return
       }
 
       // Проверяем что рандом сделан из этой подписи
       if (res.args[rnd_i] !== Utils.sha3(res.rnd_sign)) {
-        console.error('Invalid random!')
+        this.Status.emit('connect::error', {
+          status : 'error',
+          msg    : 'Invalid random!',
+          data   : {}
+        })
         return
       }
 
@@ -487,7 +503,12 @@ export default class DApp {
       )
       const recover_openkey = web3.eth.accounts.recover(state_hash, res.state._sign)
       if (recover_openkey.toLowerCase() !== this.connection_info.bankroller_address.toLowerCase()) {
-        console.error('Invalid state ' + recover_openkey + '!=' + this.connection_info.bankroller_address)
+        this.Status.emit('connect::error', {
+          status : 'error',
+          msg    : 'Invalid state ' + recover_openkey + '!=' + this.connection_info.bankroller_address,
+          data   : {}
+        })
+        // console.error('Invalid state ' + recover_openkey + '!=' + this.connection_info.bankroller_address)
         this.openDispute(data)
         return
       }
@@ -544,7 +565,8 @@ export default class DApp {
     if (this.connection_info.channel) {
       result.channel = await this.closeByConsent()
     }
-
+    
+    result.txHash     = this.connection_info.txHash
     result.connection = await this.request({action: 'disconnect'})
 
     this.connection_info = {}
@@ -606,6 +628,7 @@ export default class DApp {
           from     : Account.get().openkey
         })
         .on('transactionHash', transactionHash => {
+          this.connection_info.txHash = transactionHash
           console.log('closeByConsent channel', transactionHash)
         })
         .on('confirmation', async (confirmationNumber) => {

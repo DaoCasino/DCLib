@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-/* global fetch $ DCLib Game MyDApp */
+/* global fetch $ DCLib Game MyDApp localStorage */
 
 $(document).ready(function () {
   // Create our DApp
@@ -14,13 +14,15 @@ $(document).ready(function () {
           address:localGameContract.address,
           abi: JSON.parse(localGameContract.abi)
         })
+      }).catch(function() {
+        callback(false)
       })
     }
 
     getGameContract(function (gameContract) {
       window.MyDApp = new DCLib.DApp({
         slug: 'dicetest_v32',
-        contract: false
+        contract: gameContract
       })
     })
   })
@@ -174,8 +176,7 @@ function renderGames (history) {
 }
 
 function check_account() {
-  const current_acc = DCLib.Account.get().openkey
-
+  const current_acc = '0x' + JSON.parse(localStorage.getItem('web3wallet')).address
   if (!current_acc) window.location.reload()
 
   DCLib.Eth.getBetBalance(current_acc, res => {
