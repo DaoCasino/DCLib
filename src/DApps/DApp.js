@@ -347,7 +347,7 @@ export default class DApp {
           b_args.signed_args
         ).send({
           gas      : gasLimit,
-          gasPrice : 1.2 * _config.network.gasPrice,
+          gasPrice : 1.2 * _config.gasPrice,
           from     : args.player_address
         })
         .on('transactionHash', transactionHash => {
@@ -438,7 +438,6 @@ export default class DApp {
       const sign = Eth.signHash(Utils.sha3(...to_sign))
 
       // Call function in bankroller side
-      console.log('send data', data)
       const res = await this.request({
         action : 'call',
         data   : data,
@@ -490,7 +489,8 @@ export default class DApp {
       )
       const recover_openkey = web3.eth.accounts.recover(state_hash, res.state._sign)
       if (recover_openkey.toLowerCase() !== this.connection_info.bankroller_address.toLowerCase()) {
-        console.error('State ' + recover_openkey + '!=' + this.connection_info.bankroller_address)
+        console.error('Invalid state ' + recover_openkey + '!=' + this.connection_info.bankroller_address)
+        this.openDispute(data)
         return
       }
       // Сохраняем состояние с подписью банкроллера
@@ -501,13 +501,16 @@ export default class DApp {
 
       // Отправляем банкроллеру свою подпись состояния
       // const updstate = await this.request({
-      await this.request({
+      const upd_state_res = await this.request({
         action : 'update_state',
         state  : Object.assign(
           channelState.get(),
           {'_sign' : Eth.signHash(state_hash) }
         )
       })
+      if (upd_state_res.status !== 'ok') {
+
+      }
 
       // Возвращаем результат вызова функции
       const adv = {
@@ -548,7 +551,7 @@ export default class DApp {
 
     this.connection_info = {}
 
-    if (typeof callback==='function') callback(result)
+    if (typeof callback === 'function') callback(result)
   }
 
   /**
@@ -563,12 +566,8 @@ export default class DApp {
    */
   closeByConsent () {
     return new Promise(async (resolve, reject) => {
-      const close_data = await this.request({
-        action: 'close_by_consent'
-      })
-
       const last_state = channelState.get()
-      let close_data_hash = Utils.sha3(
+      const close_data_hash = Utils.sha3(
         {t: 'bytes32', v: last_state._id                },
         {t: 'uint', v: last_state._playerBalance     },
         {t: 'uint', v: last_state._bankrollerBalance },
@@ -576,6 +575,15 @@ export default class DApp {
         {t: 'uint', v: last_state._session           },
         {t: 'bool', v: true                          }
       )
+      const sign = Eth.signHash(close_data_hash)
+
+      // Запрашиваем у банкроллера подпись закрытия канала
+      // и отправляем свою на всякий случай
+      const close_data = await this.request({
+        action : 'close_by_consent',
+        data   : last_state,
+        sign   : sign
+      })
 
       const recover_openkey = web3.eth.accounts.recover(close_data_hash, close_data.sign)
       if (recover_openkey.toLowerCase() !== this.connection_info.bankroller_address.toLowerCase()) {
@@ -596,7 +604,7 @@ export default class DApp {
           close_data.sign
         ).send({
           gas      : gasLimit,
-          gasPrice : 1.2 * _config.network.gasPrice,
+          gasPrice : 1.2 * _config.gasPrice,
           from     : Account.get().openkey
         })
         .on('transactionHash', transactionHash => {
@@ -605,10 +613,109 @@ export default class DApp {
         .on('confirmation', async (confirmationNumber) => {
           if (confirmationNumber >= _config.tx_confirmations) {
             const understand = await this.request({action : 'channel_closed'})
-            console.log('understand:',understand)
+            console.log('understand:', understand)
             this.logic.payChannel.reset()
             this.connection_info.channel = false
             resolve({status:'ok'})
+          }
+        })
+        .on('error', err => {
+          console.error(err)
+          reject(err)
+        })
+    })
+  }
+
+  async updateChannel () {
+    const last_state = channelState.get()
+    // let close_data_hash = Utils.sha3(
+    //   {t: 'bytes32', v: last_state._id                },
+    //   {t: 'uint', v: last_state._playerBalance     },
+    //   {t: 'uint', v: last_state._bankrollerBalance },
+    //   {t: 'uint', v: last_state._totalBet          },
+    //   {t: 'uint', v: last_state._session           },
+    //   {t: 'bool', v: true                          }
+    // )
+    if (!last_state || !last_state._sign || last_state._sign === '') {
+      return
+    }
+
+    return new Promise(async (resolve, reject) => {
+      const channel = await this.PayChannel.methods.channels(last_state._id).call()
+      if (channel.open === false) { return }
+      if (
+        channel.session           === last_state.session &&
+        channel._totalBet         === last_state._totalBet &&
+        channel.playerBalance     === last_state._playerBalance &&
+        channel.bankrollerBalance === last_state._bankrollerBalance
+      ) {
+        return
+      }
+
+      // Send open channel TX
+      const gasLimit = 4600000
+      this.PayChannel.methods
+        .updateChannel(
+          last_state._id,
+          last_state._playerBalance,
+          last_state._bankrollerBalance,
+          last_state._totalBet,
+          last_state._session,
+          last_state._sign
+        ).send({
+          gas      : gasLimit,
+          gasPrice : 1.2 * _config.gasPrice,
+          from     : Account.get().openkey
+        })
+        .on('transactionHash', transactionHash => {
+          console.log('openDispute channel', transactionHash)
+        })
+        .on('confirmation', async (confirmationNumber) => {
+          if (confirmationNumber >= _config.tx_confirmations) {
+            resolve()
+          }
+        })
+        .on('error', err => {
+          console.error(err)
+          reject(err)
+        })
+    })
+  }
+
+  async openDispute (data) {
+    await this.updateChannel()
+
+    const to_sign = [
+      {t: 'bytes32', v: data.channel_id    },
+      {t: 'uint',    v: data.session       },
+      {t: 'uint',    v: data.user_bet      },
+      {t: 'uint',    v: data.gamedata      },
+      {t: 'bytes32', v: data.seed          }
+    ]
+    const sign = Eth.signHash(Utils.sha3(...to_sign))
+
+    return new Promise((resolve, reject) => {
+      // Send open channel TX
+      const gasLimit = 4600000
+      this.PayChannel.methods
+        .openDispute(
+          data.channel_id,
+          data.session,
+          data.user_bet,
+          data.gamedata,
+          data.seed,
+          sign
+        ).send({
+          gas      : gasLimit,
+          gasPrice : 1.2 * _config.gasPrice,
+          from     : Account.get().openkey
+        })
+        .on('transactionHash', transactionHash => {
+          console.log('openDispute channel', transactionHash)
+        })
+        .on('confirmation', async (confirmationNumber) => {
+          if (confirmationNumber >= _config.tx_confirmations) {
+
           }
         })
         .on('error', err => {
