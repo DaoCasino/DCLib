@@ -34,7 +34,7 @@ const initDCLibAndDApp = function (callback) {
 
       // add result to paychannel
       _self.payChannel.addTX(profit)
-      _self.payChannel.printLog()
+      // _self.payChannel.printLog()
 
       // push all data to our log
       // just for debug

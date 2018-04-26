@@ -42,17 +42,14 @@ export default class PayChannel {
   }
 
   getDeposit () {
-    Utils.debugLog(['PayChannel::getDeposit ', deposit.player], _config.loglevel)
     return Utils.dec2bet(deposit.player)
   }
 
   getBalance () {
-    Utils.debugLog(['PayChannel::getBalance ', balance.player], _config.loglevel)
     return Utils.dec2bet(balance.player)
   }
 
   getBankrollBalance () {
-    Utils.debugLog(['PayChannel::getBankrollBalance ', balance.bankroller], _config.loglevel)
     return Utils.dec2bet(balance.bankroller)
   }
 
