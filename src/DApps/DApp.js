@@ -59,7 +59,7 @@ const channelState = (function () {
       state = Object.assign({}, new_state)
     },
     get () {
-      return state
+      return Object.assign({}, state)
     }
   }
 })()
@@ -493,14 +493,17 @@ export default class DApp {
         this.openDispute(data)
         return
       }
+
+      if (window.TEST_DISPUT) {
+        console.warn('Test openDispute')
+        this.openDispute(data)
+        return
+      }
+
       // Сохраняем состояние с подписью банкроллера
-      channelState.set(Object.assign(
-        {'_sign' : res.state._sign },
-        state_data
-      ))
+      channelState.set(Object.assign(Object.assign({}, state_data), {'_sign' : res.state._sign }))
 
       // Отправляем банкроллеру свою подпись состояния
-      // const updstate = await this.request({
       const upd_state_res = await this.request({
         action : 'update_state',
         state  : Object.assign(
@@ -628,14 +631,6 @@ export default class DApp {
 
   async updateChannel () {
     const last_state = channelState.get()
-    // let close_data_hash = Utils.sha3(
-    //   {t: 'bytes32', v: last_state._id                },
-    //   {t: 'uint', v: last_state._playerBalance     },
-    //   {t: 'uint', v: last_state._bankrollerBalance },
-    //   {t: 'uint', v: last_state._totalBet          },
-    //   {t: 'uint', v: last_state._session           },
-    //   {t: 'bool', v: true                          }
-    // )
     if (!last_state || !last_state._sign || last_state._sign === '') {
       return
     }
@@ -651,6 +646,21 @@ export default class DApp {
       ) {
         return
       }
+
+      console.groupCollapsed('update channel')
+      console.log('channel state:', channel)
+      console.log('last local state:', last_state)
+      const state_hash = Utils.sha3(
+        {t: 'bytes32', v: last_state._id             },
+        {t: 'uint', v: last_state._playerBalance     },
+        {t: 'uint', v: last_state._bankrollerBalance },
+        {t: 'uint', v: last_state._totalBet          },
+        {t: 'uint', v: last_state._session           }
+      )
+      console.log('Bankroller:', this.connection_info.bankroller_address)
+      console.log('Signer:', web3.eth.accounts.recover(state_hash, last_state._sign))
+      console.log('Sender:', Account.get().openkey)
+      console.groupEnd()
 
       // Send open channel TX
       const gasLimit = 4600000
@@ -711,11 +721,11 @@ export default class DApp {
           from     : Account.get().openkey
         })
         .on('transactionHash', transactionHash => {
-          console.log('openDispute channel', transactionHash)
+          console.log('openDispute TX', transactionHash)
         })
         .on('confirmation', async (confirmationNumber) => {
           if (confirmationNumber >= _config.tx_confirmations) {
-
+            resolve(true)
           }
         })
         .on('error', err => {
