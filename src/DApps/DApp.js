@@ -159,6 +159,7 @@ export default class DApp {
     params = Object.assign(def_params, params)
 
     if (params.paychannel && (!params.paychannel.deposit || isNaN(params.paychannel.deposit * 1))) {
+      this.Status.emit('error', {code: 'deposit null', 'text': 'your deposit can not be 0'})
       throw new Error(' 💴 Deposit is required to open paychannel')
     }
 
@@ -167,11 +168,6 @@ export default class DApp {
     }
 
     let deposit = (params.paychannel && params.paychannel.deposit) ? params.paychannel.deposit : 0
-
-    if (Number(deposit) === 0) {
-      this.Status.emit('error', {code: 'deposit null', 'text': 'your deposit can not be 0'})
-      throw new Error('😓 Your deposit can not be 0')
-    }
 
     deposit = Utils.bet2dec(deposit)
     if (params.paychannel && params.paychannel.deposit) {
@@ -452,6 +448,11 @@ export default class DApp {
           args : function_args
         }
       })
+
+      if (res.error) {
+        this.Status.emit('error', {code: 'unknow', 'text': res.error})
+        console.log(res.error)
+      }
 
       // Проверяем корректность подписи рандома
       const rnd_hash_args = [
