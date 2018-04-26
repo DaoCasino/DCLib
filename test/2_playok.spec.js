@@ -148,12 +148,15 @@ describe('Play', () => {
     it('Call logic function Play 2', function (done) {
       Roll(done)
     })
-    it('Call logic function Play 3', function (done) {
+
+    it('Test dispute', function (done) {
+      window.TEST_DISPUT = true
       Roll(done)
+      done()
     })
   })
 
-  describe('End game', function () {
+  describe.skip('End game', function () {
     it('Disconnect', function (done) {
       MyDApp.disconnect(function (res) {
         console.log('disconnect result', res)
