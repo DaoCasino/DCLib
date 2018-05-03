@@ -20,7 +20,10 @@ $(document).ready(function () {
     getGameContract(function (gameContract) {
       window.MyDApp = new DCLib.DApp({
         slug: 'dicetest_v32',
-        contract: gameContract
+        contract: gameContract,
+        rules    : {
+          depositX : 2
+        }
       })
     })
   })
@@ -62,12 +65,8 @@ function callDAppFunc (user_bet, user_num) {
 
   const random_hash = DCLib.randomHash({bet:user_bet, gamedata:[user_num]})
 
-  MyDApp.call(
-    // function name and args
-    'roll', [ user_bet, user_num, random_hash],
-
-    // result
-    function (res, advanced) {
+  MyDApp.Game(user_bet, user_num, random_hash)
+  .then(function (res, advanced) {
       console.log('result', res)
       console.log('advanced', advanced)
 
