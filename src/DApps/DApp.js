@@ -785,6 +785,11 @@ export default class DApp {
 
     params.address = params.address || this.connection_info.bankroller_address
 
+    console.log('request', 
+      'Room:',Room, 
+      'sharedRoom:',this.sharedRoom, 
+      'address:'+params.address);
+
     if (!params.address) {
       Utils.debugLog(['params.address is empty ... ', params], 'error')
       Utils.debugLog('set bankroller address in params', _config.loglevel)
@@ -828,7 +833,7 @@ export default class DApp {
     Room = Room || this.Room || this.sharedRoom
 
     request_data.response = response
-    request_data.type = 'response'
+    request_data.type     = 'response'
 
     Room.send(request_data)
   }
