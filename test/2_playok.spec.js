@@ -53,8 +53,10 @@ const initDCLibAndDApp = function (callback) {
     }
 
     return {
-      roll    : Roll,
-      history : history
+      Game      : Roll,
+      getProfit : function(_gamedata, _bet){
+        return // скока можно выиграть бетов
+      }
     }
   })
 
@@ -74,8 +76,11 @@ const initDCLibAndDApp = function (callback) {
 
     getGameContract(function (gameContract) {
       MyDApp = new DCLib.DApp({
-        slug: dapp_slug,
-        contract: gameContract
+        slug     : dapp_slug,
+        contract : gameContract,
+        rules    : {
+          depositX : 2
+        }
       })
       callback()
     })
@@ -136,7 +141,8 @@ describe('Play', () => {
       console.log('bet:', bet, 'num:', num)
 
       const rnd = DCLib.randomHash({bet:bet, gamedata:[num]})
-      MyDApp.call('roll', [bet, num, rnd], function (result, advanced) {
+
+      MyDApp.Game(bet, num, rnd).then(function (result, advanced) {
         console.log('profit:', result.profit)
         ok()
       })

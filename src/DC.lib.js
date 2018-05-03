@@ -156,6 +156,10 @@ export default class DCLib {
      */
   defineDAppLogic (dappSlug, logicConstructor) {
     if (!window.DAppsLogic) { window.DAppsLogic = {} }
+
+    if (typeof (new logicConstructor()).Game !== 'function') {
+      throw new Error('DAppsLogic require function "Game"')
+    }
     window.DAppsLogic[dappSlug] = logicConstructor
   }
 
