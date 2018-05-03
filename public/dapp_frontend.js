@@ -14,6 +14,9 @@ $(document).ready(function () {
           address:localGameContract.address,
           abi: JSON.parse(localGameContract.abi)
         })
+      }).catch(function (params) {
+        console.clear()
+        callback(false)
       })
     }
 
