@@ -137,7 +137,15 @@ export default class DApp {
     this.Room = false
     /** @ignore */
     this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
-    // check this.sharedRoom.on('all', console.log)
+ 
+    // this.sharedRoom.on('all', console.log)
+    setTimeout(()=>{
+      this.sharedRoom.channel.on('message', rawmsg=>{
+        const d = JSON.parse(rawmsg.data.toString())
+        if (d.data.action==='bankroller_active') return
+        console.log( d )
+      })
+    }, 4000)
 
     /** @ignore */
     this.Status       = new EC()
@@ -203,11 +211,12 @@ export default class DApp {
 
     try {
       this.Status.emit('connect::info', {status: 'connect', data: {bankroller_address: bankroller_address}})
+
       const connection = await this.request({
         action  : 'connect',
         slug    : this.slug,
         address : bankroller_address
-      })
+      }, false, this.sharedRoom, false)
 
       if (!connection.id) {
         this.Status.emit('error', {code: 'unknow', 'text': 'Cant establish connection'})
@@ -776,79 +785,6 @@ export default class DApp {
   }
 
   /**
-     * Send message to bankroller with query and
-     * waiting response type callback
-     *
-     * @example
-     * window.MyDApp.request({address: '0x1e05eb5aaa235403177552c07ff4588ea9cbdf87'})
-     *
-     * @param {Object} params
-     * @param {Object.string} params.address - bankroller address
-     * @param {Function} [callback=false] - callback function
-     * @param {boolean} [Room=false] - info on room
-     * @returns {Promise}
-     *
-     * @memberOf DApp
-     */
-  request (params, callback = false, Room = false) {
-    Room = Room || this.Room || this.sharedRoom
-
-    params.address = params.address || this.connection_info.bankroller_address
-
-    console.log('request', 
-      'Room:',Room, 
-      'sharedRoom:',this.sharedRoom, 
-      'address:'+params.address);
-
-    if (!params.address) {
-      Utils.debugLog(['params.address is empty ... ', params], 'error')
-      Utils.debugLog('set bankroller address in params', _config.loglevel)
-      return
-    }
-
-    return new Promise((resolve, reject) => {
-      const uiid = Utils.makeSeed()
-
-      params.type = 'request'
-      params.uiid = uiid
-
-      // Wait response
-      Room.once('uiid::' + uiid, result => {
-        if (callback) callback(result)
-        resolve(result.response)
-      })
-
-      // Send request
-      Room.send(params, delivered => {
-        if (!delivered) {
-          Utils.debugLog('🙉 Cant send msg to bankroller, connection error', _config.loglevel)
-          reject(new Error('undelivered'))
-        }
-      })
-    })
-  }
-
-  /**
-     * Кeceiving a response from bankroller
-     *
-     * @todo write to example
-     *
-     * @param {Object} request_data - the object in which data from response
-     * @param {Object} response - answer from bankroller
-     * @param {boolean} [Room=false] - info on room
-     *
-     * @memberOf DApp
-     */
-  response (request_data, response, Room = false) {
-    Room = Room || this.Room || this.sharedRoom
-
-    request_data.response = response
-    request_data.type     = 'response'
-
-    Room.send(request_data)
-  }
-
-  /**
      * Find to bankroller for game
      *
      * @example
@@ -888,4 +824,84 @@ export default class DApp {
       this.sharedRoom.on('action::bankroller_active', checkBankroller)
     })
   }
+
+
+  /**
+     * Send message to bankroller with query and
+     * waiting response type callback
+     *
+     * @example
+     * window.MyDApp.request({address: '0x1e05eb5aaa235403177552c07ff4588ea9cbdf87'})
+     *
+     * @param {Object} params
+     * @param {Object.string} params.address - bankroller address
+     * @param {Function} [callback=false] - callback function
+     * @param {boolean} [Room=false] - info on room
+     * @returns {Promise}
+     *
+     * @memberOf DApp
+     */
+  request (params, callback = false, Room = false, confirm_delivery=true) {
+    Room = Room || this.Room || this.sharedRoom
+
+    params.address = params.address || this.connection_info.bankroller_address
+
+    console.log('request', 
+      'Room:',Room, 
+      'sharedRoom:',this.sharedRoom, 
+      'address:'+params.address);
+
+    if (!params.address) {
+      Utils.debugLog(['params.address is empty ... ', params], 'error')
+      Utils.debugLog('set bankroller address in params', _config.loglevel)
+      return
+    }
+
+    return new Promise((resolve, reject) => {
+      const uiid = Utils.makeSeed()
+
+      params.type = 'request'
+      params.uiid = uiid
+
+      // Wait response
+      Room.once('uiid::' + uiid, result => {
+        if (callback) callback(result)
+        resolve(result.response)
+      })
+
+      // Send request
+      if (confirm_delivery) {
+        Room.send(params, delivered => {
+          if (!delivered) {
+            Utils.debugLog('🙉 Cant send msg to bankroller, connection error', _config.loglevel)
+            reject(new Error('undelivered'))
+          }
+        })
+        return
+      }
+      console.log('sendMsg')
+      Room.sendMsg(params)
+    })
+  }
+
+  /**
+     * Receiving a response from bankroller
+     *
+     * @todo write to example
+     *
+     * @param {Object} request_data - the object in which data from response
+     * @param {Object} response - answer from bankroller
+     * @param {boolean} [Room=false] - info on room
+     *
+     * @memberOf DApp
+     */
+  response (request_data, response, Room = false) {
+    Room = Room || this.Room || this.sharedRoom
+
+    request_data.response = response
+    request_data.type     = 'response'
+
+    Room.send(request_data)
+  }
+
 }
