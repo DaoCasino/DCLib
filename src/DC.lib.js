@@ -154,9 +154,13 @@ export default class DCLib {
      * @param {string} dappSlug         unique slug of your dapp
      * @param {function} logicConstructor constructor Dapp logic
      */
-  defineDAppLogic (dappSlug, logicConstructor) {
+  defineDAppLogic (dappSlug, LogicConstructor) {
     if (!window.DAppsLogic) { window.DAppsLogic = {} }
-    window.DAppsLogic[dappSlug] = logicConstructor
+
+    if (typeof (new LogicConstructor()).Game !== 'function') {
+      throw new Error('DAppsLogic require function "Game"')
+    }
+    window.DAppsLogic[dappSlug] = LogicConstructor
   }
 
   /**

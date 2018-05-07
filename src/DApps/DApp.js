@@ -1,5 +1,3 @@
-/* global DCLib */
-
 import _config         from '../config/config'
 import * as messaging  from 'dc-messaging'
 import EthHelpers      from '../Eth/helpers'
@@ -105,8 +103,9 @@ export default class DApp {
 
     let logic = window.DAppsLogic[params.slug]
     /** DApp name */
-    this.slug = params.slug
-    this.code = params.slug
+    this.slug  = params.slug
+    this.code  = params.slug
+    this.rules = params.rules
     /** @ignore */
     this.hash = Utils.checksum(this.slug)
     /** DApp logic */
@@ -138,7 +137,15 @@ export default class DApp {
     this.Room = false
     /** @ignore */
     this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
-    // check this.sharedRoom.on('all', console.log)
+
+    // this.sharedRoom.on('all', console.log)
+    // setTimeout(() => {
+    //   this.sharedRoom.channel.on('message', rawmsg => {
+    //     const d = JSON.parse(rawmsg.data.toString())
+    //     if (d.data.action === 'bankroller_active') return
+    //     console.log(d)
+    //   })
+    // }, 4000)
 
     /** @ignore */
     this.Status       = new EC()
@@ -204,11 +211,12 @@ export default class DApp {
 
     try {
       this.Status.emit('connect::info', {status: 'connect', data: {bankroller_address: bankroller_address}})
+
       const connection = await this.request({
         action  : 'connect',
         slug    : this.slug,
         address : bankroller_address
-      })
+      }, false, this.sharedRoom, false)
 
       if (!connection.id) {
         this.Status.emit('error', {code: 'unknow', 'text': 'Cant establish connection'})
@@ -307,6 +315,21 @@ export default class DApp {
         args   : args
       })
 
+      // проверяем что банкроллер не прислал корректный депозит
+      if (this.rules.depositX * args.player_deposit > b_args.args.bankroller_deposit) {
+        console.error('invalid bankroller deposit')
+        this.Status.emit('connect::error', {
+          status : 'error',
+          msg    : 'Bankroller open channel bad deposit',
+          data   : {
+            'b_deposit' : b_args.args.bankroller_deposit,
+            'p_deposit' : args.player_deposit,
+            'depositX'  : this.rules.depositX
+          }
+        })
+        return
+      }
+
       // Проверяем возвращаемые банкроллером аргументы путем валидации хеша
       const to_verify_hash = [
         {t: 'bytes32', v: args.channel_id                      },
@@ -321,6 +344,7 @@ export default class DApp {
       ]
       const recover_openkey = web3.eth.accounts.recover(Utils.sha3(...to_verify_hash), b_args.signed_args)
       if (recover_openkey.toLowerCase() !== params.bankroller_address.toLowerCase()) {
+        console.error('invalid bankroller sign')
         this.Status.emit('connect::error', {
           status : 'error',
           msg    : 'Bankroller open channel args invalid',
@@ -331,7 +355,34 @@ export default class DApp {
 
       // Создаем RSA с ключем банкроллера
       // для дальнейшей верификации сообщения от него
-      this.RSA.create(Utils.remove0x(b_args.args._N))
+      this.RSA.create(Utils.remove0x(b_args.args._N), b_args.args._E)
+
+      // проверяем апрув банкроллера перед открытием
+      console.log('this.PayChannel.address', this.PayChannel._address)
+      const bankroll_allow = await Eth.ERC20.methods.allowance(b_args.args.bankroller_address, this.PayChannel._address).call()
+      console.log('bankroll_allow', bankroll_allow)
+      console.log('b_args.args.bankroller_deposit', b_args.args.bankroller_deposit)
+      if (bankroll_allow <= b_args.args.bankroller_deposit) {
+        console.error('invalid bankroller ERC20 approve')
+        this.Status.emit('connect::error', {
+          status : 'error',
+          msg    : 'Bankroller has no money',
+          data   : {}
+        })
+        return
+      }
+
+      // проверяем что вообще есть БЭТы у банкроллера и из достаточно
+      const bankroll_balance = Eth.ERC20.methods.balanceOf(b_args.args.bankroller_address).call()
+      if (bankroll_balance <= bankroll_allow) {
+        console.error('bankroller has no money')
+        this.Status.emit('connect::error', {
+          status : 'error',
+          msg    : 'Bankroller has no money',
+          data   : {}
+        })
+        return
+      }
 
       // Send open channel TX
       const gasLimit = 4600000
@@ -378,16 +429,10 @@ export default class DApp {
     })
   }
 
-  /**
-   * @todo write description and example
-   *
-   * @param {any} function_name - name contract method
-   * @param {any} [function_args=[]]
-   * @param {any} callback
-   * @returns
-   *
-   * @memberOf DApp
-   */
+  Game (...args) {
+    return this.call('Game', args)
+  }
+
   call (function_name, function_args = [], callback) {
     if (typeof this.logic[function_name] !== 'function') {
       throw new Error(function_name + ' not exist')
@@ -406,7 +451,7 @@ export default class DApp {
       this.session++
 
       // Find rnd object
-      let rnd_i = null
+      let rnd_i    = null
       let gamedata = []
       let user_bet = 0
       function_args.forEach((arg, i) => {
@@ -472,7 +517,7 @@ export default class DApp {
       }
 
       // Вызываем функцию в локальном gamelogic
-      let local_returns = this.logic[function_name].apply(this, res.args)
+      let local_returns = this.logic.Game(...res.args)
 
       // проверяем подпись состояния канала
       const state_data = {
@@ -738,74 +783,6 @@ export default class DApp {
   }
 
   /**
-     * Send message to bankroller with query and
-     * waiting response type callback
-     *
-     * @example
-     * window.MyDApp.request({address: '0x1e05eb5aaa235403177552c07ff4588ea9cbdf87'})
-     *
-     * @param {Object} params
-     * @param {Object.string} params.address - bankroller address
-     * @param {Function} [callback=false] - callback function
-     * @param {boolean} [Room=false] - info on room
-     * @returns {Promise}
-     *
-     * @memberOf DApp
-     */
-  request (params, callback = false, Room = false) {
-    Room = Room || this.Room || this.sharedRoom
-
-    params.address = params.address || this.connection_info.bankroller_address
-
-    if (!params.address) {
-      Utils.debugLog(['params.address is empty ... ', params], 'error')
-      Utils.debugLog('set bankroller address in params', _config.loglevel)
-      return
-    }
-
-    return new Promise((resolve, reject) => {
-      const uiid = Utils.makeSeed()
-
-      params.type = 'request'
-      params.uiid = uiid
-
-      // Wait response
-      Room.once('uiid::' + uiid, result => {
-        if (callback) callback(result)
-        resolve(result.response)
-      })
-
-      // Send request
-      Room.send(params, delivered => {
-        if (!delivered) {
-          Utils.debugLog('🙉 Cant send msg to bankroller, connection error', _config.loglevel)
-          reject(new Error('undelivered'))
-        }
-      })
-    })
-  }
-
-  /**
-     * Кeceiving a response from bankroller
-     *
-     * @todo write to example
-     *
-     * @param {Object} request_data - the object in which data from response
-     * @param {Object} response - answer from bankroller
-     * @param {boolean} [Room=false] - info on room
-     *
-     * @memberOf DApp
-     */
-  response (request_data, response, Room = false) {
-    Room = Room || this.Room || this.sharedRoom
-
-    request_data.response = response
-    request_data.type = 'response'
-
-    Room.send(request_data)
-  }
-
-  /**
      * Find to bankroller for game
      *
      * @example
@@ -844,5 +821,77 @@ export default class DApp {
       }
       this.sharedRoom.on('action::bankroller_active', checkBankroller)
     })
+  }
+
+  /**
+     * Send message to bankroller with query and
+     * waiting response type callback
+     *
+     * @example
+     * window.MyDApp.request({address: '0x1e05eb5aaa235403177552c07ff4588ea9cbdf87'})
+     *
+     * @param {Object} params
+     * @param {Object.string} params.address - bankroller address
+     * @param {Function} [callback=false] - callback function
+     * @param {boolean} [Room=false] - info on room
+     * @returns {Promise}
+     *
+     * @memberOf DApp
+     */
+  request (params, callback = false, Room = false, confirm_delivery = true) {
+    Room = Room || this.Room || this.sharedRoom
+
+    params.address = params.address || this.connection_info.bankroller_address
+
+    if (!params.address) {
+      Utils.debugLog(['params.address is empty ... ', params], 'error')
+      Utils.debugLog('set bankroller address in params', _config.loglevel)
+      return
+    }
+
+    return new Promise((resolve, reject) => {
+      const uiid = Utils.makeSeed()
+
+      params.type = 'request'
+      params.uiid = uiid
+
+      // Wait response
+      Room.once('uiid::' + uiid, result => {
+        if (callback) callback(result)
+        resolve(result.response)
+      })
+
+      // Send request
+      if (confirm_delivery) {
+        Room.send(params, delivered => {
+          if (!delivered) {
+            Utils.debugLog('🙉 Cant send msg to bankroller, connection error', _config.loglevel)
+            reject(new Error('undelivered'))
+          }
+        })
+        return
+      }
+      Room.sendMsg(params)
+    })
+  }
+
+  /**
+     * Receiving a response from bankroller
+     *
+     * @todo write to example
+     *
+     * @param {Object} request_data - the object in which data from response
+     * @param {Object} response - answer from bankroller
+     * @param {boolean} [Room=false] - info on room
+     *
+     * @memberOf DApp
+     */
+  response (request_data, response, Room = false) {
+    Room = Room || this.Room || this.sharedRoom
+
+    request_data.response = response
+    request_data.type     = 'response'
+
+    Room.send(request_data)
   }
 }
