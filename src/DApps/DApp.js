@@ -137,13 +137,13 @@ export default class DApp {
     this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
 
     // this.sharedRoom.on('all', console.log)
-    setTimeout(() => {
-      this.sharedRoom.channel.on('message', rawmsg => {
-        const d = JSON.parse(rawmsg.data.toString())
-        if (d.data.action === 'bankroller_active') return
-        console.log(d)
-      })
-    }, 4000)
+    // setTimeout(() => {
+    //   this.sharedRoom.channel.on('message', rawmsg => {
+    //     const d = JSON.parse(rawmsg.data.toString())
+    //     if (d.data.action === 'bankroller_active') return
+    //     console.log(d)
+    //   })
+    // }, 4000)
 
     /** @ignore */
     this.Status       = new EC()
