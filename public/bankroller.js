@@ -26,7 +26,10 @@ function getGameContract (callback) {
   getGameContract(function (gameContract) {
     return new DCLib.DApp({
       slug     : 'dicetest_v32',
-      contract : gameContract
+      contract : gameContract,
+      rules    : {
+        depositX:2
+      }
     })
   })
 })()
