@@ -11,7 +11,7 @@ export default class RSA {
   }
 
   // Method for creation public RSA keys for verify (for Player)
-  create (modulus, exponent='10001') {
+  create (modulus, exponent = '10001') {
     const publicExponent = exponent || this.publicExponent
     this.RSA.setPublic(modulus, publicExponent)
   }

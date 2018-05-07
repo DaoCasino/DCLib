@@ -1,5 +1,3 @@
-/* global DCLib */
-
 import _config         from '../config/config'
 import * as messaging  from 'dc-messaging'
 import EthHelpers      from '../Eth/helpers'
@@ -137,13 +135,13 @@ export default class DApp {
     this.Room = false
     /** @ignore */
     this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
- 
+
     // this.sharedRoom.on('all', console.log)
-    setTimeout(()=>{
-      this.sharedRoom.channel.on('message', rawmsg=>{
+    setTimeout(() => {
+      this.sharedRoom.channel.on('message', rawmsg => {
         const d = JSON.parse(rawmsg.data.toString())
-        if (d.data.action==='bankroller_active') return
-        console.log( d )
+        if (d.data.action === 'bankroller_active') return
+        console.log(d)
       })
     }, 4000)
 
@@ -315,10 +313,9 @@ export default class DApp {
         args   : args
       })
 
-
-      // проверяем что банкроллер не прислал корректный депозит 
-      if(this.rules.depositX*args.player_deposit > b_args.args.bankroller_deposit){
-        console.error('invalid bankroller deposit');
+      // проверяем что банкроллер не прислал корректный депозит
+      if (this.rules.depositX * args.player_deposit > b_args.args.bankroller_deposit) {
+        console.error('invalid bankroller deposit')
         this.Status.emit('connect::error', {
           status : 'error',
           msg    : 'Bankroller open channel bad deposit',
@@ -345,7 +342,7 @@ export default class DApp {
       ]
       const recover_openkey = web3.eth.accounts.recover(Utils.sha3(...to_verify_hash), b_args.signed_args)
       if (recover_openkey.toLowerCase() !== params.bankroller_address.toLowerCase()) {
-        console.error('invalid bankroller sign');
+        console.error('invalid bankroller sign')
         this.Status.emit('connect::error', {
           status : 'error',
           msg    : 'Bankroller open channel args invalid',
@@ -364,7 +361,7 @@ export default class DApp {
       console.log('bankroll_allow', bankroll_allow)
       console.log('b_args.args.bankroller_deposit', b_args.args.bankroller_deposit)
       if (bankroll_allow <= b_args.args.bankroller_deposit) {
-        console.error('invalid bankroller ERC20 approve');
+        console.error('invalid bankroller ERC20 approve')
         this.Status.emit('connect::error', {
           status : 'error',
           msg    : 'Bankroller has no money',
@@ -376,7 +373,7 @@ export default class DApp {
       // проверяем что вообще есть БЭТы у банкроллера и из достаточно
       const bankroll_balance = Eth.ERC20.methods.balanceOf(b_args.args.bankroller_address).call()
       if (bankroll_balance <= bankroll_allow) {
-        console.error('bankroller has no money');
+        console.error('bankroller has no money')
         this.Status.emit('connect::error', {
           status : 'error',
           msg    : 'Bankroller has no money',
@@ -429,7 +426,6 @@ export default class DApp {
         })
     })
   }
-
 
   Game (...args) {
     return this.call('Game', args)
@@ -825,7 +821,6 @@ export default class DApp {
     })
   }
 
-
   /**
      * Send message to bankroller with query and
      * waiting response type callback
@@ -841,15 +836,10 @@ export default class DApp {
      *
      * @memberOf DApp
      */
-  request (params, callback = false, Room = false, confirm_delivery=true) {
+  request (params, callback = false, Room = false, confirm_delivery = true) {
     Room = Room || this.Room || this.sharedRoom
 
     params.address = params.address || this.connection_info.bankroller_address
-
-    console.log('request', 
-      'Room:',Room, 
-      'sharedRoom:',this.sharedRoom, 
-      'address:'+params.address);
 
     if (!params.address) {
       Utils.debugLog(['params.address is empty ... ', params], 'error')
@@ -879,7 +869,6 @@ export default class DApp {
         })
         return
       }
-      console.log('sendMsg')
       Room.sendMsg(params)
     })
   }
@@ -903,5 +892,4 @@ export default class DApp {
 
     Room.send(request_data)
   }
-
 }
