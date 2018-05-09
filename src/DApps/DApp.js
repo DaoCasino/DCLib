@@ -251,6 +251,7 @@ export default class DApp {
 
       this.Status.emit('connect::info', {status: 'openChannel', data: {paychannel: params.paychannel}})
       params.paychannel.bankroller_address = this.connection_info.bankroller_address
+
       this.connection_info.channel = await this.openChannel(params.paychannel, params.gamedata)
     }
 
@@ -358,10 +359,8 @@ export default class DApp {
       this.RSA.create(Utils.remove0x(b_args.args._N), b_args.args._E)
 
       // проверяем апрув банкроллера перед открытием
-      console.log('this.PayChannel.address', this.PayChannel._address)
       const bankroll_allow = await Eth.ERC20.methods.allowance(b_args.args.bankroller_address, this.PayChannel._address).call()
-      console.log('bankroll_allow', bankroll_allow)
-      console.log('b_args.args.bankroller_deposit', b_args.args.bankroller_deposit)
+
       if (bankroll_allow <= b_args.args.bankroller_deposit) {
         console.error('invalid bankroller ERC20 approve')
         this.Status.emit('connect::error', {
@@ -372,7 +371,7 @@ export default class DApp {
         return
       }
 
-      // проверяем что вообще есть БЭТы у банкроллера и из достаточно
+      // проверяем что вообще есть БЭТы у банкроллера и их достаточно
       const bankroll_balance = Eth.ERC20.methods.balanceOf(b_args.args.bankroller_address).call()
       if (bankroll_balance <= bankroll_allow) {
         console.error('bankroller has no money')
@@ -430,6 +429,38 @@ export default class DApp {
   }
 
   Game (...args) {
+
+    // DEMO-MODE
+    if (window.DC_DEMO_MODE) {
+      return new Promise(async (resolve, reject) => {
+        this.session = this.session || 0
+        this.session++
+
+        let rnd_i    = null
+        let user_bet = null
+        let gamedata = []
+        args.forEach((arg, i) => {
+          if (typeof arg === 'object' && arg.rnd && arg.rnd.gamedata && arg.rnd.bet) {
+            rnd_i    = i
+            gamedata = arg.rnd.gamedata
+            user_bet = arg.rnd.bet
+          }
+        })
+
+        if (!this.connection_info.channel._totalBet) {
+          this.connection_info.channel._totalBet = 0
+        }
+        this.connection_info.channel._totalBet += user_bet
+
+        args[rnd_i] = Utils.makeSeed()
+
+        // Вызываем функцию в локальном gamelogic
+        let local_returns = this.logic.Game(...args)
+
+        resolve(local_returns, {})
+      }) 
+    }
+
     return this.call('Game', args)
   }
 
@@ -443,6 +474,8 @@ export default class DApp {
       Utils.debugLog('You need .connect() before call!', _config.loglevel)
       return
     }
+
+    console.log('DCLIB call ', function_args)
 
     Utils.debugLog('Call function ' + function_name + '...', _config.loglevel)
     return new Promise(async (resolve, reject) => {
@@ -462,10 +495,13 @@ export default class DApp {
         }
       })
 
+      console.log('gamedata',gamedata, 'user_bet', user_bet)
+
       if (!this.connection_info.channel._totalBet) {
         this.connection_info.channel._totalBet = 0
       }
       this.connection_info.channel._totalBet += user_bet
+      console.log('_totalBet', this.connection_info.channel._totalBet)
 
       // Sign call data
       const data = {
@@ -503,11 +539,14 @@ export default class DApp {
         {t: 'uint',    v: data.gamedata   },
         {t: 'bytes32', v: data.seed       }
       ]
+
+      console.log('rnd_hash_args', rnd_hash_args)
+
       const rnd_hash = Utils.sha3(...rnd_hash_args)
 
       if (!this.RSA.verify(rnd_hash, res.rnd_sign)) {
         console.error('Invalid sign for random!')
-        return
+        // return
       }
 
       // Проверяем что рандом сделан из этой подписи
@@ -519,6 +558,8 @@ export default class DApp {
       // Вызываем функцию в локальном gamelogic
       let local_returns = this.logic.Game(...res.args)
 
+      console.log('DCLIB local_returns', local_returns);
+
       // проверяем подпись состояния канала
       const state_data = {
         '_id'                : this.connection_info.channel.channel_id,
@@ -527,6 +568,7 @@ export default class DApp {
         '_totalBet'          : '' + this.connection_info.channel._totalBet,
         '_session'           : this.session
       }
+      console.log('DCLIB state_data', state_data);
       const state_hash = Utils.sha3(
         {t: 'bytes32', v: state_data._id                },
         {t: 'uint',    v: state_data._playerBalance     },
@@ -534,6 +576,7 @@ export default class DApp {
         {t: 'uint',    v: state_data._totalBet          },
         {t: 'uint',    v: state_data._session           }
       )
+      // console.log('DCLIB state_hash', state_hash);
       const recover_openkey = web3.eth.accounts.recover(state_hash, res.state._sign)
       if (recover_openkey.toLowerCase() !== this.connection_info.bankroller_address.toLowerCase()) {
         console.error('Invalid state ' + recover_openkey + '!=' + this.connection_info.bankroller_address)
@@ -617,6 +660,9 @@ export default class DApp {
   closeByConsent () {
     return new Promise(async (resolve, reject) => {
       const last_state = channelState.get()
+
+      // console.log('closeByConsent last_state', last_state)
+
       const close_data_hash = Utils.sha3(
         {t: 'bytes32', v: last_state._id                },
         {t: 'uint', v: last_state._playerBalance     },
@@ -795,6 +841,10 @@ export default class DApp {
      * @memberOf DApp
      */
   findBankroller (deposit = false) {
+    // if (window.DC_DEMO_MODE) {
+    //   return new Promise(resolve=>{resolve('0xDEMOMODE000000000000000000')})
+    // }
+
     if (this.debug) Utils.debugLog(' 🔎 Find bankrollers in shared Dapp room...', _config.loglevel)
     const Status = this.Status
     let noBankroller = setTimeout(function noInf (params) {
