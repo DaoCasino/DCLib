@@ -129,7 +129,9 @@ export default class DApp {
     this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
 
     this.web3.eth.defaultAccount = Account.get().openkey
-    console.log('def', this.web3.eth.defaultAccount)
+    // console.log('def', this.web3.eth.defaultAccount)
+    console.log(_config)
+    console.log(this.PayChannel)
 
     /** @ignore */
     this.Room = false

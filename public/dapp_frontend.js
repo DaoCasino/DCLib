@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-/* global fetch $ DCLib Game MyDApp */
+/* global fetch $ DCLib Game MyDApp localStorage */
 
 $(document).ready(function () {
   // Create our DApp
@@ -14,6 +14,9 @@ $(document).ready(function () {
           address:localGameContract.address,
           abi: JSON.parse(localGameContract.abi)
         })
+      }).catch(function (params) {
+        console.clear()
+        callback(false)
       })
     }
 
@@ -27,6 +30,9 @@ $(document).ready(function () {
       })
     })
   })
+
+  // check account for network
+  checkAccount()
 
   // Init interface
   initView({
@@ -167,4 +173,17 @@ function renderGames (history) {
   ghtml = '<table><thead><tr><th>bet</th><th>num</th><th>hash</th><th>random</th><th>profit</th></tr></thead><tbody>' + ghtml + '</tbody><tfoot><tr><th colspan="5">Game Balance: ' + Game.payChannel.getBalance() + '</th></tr></tfoot></table>'
 
   $('#games_list').html(ghtml)
+}
+
+function checkAccount () {
+    const currentAccount = DCLib.Account.get().openkey
+
+    if (!currentAccount) window.location.reload()
+
+    DCLib.Eth.getBetBalance(currentAccount, res => {
+      if (res < 0.01) {
+        localStorage.clear()
+        window.location.reload()
+      }
+    })
 }
