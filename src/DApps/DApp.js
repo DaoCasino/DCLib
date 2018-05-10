@@ -298,7 +298,6 @@ export default class DApp {
 
       // Approve ERC20
       this.Status.emit('connect::info', { status: 'ERC20approve', data: {} })
-
       const our_allow = await Eth.ERC20.methods.allowance(Account.get().openkey, contract_address).call()
       if (our_allow < params.deposit) {
         await Eth.ERC20approve(contract_address, 0)
@@ -405,6 +404,11 @@ export default class DApp {
         })
         .on('transactionHash', transactionHash => {
           console.log('open channel', transactionHash)
+          this.Status.emit('connect::info', {
+            status : 'transactionHash',
+            msg    : 'Open channel',
+            data   : {transactionHash:transactionHash}
+          })
         })
         .on('confirmation', async (confirmationNumber) => {
           if (confirmationNumber <= _config.tx_confirmations) {
@@ -418,6 +422,12 @@ export default class DApp {
                 args.player_deposit,
                 b_args.args.bankroller_deposit
               )
+
+              this.Status.emit('connect::info', {
+                status : 'success_open',
+                msg    : 'Channel is succefull opening',
+                data   : {}
+              })
 
               resolve(Object.assign(check.info, args))
             } else {
