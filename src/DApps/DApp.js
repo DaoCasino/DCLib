@@ -129,9 +129,6 @@ export default class DApp {
     this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
 
     this.web3.eth.defaultAccount = Account.get().openkey
-    // console.log('def', this.web3.eth.defaultAccount)
-    console.log(_config)
-    console.log(this.PayChannel)
 
     /** @ignore */
     this.Room = false
@@ -174,6 +171,7 @@ export default class DApp {
       throw new Error(' 💴 Deposit is required to open paychannel')
     }
 
+    console.log(params)
     if (params.paychannel && typeof params.paychannel.contract !== 'object') {
       params.paychannel.contract = _config.contracts.paychannel
     }
@@ -300,8 +298,11 @@ export default class DApp {
 
       // Approve ERC20
       this.Status.emit('connect::info', { status: 'ERC20approve', data: {} })
-      await Eth.ERC20approve(contract_address, 0)
-      await Eth.ERC20approve(contract_address, params.deposit)
+      const our_allow = await Eth.ERC20.methods.allowance(Account.get().openkey, contract_address).call()
+      if (our_allow < params.deposit) {
+        await Eth.ERC20approve(contract_address, 0)
+        await Eth.ERC20approve(contract_address, params.deposit)
+      }
 
       // Ask data from bankroller for open channel
       const args = {
@@ -316,7 +317,7 @@ export default class DApp {
         args   : args
       })
 
-      // проверяем что банкроллер не прислал корректный депозит
+      // проверяем что банкроллер прислал корректный депозит
       if (this.rules.depositX * args.player_deposit > b_args.args.bankroller_deposit) {
         console.error('invalid bankroller deposit')
         this.Status.emit('connect::error', {
@@ -360,7 +361,6 @@ export default class DApp {
 
       // проверяем апрув банкроллера перед открытием
       const bankroll_allow = await Eth.ERC20.methods.allowance(b_args.args.bankroller_address, this.PayChannel._address).call()
-
       if (bankroll_allow <= b_args.args.bankroller_deposit) {
         console.error('invalid bankroller ERC20 approve')
         this.Status.emit('connect::error', {
@@ -384,6 +384,7 @@ export default class DApp {
       }
 
       // Send open channel TX
+      let check_open_channel_send = false
       const gasLimit = 4600000
       this.PayChannel.methods
         .openChannel(
@@ -404,9 +405,18 @@ export default class DApp {
         })
         .on('transactionHash', transactionHash => {
           console.log('open channel', transactionHash)
+          this.Status.emit('connect::info', {
+            status : 'transactionHash',
+            msg    : 'Open channel',
+            data   : {transactionHash:transactionHash}
+          })
         })
         .on('confirmation', async (confirmationNumber) => {
-          if (confirmationNumber >= _config.tx_confirmations) {
+          if (confirmationNumber <= _config.tx_confirmations) {
+            console.log('open channel confirmationNumber', confirmationNumber)
+          }
+          if (confirmationNumber >= _config.tx_confirmations && !check_open_channel_send) {
+            check_open_channel_send = true
             const check = await this.request({action : 'check_open_channel'})
             if (!check.error && check.status === 'ok') {
               // Set deposit to paychannel in game logic
@@ -414,6 +424,12 @@ export default class DApp {
                 args.player_deposit,
                 b_args.args.bankroller_deposit
               )
+
+              this.Status.emit('connect::info', {
+                status : 'success_open',
+                msg    : 'Channel is succefull opening',
+                data   : {}
+              })
 
               resolve(Object.assign(check.info, args))
             } else {
@@ -429,7 +445,6 @@ export default class DApp {
   }
 
   Game (...args) {
-
     // DEMO-MODE
     if (window.DC_DEMO_MODE) {
       return new Promise(async (resolve, reject) => {
@@ -458,7 +473,7 @@ export default class DApp {
         let local_returns = this.logic.Game(...args)
 
         resolve(local_returns, {})
-      }) 
+      })
     }
 
     return this.call('Game', args)
@@ -495,7 +510,7 @@ export default class DApp {
         }
       })
 
-      console.log('gamedata',gamedata, 'user_bet', user_bet)
+      console.log('gamedata', gamedata, 'user_bet', user_bet)
 
       if (!this.connection_info.channel._totalBet) {
         this.connection_info.channel._totalBet = 0
@@ -558,7 +573,7 @@ export default class DApp {
       // Вызываем функцию в локальном gamelogic
       let local_returns = this.logic.Game(...res.args)
 
-      console.log('DCLIB local_returns', local_returns);
+      console.log('DCLIB local_returns', local_returns)
 
       // проверяем подпись состояния канала
       const state_data = {
@@ -568,7 +583,7 @@ export default class DApp {
         '_totalBet'          : '' + this.connection_info.channel._totalBet,
         '_session'           : this.session
       }
-      console.log('DCLIB state_data', state_data);
+      console.log('DCLIB state_data', state_data)
       const state_hash = Utils.sha3(
         {t: 'bytes32', v: state_data._id                },
         {t: 'uint',    v: state_data._playerBalance     },
@@ -689,6 +704,7 @@ export default class DApp {
 
       // Send open channel TX
       const gasLimit = 4600000
+      let channel_closed_send = false
       this.PayChannel.methods
         .closeByConsent(
           last_state._id,
@@ -707,7 +723,8 @@ export default class DApp {
           console.log('closeByConsent channel', transactionHash)
         })
         .on('confirmation', async (confirmationNumber) => {
-          if (confirmationNumber >= _config.tx_confirmations) {
+          if (confirmationNumber >= _config.tx_confirmations && !channel_closed_send) {
+            channel_closed_send = true
             const understand = await this.request({action : 'channel_closed'})
             console.log('understand:', understand)
             this.logic.payChannel.reset()
