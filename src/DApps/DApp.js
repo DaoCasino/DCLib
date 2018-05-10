@@ -704,6 +704,7 @@ export default class DApp {
 
       // Send open channel TX
       const gasLimit = 4600000
+      let channel_closed_send = false
       this.PayChannel.methods
         .closeByConsent(
           last_state._id,
@@ -722,7 +723,8 @@ export default class DApp {
           console.log('closeByConsent channel', transactionHash)
         })
         .on('confirmation', async (confirmationNumber) => {
-          if (confirmationNumber >= _config.tx_confirmations) {
+          if (confirmationNumber >= _config.tx_confirmations && !channel_closed_send) {
+            channel_closed_send = true
             const understand = await this.request({action : 'channel_closed'})
             console.log('understand:', understand)
             this.logic.payChannel.reset()
