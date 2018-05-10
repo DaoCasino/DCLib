@@ -23,13 +23,13 @@ module.exports = {
   // signal  : '/ip4/46.101.244.101/tcp/9090/ws/p2p-websocket-star/',
   signal  : '/ip4/146.185.173.84/tcp/9090/ws/p2p-websocket-star/',
   
-  tx_confirmations:1,
+  tx_confirmations:2,
 
   contracts: {
     erc20: erc20,
     paychannel: paychannel
   },
 
-  gasPrice : 40 * 1000000000,
+  gasPrice : 100 * 1000000000,
   gasLimit : 40 * 100000
 }
