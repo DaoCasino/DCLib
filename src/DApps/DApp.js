@@ -384,6 +384,7 @@ export default class DApp {
       }
 
       // Send open channel TX
+      let check_open_channel_send = false
       const gasLimit = 4600000
       this.PayChannel.methods
         .openChannel(
@@ -414,7 +415,8 @@ export default class DApp {
           if (confirmationNumber <= _config.tx_confirmations) {
             console.log('open channel confirmationNumber', confirmationNumber)
           }
-          if (confirmationNumber >= _config.tx_confirmations) {
+          if (confirmationNumber >= _config.tx_confirmations && !check_open_channel_send) {
+            check_open_channel_send = true
             const check = await this.request({action : 'check_open_channel'})
             if (!check.error && check.status === 'ok') {
               // Set deposit to paychannel in game logic
