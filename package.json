@@ -6,7 +6,7 @@
   "private": false,
   "scripts": {
     "commit": "git-cz",
-    "start": "DC_NETWORK=ropsten node scripts/start.js",
+    "start": "DC_NETWORK=local node scripts/start.js",
     "build": "DC_NETWORK=ropsten node scripts/build.js",
     "lint": "eslint --ext=.js,.tag ./src ./test",
     "_test": "npm run lint && DC_NETWORK=local karma start",
@@ -22,6 +22,7 @@
   "dependencies": {
     "big-integer": "^1.6.23",
     "dc-messaging": "github:DaoCasino/dc-messaging",
+    "dexie": "^2.0.3",
     "event-emitter": "^0.3.5",
     "js-cryptico": "^1.0.2",
     "promise-worker": "^1.1.1",

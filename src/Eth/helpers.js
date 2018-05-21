@@ -143,6 +143,7 @@ export default class EthHelpers {
     if (!address) return
 
     return new Promise((resolve, reject) => {
+      if (!this.ERC20) { reject(new Error('ERC20 not initializated')) }
       this.ERC20.methods.balanceOf(address).call().then(value => {
         const balance = Utils.dec2bet(value)
         resolve(balance)

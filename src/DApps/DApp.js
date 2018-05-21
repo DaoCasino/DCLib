@@ -221,7 +221,7 @@ export default class DApp {
       this.Room = new messaging.RTC(
         Account.get().openkey,
         this.hash + '_' + connection.id,
-        {privateKey:Account.exportPrivateKey(), allowed_users:[bankroller_address]}
+        {privateKey: (await Account.exportPrivateKey()), allowed_users:[bankroller_address]}
       )
 
       this.connection_info.id = connection.id
@@ -508,7 +508,6 @@ export default class DApp {
         this.connection_info.channel._totalBet = 0
       }
       this.connection_info.channel._totalBet += user_bet
-      console.log('_totalBet', this.connection_info.channel._totalBet)
 
       // Sign call data
       const data = {
@@ -525,7 +524,7 @@ export default class DApp {
         {t: 'uint',    v: data.gamedata      },
         {t: 'bytes32', v: data.seed          }
       ]
-      const sign = Eth.signHash(Utils.sha3(...to_sign))
+      const sign = await Eth.signHash(Utils.sha3(...to_sign))
 
       // Call function in bankroller side
       const res = await this.request({
@@ -547,7 +546,7 @@ export default class DApp {
         {t: 'bytes32', v: data.seed       }
       ]
 
-      this.Crypto.postMessage({
+      await this.Crypto.postMessage({
         action: 'rsa_verify',
         data: {
           rnd_hash: rnd_hash_args,
@@ -586,7 +585,7 @@ export default class DApp {
         {t: 'uint',    v: state_data._session           }
       )
 
-      this.Crypto.postMessage({
+      await this.Crypto.postMessage({
         action: 'check_sign',
         data: {
           verify_hash        : state_hash,
@@ -626,7 +625,7 @@ export default class DApp {
       }
 
       // Возвращаем результат вызова функции
-      const adv = {
+      const result = {
         bankroller: {
           args   : res.args,
           result : res.returns
@@ -636,9 +635,8 @@ export default class DApp {
           result : local_returns
         }
       }
-
-      resolve(res.returns, adv)
-      if (callback) callback(res.returns, adv)
+      resolve(result)
+      if (callback) callback(result)
     })
   }
 
@@ -691,7 +689,7 @@ export default class DApp {
         {t: 'uint', v: last_state._session           },
         {t: 'bool', v: true                          }
       )
-      const sign = Eth.signHash(close_data_hash)
+      const sign = await Eth.signHash(close_data_hash)
 
       // Запрашиваем у банкроллера подпись закрытия канала
       // и отправляем свою на всякий случай
@@ -817,7 +815,7 @@ export default class DApp {
       {t: 'uint',    v: data.gamedata      },
       {t: 'bytes32', v: data.seed          }
     ]
-    const sign = Eth.signHash(Utils.sha3(...to_sign))
+    const sign = await Eth.signHash(Utils.sha3(...to_sign))
 
     return new Promise((resolve, reject) => {
       // Send open channel TX

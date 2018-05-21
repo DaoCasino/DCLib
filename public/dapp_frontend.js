@@ -4,35 +4,36 @@
 $(document).ready(function () {
   // Create our DApp
   DCLib.on('ready', function () {
-    DCLib.Account.initAccount()
+    DCLib.Account.initAccount(function(){
+      $('#user_address').html('<a target="_blank" href="https://ropsten.etherscan.io/address/' + DCLib.Account.get().openkey + '">' + DCLib.Account.get().openkey + '</a>')
+      $('#faucet').attr('href', 'https://platform.dao.casino/faucet?to=' + DCLib.Account.get().openkey)
 
-    function getGameContract (callback) {
-      fetch('http://127.0.0.1:8181/?get=contract&name=Dice').then(function (res) {
-        return res.json()
-      }).then(function (localGameContract) {
-        callback({
-          address:localGameContract.address,
-          abi: JSON.parse(localGameContract.abi)
+
+      function getGameContract (callback) {
+        fetch('http://127.0.0.1:8181/?get=contract&name=Dice').then(function (res) {
+          return res.json()
+        }).then(function (localGameContract) {
+          callback({
+            address:localGameContract.address,
+            abi: JSON.parse(localGameContract.abi)
+          })
+        }).catch(function (params) {
+          console.clear()
+          callback(false)
         })
-      }).catch(function (params) {
-        console.clear()
-        callback(false)
-      })
-    }
+      }
 
-    getGameContract(function (gameContract) {
-      window.MyDApp = new DCLib.DApp({
-        slug: 'dicetest_v32',
-        contract: gameContract,
-        rules    : {
-          depositX : 2
-        }
+      getGameContract(function (gameContract) {
+        window.MyDApp = new DCLib.DApp({
+          slug: 'dicetest_v32',
+          contract: gameContract,
+          rules    : {
+            depositX : 2
+          }
+        })
       })
     })
   })
-
-  // check account for network
-  checkAccount()
 
   // Init interface
   initView({
@@ -72,18 +73,12 @@ function callDAppFunc (user_bet, user_num) {
   const random_hash = DCLib.randomHash({bet:user_bet, gamedata:[user_num]})
 
   MyDApp.Game(user_bet, user_num, random_hash)
-  .then(function (res, advanced) {
-      console.log('result', res)
-      console.log('advanced', advanced)
+  .then(function (result) {
+      console.log('result', result)
 
       renderGames()
       var ubets = Game.payChannel.getBalance()
       $('#user_bet').max = ubets
-    },
-
-    // log
-    function (log) {
-      $('#play_log').append('<div> >> ' + log + '</div>')
     }
   )
 }
@@ -123,8 +118,6 @@ function initView (callbacks) {
   $('#loading').hide()
   $('#content').show()
 
-  $('#user_address').html('<a target="_blank" href="https://ropsten.etherscan.io/address/' + DCLib.Account.get().openkey + '">' + DCLib.Account.get().openkey + '</a>')
-  $('#faucet').attr('href', 'https://platform.dao.casino/faucet?to=' + DCLib.Account.get().openkey)
 
   $('.step-1 form').on('submit', function (e) {
     e.preventDefault()
@@ -175,15 +168,3 @@ function renderGames (history) {
   $('#games_list').html(ghtml)
 }
 
-function checkAccount () {
-    const currentAccount = DCLib.Account.get().openkey
-
-    if (!currentAccount) window.location.reload()
-
-    DCLib.Eth.getBetBalance(currentAccount, res => {
-      if (res < 0.01) {
-        localStorage.clear()
-        window.location.reload()
-      }
-    })
-}

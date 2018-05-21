@@ -1,6 +1,7 @@
-/* global localStorage fetch */
+/* global fetch */
 import conf from '../config/config'
 import * as Utils from '../utils/utils'
+import Store from '../API/DB'
 import WEB3 from 'web3'
 import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
@@ -11,7 +12,7 @@ let _wallet = { openkey: false }
 /**
  * Class for work with [Ethereum Account/Wallet](http://ethdocs.org/en/latest/account-management.html).
  *
- * ETH **account creates automatically** when DCLib init, and stored in localStorage.
+ * ETH **account creates automatically** when DCLib init, and stored in Store.
  * For creating account lib user [web3.eth.accounts](web3js.readthedocs.io/en/1.0/web3-eth-accounts.html)
  *
  * ## About accounts in ETH
@@ -43,8 +44,8 @@ export default class Account {
     callback()
   }
 
-  async initAccount (log = true) {
-    const web3wallet = localStorage.getItem('web3wallet')
+  async initAccount (callback = false) {
+    const web3wallet = Store.getItem('web3wallet')
 
     if (web3wallet) {
       try {
@@ -57,7 +58,7 @@ export default class Account {
     if (!_wallet.openkey) {
       let privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
 
-      localStorage.setItem('web3wallet', JSON.stringify(
+      Store.setItem('web3wallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
           privateKey,
           this._config.wallet_pass
@@ -65,24 +66,25 @@ export default class Account {
       ))
       this.web3.eth.accounts.wallet.add(privateKey)
 
-      if (log) Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
+      Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
     }
 
     this.unlockAccount()
+    if (callback) callback()
   }
 
   /**
    * @ignore
    */
   getAccountFromServer (localStorageStatusKey = 'statusGetAccountfromServer') {
-    const status = localStorage.getItem(localStorageStatusKey)
+    const status = Store.getItem(localStorageStatusKey)
 
     if (status) {
       if (status === 'wait') {
         return new Promise((resolve, reject) => {
           let waitTimer = () => {
             setTimeout(() => {
-              const newStatus = localStorage.getItem(localStorageStatusKey)
+              const newStatus = Store.getItem(localStorageStatusKey)
               if (typeof newStatus === 'object' && newStatus.privateKey) {
                 resolve(newStatus)
               } else {
@@ -96,13 +98,13 @@ export default class Account {
       return
     }
 
-    localStorage.setItem(localStorageStatusKey, 'wait')
+    Store.setItem(localStorageStatusKey, 'wait')
 
     return fetch(_config.api_url + '?get=account')
       .then(res => res.json())
       .then(acc => {
         Utils.debugLog(['Server account data:', acc], _config.loglevel)
-        localStorage.setItem(localStorageStatusKey, JSON.stringify(acc))
+        Store.setItem(localStorageStatusKey, JSON.stringify(acc))
         _wallet.openkey = acc.address
         return acc.privateKey
       })
@@ -138,10 +140,10 @@ export default class Account {
   unlockAccount (password = false) {
     password = password || this._config.wallet_pass
 
-    if (!localStorage.getItem('web3wallet')) return false
+    if (!Store.getItem('web3wallet')) return false
 
     _wallet = this.web3.eth.accounts.decrypt(
-      localStorage.getItem('web3wallet'),
+      Store.getItem('web3wallet'),
       password
     )
 
@@ -285,7 +287,7 @@ export default class Account {
    * @returns - none
    * @memberOf {Account}
    */
-  reset () { localStorage.setItem('web3wallet', '') }
+  reset () { Store.setItem('web3wallet', '') }
 
   /**
    * This callback is
