@@ -2,6 +2,7 @@
     "extends": "standard",
     "rules": {
         "no-debugger"                        : ["warn"],
+        "no-unreachable"                     : ["warn"],
         "no-unused-vars"                     : ["warn"],
         "no-multi-spaces"                    : ["off"],
         "key-spacing"                        : ["off"],

@@ -78,7 +78,14 @@ export default class DCLib {
         ourApi.addBets(this.Account.get().openkey)
       }
 
-      // printDocs(window.DCLib)
+      if (process.env.DC_NETWORK === 'local') {
+        this.Account.info(info => {
+          if (info.balance.bet * 1 === 0 && localStorage && localStorage.web3wallet) {
+            localStorage.clear()
+            window.location.reload()
+          }
+        })
+      }
 
       Event.emit('ready')
       _ready = true

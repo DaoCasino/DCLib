@@ -155,11 +155,11 @@ describe('Play', () => {
       Roll(done)
     })
 
-    it('Test dispute', function (done) {
-      window.TEST_DISPUT = true
-      Roll(done)
-      done()
-    })
+    // it('Test dispute', function (done) {
+    //   window.TEST_DISPUT = true
+    //   Roll(done)
+    //   done()
+    // })
   })
 
   describe.skip('End game', function () {
