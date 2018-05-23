@@ -6,7 +6,7 @@
   "private": false,
   "scripts": {
     "commit": "git-cz",
-    "start": "DC_NETWORK=local node scripts/start.js",
+    "start": "DC_NETWORK=ropsten node scripts/start.js",
     "build": "DC_NETWORK=ropsten node scripts/build.js",
     "lint": "eslint --ext=.js,.tag ./src ./test",
     "_test": "npm run lint && DC_NETWORK=local karma start",

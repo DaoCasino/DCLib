@@ -1,4 +1,3 @@
-/* global self */
 import cryptico           from 'js-cryptico'
 import _config            from '../config/config'
 import promiseWorker      from 'promise-worker/register'
@@ -57,22 +56,20 @@ promiseWorker(async msg => {
   const action = msg.action
   const data   = msg.data
 
-  console.log(action, data)
-  
   if (action === 'sign_hash' && data.hash) {
     return crypto.signHash(data.hash)
   }
 
   if (action === 'create_rsa') {
     if (!data._N || !data._E) throw new Error('Inc data')
-    crypto.create( Utils.remove0x(data._N), data._E)
+    crypto.create(Utils.remove0x(data._N), data._E)
     return true
   }
 
   if (action === 'check_sign') {
-    if ((!data.verify_hash_args && !data.verify_hash)
-    || !data.bankroller_address
-    || !data.bankroller_sign) {
+    if ((!data.verify_hash_args && !data.verify_hash) ||
+    !data.bankroller_address ||
+    !data.bankroller_sign) {
       throw new Error('Incomplete data')
     }
 

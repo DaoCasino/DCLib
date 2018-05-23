@@ -6,7 +6,6 @@ import WEB3 from 'web3'
 import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
 let _config = {}
-let ERC20   = {}
 let _wallet = { openkey: false }
 
 /**
@@ -33,13 +32,18 @@ export default class Account {
     _config = Object.assign(conf, config)
     // this._wallet = _wallet
     this._config = _config
-    this._ERC20  = ERC20
 
     /**
      * @ignore
      */
 
     this.web3 = new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
+
+    // Init ERC20 contract
+    this._ERC20 = new this.web3.eth.Contract(
+      _config.contracts.erc20.abi,
+      _config.contracts.erc20.address
+    )
 
     callback()
   }
@@ -156,12 +160,6 @@ export default class Account {
      */
     this.signTransaction = _wallet.signTransaction
 
-    // Init ERC20 contract
-    this._ERC20 = new this.web3.eth.Contract(
-      _config.contracts.erc20.abi,
-      _config.contracts.erc20.address
-    )
-
     return _wallet
   }
 
@@ -182,6 +180,8 @@ export default class Account {
    * @extends {Account}
    */
   exportPrivateKey (password = false) {
+    if (_wallet.privateKey) return _wallet.privateKey
+
     return this.unlockAccount(password).privateKey
   }
 
