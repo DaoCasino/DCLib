@@ -1,12 +1,12 @@
 {
   "name": "dclib",
   "description": "DCLib is javascript library for integrate dao.casino blockchain protocol.",
-  "version": "3.0.0-beta.0",
+  "version": "3.0.1",
   "author": "DAO casino team <team@dao.casino>",
   "private": false,
   "scripts": {
     "commit": "git-cz",
-    "start": "DC_NETWORK=local node scripts/start.js",
+    "start": "DC_NETWORK=ropsten node scripts/start.js",
     "build": "DC_NETWORK=ropsten node scripts/build.js",
     "lint": "eslint --ext=.js,.tag ./src ./test",
     "_test": "npm run lint && DC_NETWORK=local karma start",
