@@ -54,8 +54,8 @@ const initDCLibAndDApp = function (callback) {
 
     return {
       Game      : Roll,
-      getProfit : function(_gamedata, _bet){
-        return // скока можно выиграть бетов
+      getProfit : function (_gamedata, _bet) {
+        // скока можно выиграть бетов
       }
     }
   })
