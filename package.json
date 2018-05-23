@@ -1,7 +1,7 @@
 {
   "name": "dclib",
   "description": "DCLib is javascript library for integrate dao.casino blockchain protocol.",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "author": "DAO casino team <team@dao.casino>",
   "private": false,
   "scripts": {
