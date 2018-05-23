@@ -1,9 +1,32 @@
+import debug   from 'debug'
+import _config from '../config/config'
 
 export const bigInt = require('big-integer')
+const web3_utils = require('web3-utils/src/')
+// const web3sha3 = require('web3-utils/src/soliditySha3.js')
 
-const web3sha3 = require('web3-utils/src/soliditySha3.js')
+export const sha3 = web3_utils.soliditySha3
 
-export const sha3 = web3sha3
+export const debugLog = function (data, loglevel = _config.loglevel, enable = true) {
+  let log = debug(_config.logname)
+
+  if (loglevel === 'hight') log.enabled = true
+
+  loglevel === 'light' && !enable
+    ? log.enabled = false
+    : log.enabled = true
+
+  if (loglevel === 'error') {
+    log = debug(loglevel)
+    log.enabled = true
+  }
+
+  if (loglevel === 'none')  log.enabled = false
+
+  if (Array.isArray(data)) return log(...data)
+
+  return log(data)
+}
 
 /**
  * Convert BET from decimal, to "human" format, ex: 110000000 = 1.1BET
@@ -12,7 +35,9 @@ export const sha3 = web3sha3
  * @return {number} - bet in human format
  */
 export function dec2bet (val, r = 2) {
-  return +(val / 100000000).toFixed(r)
+  if (!val) return 0
+  let n = web3_utils.fromWei(val + '')
+  return (+n).toFixed(r)
 }
 
 /**
@@ -27,7 +52,7 @@ export function dec2bet (val, r = 2) {
  * return: 310248.92
  */
 export function bet2dec (val) {
-  let b = '' + (val * 100000000)
+  let b = web3_utils.toWei(val + '') // '' + (val * 100000000)
   if (b.indexOf('.') > -1) {
     b = b.split('.')[0] * 1
   }
@@ -49,7 +74,7 @@ export const checksum = function (string) {
 }
 
 export const hashName = name => {
-  return web3sha3(name).substr(2, 8)
+  return sha3(name).substr(2, 8)
 }
 
 export const toFixed = (value, precision) => {
@@ -87,14 +112,12 @@ export const buf2bytes32 = buffer => {
 export const remove0x = (str) => {
   if (str.length > 2 && str.substr(0, 2) === '0x') {
     str = str.substr(2)
-    console.log('0x prefix removed from  ' + str.substr(0, 8) + '...')
   }
   return str
 }
 
 export const add0x = (str) => {
   if (str.substr(0, 2) !== '0x') {
-    console.log('0x prefix added to ' + str.substr(0, 8) + '...')
     str = '0x' + str
   }
   return str
@@ -112,7 +135,7 @@ export const makeSeed = () => {
     }
   }
 
-  return web3sha3(numToHex(str))
+  return sha3(numToHex(str))
 }
 
 export const concatUint8Array = function (buffer1, buffer2) {

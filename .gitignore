@@ -1,16 +1,21 @@
 # dependencies
-/node_modules
+.history
+.vscode
+.nyc_output
+node_modules
+.env
 
 # testing
-/coverage
+coverage
 .mocha-puppeteer
 .cache
 
 # production
-/api
-/build
-/docs
+api
+build
+docs
 /dist
+public/FindTheEthereum
 size-report.txt
 
 # misc

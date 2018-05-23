@@ -14,7 +14,6 @@ const getClientEnvironment          = require('./env')
 const paths                         = require('./paths')
 
 const rootdir = __dirname + '/../..'
-
 // Webpack uses `publicPath` to determine where the app is being served from.
 // In development, we always serve from the root. This makes config easier.
 const publicPath = '/'
@@ -40,7 +39,6 @@ let webpack_dev_config = {
   // This means they will be the "root" imports that are included in JS bundle.
   // The first two entry points enable "hot" CSS and auto-refreshes for JS.
   entry: [
-    'babel-polyfill',
     // Include an alternative client for WebpackDevServer. A client's job is to
     // connect to WebpackDevServer by a socket and get notified about changes.
     // When you save a file, the client will either apply hot updates (in case
@@ -93,7 +91,7 @@ let webpack_dev_config = {
     // We placed these paths second because we want `node_modules` to "win"
     // if there are any conflicts. This matches Node resolution mechanism.
     // https://github.com/facebookincubator/create-react-app/issues/253
-    modules: [rootdir + '/src', 'packages', 'node_modules', paths.appNodeModules].concat(
+    modules: [rootdir + '/src', rootdir + '/../protocol/build', 'packages', 'node_modules', paths.appNodeModules].concat(
       // It is guaranteed to exist because we tweak it in `env.js`
       process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
     ),
@@ -118,6 +116,11 @@ let webpack_dev_config = {
     exprContextCritical:  false,
     strictExportPresence: true,
     rules: [
+      {
+        test: /\.worker\.js$/,
+        loader: 'worker-loader',
+      },
+
       // First, run the linter.
       // It's important to do this before Babel processes the JS.
       {

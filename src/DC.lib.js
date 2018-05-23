@@ -6,7 +6,8 @@ import Api        from './API/Api'
 import EthHelpers from './Eth/helpers'
 import Account    from './Eth/Account'
 import DApp       from './DApps/DApp'
-import printDocs  from './docs.js'
+// import printDocs  from './docs.js'
+import * as messaging  from 'dc-messaging'
 
 /**
  * @ignore
@@ -48,8 +49,12 @@ export default class DCLib {
   /**
   * @ignore
   */
-  constructor () {
+  constructor (signal = false) {
     this.version = '0.2.2'
+    this.config = _config
+
+    // Add signal
+    messaging.upIPFS((signal || _config.signal))
 
     /**
     * little utilities
@@ -73,7 +78,14 @@ export default class DCLib {
         ourApi.addBets(this.Account.get().openkey)
       }
 
-      printDocs(window.DCLib)
+      if (process.env.DC_NETWORK === 'local') {
+        this.Account.info(info => {
+          if (info.balance.bet * 1 === 0 && localStorage && localStorage.web3wallet) {
+            localStorage.clear()
+            window.location.reload()
+          }
+        })
+      }
 
       Event.emit('ready')
       _ready = true
@@ -95,7 +107,7 @@ export default class DCLib {
 
     /**
      * ## Get ETH account information
-     * @param {String} address - Addres Ethereum account wallet
+     * @param {string} address - Addres Ethereum account wallet
      * @param {accessBalance} callback - callback function then access balance information
      * @returns {Object} - return balance information
      *
@@ -149,19 +161,28 @@ export default class DCLib {
      * @param {string} dappSlug         unique slug of your dapp
      * @param {function} logicConstructor constructor Dapp logic
      */
-  defineDAppLogic (dappSlug, logicConstructor) {
+  defineDAppLogic (dappSlug, LogicConstructor) {
     if (!window.DAppsLogic) { window.DAppsLogic = {} }
-    window.DAppsLogic[dappSlug] = logicConstructor
+
+    if (typeof (new LogicConstructor()).Game !== 'function') {
+      throw new Error('DAppsLogic require function "Game"')
+    }
+    window.DAppsLogic[dappSlug] = LogicConstructor
   }
 
+  /**
+  * Callback for triger DClib event.
+  *
+  * @callback eventCallback
+  */
   /**
    * ## DCLib.on(event, callback)
    * adds the functional to event
    *
    * @todo add examples and information about method
    *
-   * @param {any} event - event name
-   * @param {any} callback - function then functional for event
+   * @param {Event} event - event name
+   * @param {eventCallback} callback - function then functional for event
    *
    * @memberOf DCLib
    */
@@ -188,7 +209,15 @@ export default class DCLib {
    *
    * @memberOf DCLib
    */
-  randomHash () { return 'confirm(' + Utils.makeSeed() + ')' }
+  randomHash (data) {
+    if (!data || !data.bet || !data.gamedata || typeof data.gamedata !== 'object') {
+      throw new Error('Invalid data for randomHash, need: {bet:100, gamedata:array} ')
+    }
+
+    data.bet = Utils.bet2dec(data.bet)
+
+    return {rnd:data}
+  }
 
   /**
    * ## DCLib.numFromHash(randomHash, min=0, max=10)
@@ -204,10 +233,10 @@ export default class DCLib {
    *
    * > 44
    *
-   * @param {String} randomHash - hash for generate random num
+   * @param {string} randomHash - hash for generate random num
    * @param {number} [min=0] - min value for generate default = 0
    * @param {number} [max=100] - max value for generate default = 100
-   * @returns {Number} - Random number
+   * @returns {number} - Random number
    *
    * @memberOf DCLib
    */
@@ -215,15 +244,17 @@ export default class DCLib {
     if (min > max) { let c = min; min = max; max = c }
     if (min === max) return max
 
-    randomHash = Utils.remove0x(randomHash)
+    const randomHashRemove0x = Utils.remove0x(randomHash)
 
-    max++
-    return Utils.bigInt(randomHash, 16).divmod(max - min).remainder.value + min
+    max += 1
+
+    return Utils.bigInt(randomHashRemove0x, 16).divmod(max - min).remainder.value + min
   }
 
   /**
    * ## DCLib.fauset(address=false)
    * method need for add free bets on account
+   * @async
    *
    * @example
    * // example for method initialization without param
@@ -235,8 +266,8 @@ export default class DCLib {
    *
    * DCLib.faucet('0xd4e9f60fc84b97080a1803cf2d4e1003313a2ea2')
    *
-   * @param {String} [address=false] - account address
-   * @returns - none
+   * @param {string} [address=false] - account address
+   * @returns {Promise<Object>}
    *
    * @memberOf DCLib
    */
@@ -268,9 +299,9 @@ export default class DCLib {
    *
    * > 0x621e24a7f55843a69766946d6b4b5938423c4a33
    *
-   * @param {String} rawMsg - hash message for recover.
-   * @param {String} signedMsg - signature message for recover.
-   * @returns {String} - the Ethereum address used to sign this data.
+   * @param {string} rawMsg - hash message for recover.
+   * @param {string} signedMsg - signature message for recover.
+   * @returns {string} - the Ethereum address used to sign this data.
    *
    * @memberOf DCLib
    */
@@ -300,9 +331,9 @@ export default class DCLib {
    *
    * > 0x621e24a7f55843a69766946d6b4b5938423c4a33
    *
-   * @param {String} rawMsg - hash message for recover.
-   * @param {String} signedMsg - signature message for recover.
-   * @returns {String} - the Ethereum address used to sign this data.
+   * @param {string} rawMsg - hash message for recover.
+   * @param {string} signedMsg - signature message for recover.
+   * @returns {string} - the Ethereum address used to sign this data.
    *
    * @memberOf DCLib
    */
@@ -337,10 +368,10 @@ export default class DCLib {
    *
    * > false // because the address does not pass the test
    *
-   * @param {any} rawMsg - hash message
-   * @param {any} signedMsg - signature message
-   * @param {any} needAddress - check address
-   * @returns {bolean} - true/false
+   * @param {string} rawMsg - hash message
+   * @param {string} signedMsg - signature message
+   * @param {string} needAddress - check address
+   * @returns {boolean} - true/false
    *
    * @memberOf DCLib
    */
@@ -379,10 +410,10 @@ export default class DCLib {
    *
    * > false
    *
-   * @param {any} rawMsg - message for check
-   * @param {any} signedMsg - message signature for chek
-   * @param {any} needAddress - address which the need check
-   * @returns {Bollean} - true/false
+   * @param {string} rawMsg - message for check
+   * @param {string} signedMsg - message signature for chek
+   * @param {string} needAddress - address which the need check
+   * @returns {bollean} - true/false
    *
    * @memberOf DCLib
    */

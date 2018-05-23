@@ -1,6 +1,7 @@
-import _config from 'config/config'
-import Acc from 'Eth/Account'
-import * as Utils from 'utils/utils'
+import _config from '../config/config'
+import Acc from './Account'
+import * as Utils from '../utils/utils'
+import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
 /**
  * @ignore
@@ -112,7 +113,7 @@ export default class EthHelpers {
         resolve(balance)
         if (callback) callback(balance)
       }).catch(err => {
-        console.error(err)
+        Utils.debugLog(err, 'error')
         reject(err)
       })
     })
@@ -142,15 +143,45 @@ export default class EthHelpers {
     if (!address) return
 
     return new Promise((resolve, reject) => {
+      if (!this.ERC20) { reject(new Error('ERC20 not initializated')) }
       this.ERC20.methods.balanceOf(address).call().then(value => {
         const balance = Utils.dec2bet(value)
         resolve(balance)
         if (callback) callback(balance)
       }).catch(err => {
-        console.error(err)
+        Utils.debugLog(err, 'error')
         reject(err)
       })
     })
+  }
+
+  /**
+   * ## DCLib.Account.signHash(hash)
+   * method sign hashMessage
+   *
+   *
+   * @example
+   * > DCLib.Account.signHash("0xAb23..")
+     *
+   * @example
+   * // method return
+   * > `0x6a1bcec4ff132aadb511cfd83131e456fab8b94d92c219448113697b5d75308b3b805
+   *  ef93c60b561b72d7c985fac11a574be0c2b2e4f3a8701cd01afa8e6edd71b`
+   *
+   * @param {String} hash - message which need turn in hash
+   * @returns {String} - hashed Message
+   *
+   * @memberOf {Account}
+   */
+  signHash (hash) {
+    hash = Utils.add0x(hash)
+    if (!web3.utils.isHexStrict(hash)) {
+      console.log('err')
+      Utils.debugLog(hash + ' is not correct hex', _config.loglevel)
+      Utils.debugLog('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash', _config.loglevel)
+    }
+
+    return signHash(hash, Utils.add0x(Account.exportPrivateKey()))
   }
 
   /**
@@ -163,43 +194,31 @@ export default class EthHelpers {
    */
   async ERC20approve (spender, amount, callback = false) {
     return new Promise(async (resolve, reject) => {
-      console.log('Check how many tokens user ' + Account.get().openkey + ' is still allowed to withdraw from contract ' + spender + ' . . . ')
-
       let allowance = await this.ERC20.methods.allowance(Account.get().openkey, spender).call()
 
-      console.log('💸 allowance:', allowance)
+      if (allowance < amount || (amount === 0 && allowance !== 0)) {
+        const approveAmount = amount
 
-      if (allowance < amount) {
-        console.log('allowance lower than need deposit')
-
-        console.group('Call .approve on ERC20')
-        console.log('Allow paychannel to withdraw from your account, multiple times, up to the ' + amount + ' amount.')
-
-        const approveAmount = amount * 9
-
-        const gasLimit = await this.ERC20.methods.approve(spender, approveAmount).estimateGas({from: Account.get().openkey})
         const receipt = await this.ERC20.methods.approve(
           spender,
           approveAmount
         ).send({
           from: Account.get().openkey,
-          gasPrice: 1.4 * _config.gasPrice,
-          gas: gasLimit
+          gasPrice: 1.2 * _config.gasPrice,
+          gas: _config.gasLimit
         }).on('transactionHash', transactionHash => {
-          console.log('# approve TX pending', transactionHash)
-          console.log('https://ropsten.etherscan.io/tx/' + transactionHash)
+          Utils.debugLog(['# approve TX pending', transactionHash], _config.loglevel)
         }).on('error', err => {
-          console.error(err)
+          Utils.debugLog(err, 'error')
           reject(err, true)
         })
 
-        console.log('📌 ERC20.approve receipt:', receipt)
+        if (!['0x01', '0x1', true].includes(receipt.status)) {
+          reject(receipt, true)
+          return
+        }
 
-        allowance = await this.ERC20.methods.allowance(Account.get().openkey, spender).call()
-
-        console.log('💸💸💸 allowance:', allowance)
-
-        console.groupEnd()
+        resolve(receipt, true)
       }
 
       resolve(null, true)

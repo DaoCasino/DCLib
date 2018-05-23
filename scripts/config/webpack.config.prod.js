@@ -64,7 +64,7 @@ let webpack_prod_config = {
   devtool: 'eval',
 
   // In production, we only want to load the polyfills and the app code.
-  entry: ['babel-polyfill', require.resolve('./polyfills'), paths.appIndexJs],
+  entry: [require.resolve('./polyfills'), paths.appIndexJs],
   output: {
     // The build folder.
     path: paths.appBuild,
@@ -87,7 +87,7 @@ let webpack_prod_config = {
     // We placed these paths second because we want `node_modules` to "win"
     // if there are any conflicts. This matches Node resolution mechanism.
     // https://github.com/facebookincubator/create-react-app/issues/253
-    modules: [rootdir + '/src', 'packages', 'node_modules', paths.appNodeModules].concat(
+    modules: [rootdir + '/src', rootdir + '/../protocol/build', 'packages', 'node_modules', paths.appNodeModules].concat(
 	  		// It is guaranteed to exist because we tweak it in `env.js`
 	  		process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
     ),
@@ -114,6 +114,12 @@ let webpack_prod_config = {
     exprContextCritical:  false,
     strictExportPresence: true,
     rules: [
+      {
+        test: /\.worker\.js$/,
+        loader: 'worker-loader',
+        options: {name: '../dist/[name].js' }
+      },
+      
       // Disable require.ensure as it's not a standard language feature.
       // We are waiting for https://github.com/facebookincubator/create-react-app/issues/2176.
       { parser: { requireEnsure: false } },
@@ -320,7 +326,5 @@ if (process.env.enable_less) {
     ]
   })
 }
-
-
 
 module.exports = webpack_prod_config

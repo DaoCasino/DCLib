@@ -2,6 +2,8 @@
 // Generated on Sat Feb 24 2018 11:25:09 GMT+0200 (EET)
 /* eslint-disable */
 
+const webpack = require('webpack')
+
 module.exports = function(config) {
   config.set({
 
@@ -11,13 +13,16 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha', 'chai'],
+    frameworks: ['mocha', 'chai', 'sinon'],
 
 
     // list of files / patterns to load in the browser
     files: [
+      { pattern: 'test/_bootstrap.js', included: true, served: true, watched: false },
       { pattern: 'src/index.js', included: true, served: true, watched: false },
-      'public/tests/test.js'
+      // { pattern: 'dist/DC.js', included: true, served: true, watched: false },
+      { pattern: 'node_modules/fetch-mock/es5/client-bundle.js', included: true, served: true, watched: false },
+      'test/*.spec.js'
     ],
 
 
@@ -29,19 +34,58 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'src/index.js': ['webpack']
+      'src/index.js': ['webpack', 'sourcemap'],
     },
 
     webpack: {
+      module: {
+        rules: [
+          {
+            test: /\.js$/,
+            exclude: /(node_modules|bower_components)/,
+            use: {
+              loader: 'babel-loader',
+              options: {
+                presets: ['stage-2'],
+                plugins: [
+                  ['transform-es2015-modules-commonjs', { allowTopLevelThis: true }],
+                  ['istanbul']
+                ]
+              }
+            }
+          }
+        ]
+      },
+      plugins:[
+        new webpack.DefinePlugin({
+            'process.env': {
+                DC_NETWORK: '"'+process.env.DC_NETWORK+'"',
+            },
+        })
+      ],
+
       resolve: {
-        modules: ['src', 'node_modules', 'packages']
+        modules: ['../protocol/build/', 'src', 'node_modules', 'packages']
+      },
+      devtool: 'inline-source-map'
+    },
+
+    client: {
+      mocha: {
+          timeout: '20000'
       }
+    },
+
+    coverageReporter: {
+      type: 'lcovonly',
+      dir: 'coverage',
+      subdir: '.'
     },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['mocha'],
+    reporters: ['mocha', 'coverage'],
 
 
     // web server port
@@ -54,7 +98,8 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_INFO,
+    logLevel: config.LOG_DISABLE,
+    // logLevel: config.LOG_INFO,
 
 
     // enable / disable watching file and executing tests whenever any file changes
@@ -63,7 +108,14 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['ChromeHeadless'],
+    browsers: process.env.TRAVIS ? ['ChromeHeadlessNoSandbox'] : ['ChromeHeadless'],
+
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
 
     browserNoActivityTimeout: 100000,
 
