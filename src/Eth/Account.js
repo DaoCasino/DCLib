@@ -180,7 +180,7 @@ export default class Account {
    * @extends {Account}
    */
   exportPrivateKey (password = false) {
-    if (_wallet.privateKey) return _wallet.privateKey
+    // if (_wallet.privateKey) return _wallet.privateKey
 
     return this.unlockAccount(password).privateKey
   }
