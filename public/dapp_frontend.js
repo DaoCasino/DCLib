@@ -18,7 +18,6 @@ $(document).ready(function () {
             abi: JSON.parse(localGameContract.abi)
           })
         }).catch(function (params) {
-          console.clear()
           callback(false)
         })
       }
