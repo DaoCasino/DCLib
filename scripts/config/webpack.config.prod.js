@@ -117,7 +117,10 @@ let webpack_prod_config = {
       {
         test: /\.worker\.js$/,
         loader: 'worker-loader',
-        options: {name: '../dist/[name].js' }
+        options: { 
+          // name: '../dist/[name].js',
+          inline: true 
+        }
       },
       
       // Disable require.ensure as it's not a standard language feature.
