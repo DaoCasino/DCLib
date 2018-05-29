@@ -537,6 +537,15 @@ export default class DApp {
         }
       })
 
+      if (res.error) {
+        this.Status.emit('game::error', {
+          status : 'error',
+          msg    : res.error,
+          data   : {}
+        })
+        return
+      }
+
       // Проверяем корректность подписи рандома
       const rnd_hash_args = [
         {t: 'bytes32', v: data.channel_id },
