@@ -60,6 +60,13 @@ export default class Account {
     }
 
     if (!_wallet.openkey) {
+      if (typeof window === 'undefined') {
+        setTimeout(() => {
+          this.initAccount()
+        }, 333)
+        return
+      }
+
       let privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
 
       Store.setItem('ethwallet', JSON.stringify(
@@ -68,9 +75,14 @@ export default class Account {
           this._config.wallet_pass
         )
       ))
+
       this.web3.eth.accounts.wallet.add(privateKey)
 
       Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
+
+      setTimeout(() => {
+        if (typeof window !== 'undefined') window.location.reload()
+      }, 1111)
     }
 
     this.unlockAccount()
@@ -110,10 +122,6 @@ export default class Account {
         Utils.debugLog(['Server account data:', acc], _config.loglevel)
         Store.setItem(localStorageStatusKey, JSON.stringify(acc))
 
-        setTimeout(() => {
-          if (typeof window !== 'undefined') window.location.reload()
-        }, 1111)
-        
         _wallet.openkey = acc.address
         return acc.privateKey
       })

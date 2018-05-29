@@ -1,4 +1,5 @@
 import Dexie from 'dexie'
+import 'dexie-observable'
 
 const DB = new Dexie('DC')
 DB.version(1).stores({
@@ -7,16 +8,30 @@ DB.version(1).stores({
 
 export default new class Store {
   constructor () {
-    this.DB    = DB
+    this.prefix = 'window: '
+    if (typeof window === 'undefined') this.prefix = 'WORKER: '
+
     this.items = {}
+    this.DB    = DB
+
+    DB.on('changes', () => { this.syncData() })
+    DB.open()
 
     if (typeof window !== 'undefined' && window.localStorage) {
       this.items = window.localStorage
     } else {
-      DB.keyval.each(i => {
-        this.items[i.key] = i.val
-      })
+      this.syncData()
     }
+  }
+
+  syncData () {
+    DB.keyval.toArray(arr => {
+      for (let k in arr) {
+        const i = arr[k]
+        this.items[i.key] = i.val
+        if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem(i.key, i.val)
+      }
+    })
   }
 
   async set (key, val, encode = true) {
