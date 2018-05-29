@@ -49,11 +49,11 @@ export default class Account {
   }
 
   async initAccount (callback = false) {
-    const web3wallet = Store.getItem('web3wallet')
+    const ethwallet = Store.getItem('ethwallet')
 
-    if (web3wallet) {
+    if (ethwallet) {
       try {
-        _wallet.openkey = `0x${JSON.parse(web3wallet).address}`
+        _wallet.openkey = `0x${JSON.parse(ethwallet).address}`
       } catch (e) {
         Utils.debugLog(['Error!', e], 'error')
       }
@@ -62,7 +62,7 @@ export default class Account {
     if (!_wallet.openkey) {
       let privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
 
-      Store.setItem('web3wallet', JSON.stringify(
+      Store.setItem('ethwallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
           privateKey,
           this._config.wallet_pass
@@ -80,7 +80,7 @@ export default class Account {
   /**
    * @ignore
    */
-  getAccountFromServer (localStorageStatusKey = 'statusGetAccountfromServer') {
+  getAccountFromServer (localStorageStatusKey = 'statusGetAccfromFaucet') {
     const status = Store.getItem(localStorageStatusKey)
 
     if (status) {
@@ -109,6 +109,9 @@ export default class Account {
       .then(acc => {
         Utils.debugLog(['Server account data:', acc], _config.loglevel)
         Store.setItem(localStorageStatusKey, JSON.stringify(acc))
+
+        if (typeof window !== 'undefined') window.location.reload()
+        
         _wallet.openkey = acc.address
         return acc.privateKey
       })
@@ -144,10 +147,10 @@ export default class Account {
   unlockAccount (password = false) {
     password = password || this._config.wallet_pass
 
-    if (!Store.getItem('web3wallet')) return false
+    if (!Store.getItem('ethwallet')) return false
 
     _wallet = this.web3.eth.accounts.decrypt(
-      Store.getItem('web3wallet'),
+      Store.getItem('ethwallet'),
       password
     )
 
@@ -287,7 +290,7 @@ export default class Account {
    * @returns - none
    * @memberOf {Account}
    */
-  reset () { Store.setItem('web3wallet', '') }
+  reset () { Store.setItem('ethwallet', '') }
 
   /**
    * This callback is
