@@ -110,7 +110,9 @@ export default class Account {
         Utils.debugLog(['Server account data:', acc], _config.loglevel)
         Store.setItem(localStorageStatusKey, JSON.stringify(acc))
 
-        if (typeof window !== 'undefined') window.location.reload()
+        setTimeout(() => {
+          if (typeof window !== 'undefined') window.location.reload()
+        }, 1111)
         
         _wallet.openkey = acc.address
         return acc.privateKey
