@@ -82,7 +82,7 @@ export default class Account {
 
       setTimeout(() => {
         if (typeof window !== 'undefined') window.location.reload()
-      }, 1111)
+      }, 3333)
     }
 
     this.unlockAccount()
