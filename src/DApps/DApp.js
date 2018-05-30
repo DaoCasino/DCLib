@@ -733,6 +733,11 @@ export default class DApp {
         })
         .on('transactionHash', transactionHash => {
           console.log('closeByConsent channel', transactionHash)
+          this.Status.emit('disconnect::info', {
+            status : 'transactionHash',
+            msg    : 'Open channel',
+            data   : {transactionHash:transactionHash}
+          })
         })
         .on('confirmation', async (confirmationNumber) => {
           if (confirmationNumber >= _config.tx_confirmations && !channel_closed_send) {
