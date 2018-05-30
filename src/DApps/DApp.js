@@ -735,7 +735,7 @@ export default class DApp {
           console.log('closeByConsent channel', transactionHash)
           this.Status.emit('disconnect::info', {
             status : 'transactionHash',
-            msg    : 'Open channel',
+            msg    : 'Close channel',
             data   : {transactionHash:transactionHash}
           })
         })
