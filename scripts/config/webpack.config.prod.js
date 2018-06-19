@@ -1,16 +1,16 @@
 'use strict'
 
 const autoprefixer            = require('autoprefixer')
-const fs                      = require('fs')
+// const fs                      = require('fs')
 const path                    = require('path')
 const webpack                 = require('webpack')
 const HtmlWebpackPlugin       = require('html-webpack-plugin')
 const ExtractTextPlugin       = require('extract-text-webpack-plugin')
 const ManifestPlugin          = require('webpack-manifest-plugin')
-const BundleSizeAnalyzer      = require('webpack-bundle-size-analyzer').WebpackBundleSizeAnalyzerPlugin
 const InterpolateHtmlPlugin   = require('react-dev-utils/InterpolateHtmlPlugin')
-const eslintFormatter         = require('react-dev-utils/eslintFormatter')
+// const eslintFormatter         = require('react-dev-utils/eslintFormatter')
 const ModuleScopePlugin       = require('react-dev-utils/ModuleScopePlugin')
+const BundleAnalyzerPlugin    = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 const paths                   = require('./paths')
 const getClientEnvironment    = require('./env')
@@ -236,7 +236,7 @@ let webpack_prod_config = {
   },
 
   plugins: [
-	 	new BundleSizeAnalyzer(rootdir + '/size-report.txt'),
+	 	new BundleAnalyzerPlugin(rootdir + '/size-report.txt'),
 
     // Makes some environment variables available in index.html.
     // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
