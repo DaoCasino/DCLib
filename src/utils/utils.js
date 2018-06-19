@@ -1,7 +1,6 @@
 import debug   from 'debug'
 import _config from '../config/config'
 
-export const bigInt = require('big-integer')
 const web3_utils = require('web3-utils/src/')
 // const web3sha3 = require('web3-utils/src/soliditySha3.js')
 

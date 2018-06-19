@@ -6,7 +6,7 @@ import Api        from './API/Api'
 import EthHelpers from './Eth/helpers'
 import Account    from './Eth/Account'
 import DApp       from './DApps/DApp'
-// import printDocs  from './docs.js'
+
 import * as messaging  from 'dc-messaging'
 
 /**
@@ -125,6 +125,11 @@ export default class DCLib {
      * }
      */
     this.Account.info = async (address = false, callback = false) => {
+      if (!_ready) {
+        console.warn('DClib initialization in progress... try later :) ')
+        return
+      }
+
       if (!callback && typeof address === 'function') {
         callback = address
         address  = this.Account.get().address
@@ -243,12 +248,13 @@ export default class DCLib {
   numFromHash (randomHash, min = 0, max = 100) {
     if (min > max) { let c = min; min = max; max = c }
     if (min === max) return max
-
-    const randomHashRemove0x = Utils.remove0x(randomHash)
-
     max += 1
 
-    return Utils.bigInt(randomHashRemove0x, 16).divmod(max - min).remainder.value + min
+    const hashBN = new this.web3.utils.BN(Utils.remove0x(randomHash), 16)
+    const divBN  = new this.web3.utils.BN(max - min, 10)
+    const divRes = hashBN.divmod(divBN)
+
+    return +divRes.mod + min
   }
 
   /**

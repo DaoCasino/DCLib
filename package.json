@@ -21,7 +21,6 @@
   ],
   "main": "./src/index.js",
   "dependencies": {
-    "big-integer": "^1.6.23",
     "dc-messaging": "github:DaoCasino/dc-messaging",
     "dexie": "^2.0.3",
     "dexie-observable": "^1.0.0-beta.4",
