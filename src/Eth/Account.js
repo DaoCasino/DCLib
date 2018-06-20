@@ -69,7 +69,7 @@ export default class Account {
 
       let privateKey = await this.getAccountFromServer() || this.web3.eth.accounts.create().privateKey
 
-      Store.setItem('ethwallet', JSON.stringify(
+      await Store.setItem('ethwallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
           privateKey,
           this._config.wallet_pass

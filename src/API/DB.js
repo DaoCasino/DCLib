@@ -52,9 +52,9 @@ export default new class Store {
   }
 
   // localStorage compatability
-  setItem (key, val) {
+  async setItem (key, val) {
     this.items[key] = val
-    this.set(key, val, false)
+    await this.set(key, val, false)
     if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem(key, val)
   }
 
