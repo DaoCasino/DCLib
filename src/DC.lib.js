@@ -250,8 +250,8 @@ export default class DCLib {
     if (min === max) return max
     max += 1
 
-    const hashBN = new this.web3.utils.BN(Utils.remove0x(randomHash), 16)
-    const divBN  = new this.web3.utils.BN(max - min, 10)
+    const hashBN = new this.web3.utils.toBN(Utils.remove0x(randomHash), 16)
+    const divBN  = new this.web3.utils.toBN(max - min, 10)
     const divRes = hashBN.divmod(divBN)
 
     return +divRes.mod + min
