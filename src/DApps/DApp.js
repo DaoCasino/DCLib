@@ -8,16 +8,10 @@ import PayChannelLogic from './paychannel'
 import CryptoWorker    from '../API/crypto.worker.js'
 import PromiseWorker   from 'promise-worker'
 
-/**
- *
- * @todo write description
- *
- * @param {Function} logic - DApp logic
- */
 const payChannelWrap = function (Logic) {
   let payChannel = new PayChannelLogic()
   Logic.prototype.payChannel = payChannel
-  let modifiedLogic = new Logic()
+  let modifiedLogic = new Logic(payChannel)
   modifiedLogic.payChannel = payChannel
 
   return modifiedLogic
@@ -563,7 +557,7 @@ export default class DApp {
         }
       }).catch(() => {
         console.error('Invalid sign for random!')
-        // this.openDispute(data)
+        this.openDispute(data)
       })
 
       // Проверяем что рандом сделан из этой подписи

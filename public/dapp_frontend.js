@@ -4,10 +4,9 @@
 $(document).ready(function () {
   // Create our DApp
   DCLib.on('ready', function () {
-    DCLib.Account.initAccount(function(){
+    DCLib.Account.initAccount(function () {
       $('#user_address').html('<a target="_blank" href="https://ropsten.etherscan.io/address/' + DCLib.Account.get().openkey + '">' + DCLib.Account.get().openkey + '</a>')
       $('#faucet').attr('href', 'https://platform.dao.casino/faucet?to=' + DCLib.Account.get().openkey)
-
 
       function getGameContract (callback) {
         fetch('http://127.0.0.1:8181/?get=contract&name=Dice').then(function (res) {
@@ -24,7 +23,7 @@ $(document).ready(function () {
 
       getGameContract(function (gameContract) {
         window.MyDApp = new DCLib.DApp({
-          slug: 'dicetest_v32',
+          slug: 'dicetest_v42',
           contract: gameContract,
           rules    : {
             depositX : 2
@@ -57,7 +56,7 @@ function startGame (deposit) {
     console.log('connect result:', connected)
     console.log('connect info:', info)
     if (!connected) return
-      
+
     let maxbet = DCLib.Utils.dec2bet(info.channel.player_deposit)
 
     $('#user_bet')[0].max = Math.ceil(maxbet)
@@ -68,7 +67,6 @@ function startGame (deposit) {
 }
 
 function callDAppFunc (user_bet, user_num) {
-
   const random_hash = DCLib.randomHash({bet:user_bet, gamedata:[user_num]})
 
   MyDApp.Game(user_bet, user_num, random_hash)
@@ -116,7 +114,6 @@ function initView (callbacks) {
   $('body').addClass('cur-step-1')
   $('#loading').hide()
   $('#content').show()
-
 
   $('.step-1 form').on('submit', function (e) {
     e.preventDefault()
@@ -166,4 +163,3 @@ function renderGames (history) {
 
   $('#games_list').html(ghtml)
 }
-

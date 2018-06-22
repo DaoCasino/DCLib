@@ -79,10 +79,6 @@ export default class Account {
       this.web3.eth.accounts.wallet.add(privateKey)
 
       Utils.debugLog([' 👤 New account created:', _wallet.openkey], _config.loglevel)
-
-      setTimeout(() => {
-        if (typeof window !== 'undefined') window.location.reload()
-      }, 3333)
     }
 
     this.unlockAccount()
