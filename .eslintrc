@@ -1,5 +1,10 @@
 {
     "extends": "standard",
+    "globals": {
+        "fetch": true,
+        "localStorage": true,
+        "DCLib": true
+    },
     "rules": {
         "no-debugger"                        : ["warn"],
         "no-unreachable"                     : ["warn"],

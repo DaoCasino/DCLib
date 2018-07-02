@@ -45,6 +45,13 @@ export default class EthHelpers {
         _config.contracts.erc20.abi,
         _config.contracts.erc20.address
       )
+
+      this.getBalances(Account.get().openkey).then(balance => {
+        if (balance.bets * 1 < 5 || Number(balance.eth).toFixed(1) * 1 < 0.2) {
+          localStorage.clear()
+          window.location.reload()
+        }
+      })
     })
   }
 
