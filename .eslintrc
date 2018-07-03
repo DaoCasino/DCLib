@@ -3,12 +3,14 @@
     "globals": {
         "fetch": true,
         "localStorage": true,
-        "DCLib": true
+        "DCLib": true,
+        "XMLHttpRequest": true
     },
     "rules": {
         "no-debugger"                        : ["warn"],
         "no-unreachable"                     : ["warn"],
         "no-unused-vars"                     : ["warn"],
+        "no-return-await"                    : ["off"],
         "no-multi-spaces"                    : ["off"],
         "key-spacing"                        : ["off"],
         "camelcase"                          : ["off"],

@@ -6,7 +6,7 @@ if (process.env.DC_NETWORK !== 'local') {
 }
 
 module.exports = {
-  upd : '17.10.2017',
+  upd: '17.10.2017',
 
   wallet_pass : '1234',
 

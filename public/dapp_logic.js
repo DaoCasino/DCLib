@@ -1,5 +1,5 @@
 /* global DCLib */
-DCLib.defineDAppLogic('dicetest_v42', function (payChannel) {
+DCLib.defineDAppLogic('dicetest_v32', function (payChannel) {
   const MAX_RAND_NUM = 65535
   const HOUSEEDGE    = 0.02 // 2%
 
@@ -10,8 +10,8 @@ DCLib.defineDAppLogic('dicetest_v42', function (payChannel) {
     userBet = DCLib.Utils.bet2dec(userBet)
     // generate random number
     console.log(random_hash, userBet, MAX_RAND_NUM)
-    const randomNum = DCLib.numFromHash(random_hash, userBet, MAX_RAND_NUM)
-    
+    const randomNum = DCLib.numFromHash(random_hash, 1, MAX_RAND_NUM)
+
     let profit = -userBet
     // if user win
     if (userNum >= randomNum) {

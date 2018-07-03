@@ -52,6 +52,7 @@ export default class DCLib {
   constructor (signal = false) {
     this.version = '0.2.2'
     this.config = _config
+    this.network = process.env.DC_NETWORK
 
     // Add signal
     messaging.upIPFS((signal || _config.signal))
@@ -172,7 +173,8 @@ export default class DCLib {
     if (typeof (new LogicConstructor()).Game !== 'function') {
       throw new Error('DAppsLogic require function "Game"')
     }
-    window.DAppsLogic[dappSlug] = LogicConstructor
+
+    window.DAppsLogic[(process.env.DC_NETWORK !== 'local') ? dappSlug : `${dappSlug}_dev`] = LogicConstructor
   }
 
   /**

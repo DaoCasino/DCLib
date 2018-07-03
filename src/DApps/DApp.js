@@ -92,14 +92,15 @@ export default class DApp {
       throw new Error('slug option is required')
     }
 
-    if (!window.DAppsLogic[params.slug] || !window.DAppsLogic[params.slug]) {
+    this.slug = (!process.env.DC_NETWORK || process.env.DC_NETWORK !== 'local')
+      ? params.slug : `${params.slug}_dev`
+
+    if (!window.DAppsLogic || !window.DAppsLogic[this.slug]) {
       throw new Error('Cant find DApp logic')
     }
 
-    let logic = window.DAppsLogic[params.slug]
+    let logic = window.DAppsLogic[this.slug]
     /** DApp name */
-    this.slug  = params.slug
-    this.code  = params.slug
     this.rules = params.rules
     /** @ignore */
     this.hash = Utils.checksum(this.slug)
@@ -112,14 +113,17 @@ export default class DApp {
       this.debug = params.debug
     }
 
+    this.contract_address = false
     /** Add contract's */
-    if (params.contract) {
+    if (params.contract && process.env.DC_NETWORK !== 'local') {
       this.contract_address = params.contract.address
       this.contract_abi     = params.contract.abi
     } else {
-      this.contract_address = _config.contracts.paychannel.address
-      this.contract_abi     = _config.contracts.paychannel.abi
+      const contract = Utils.LocalGameContract(_config.contracts.paychannelContract)
+      this.contract_address = contract.address
+      this.contract_abi     = JSON.parse(contract.abi)
     }
+
     this.web3 = web3
     this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
 

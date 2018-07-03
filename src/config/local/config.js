@@ -30,6 +30,7 @@ module.exports = {
   tx_confirmations:0,
 
   contracts: {
+    paychannelContract: 'http://127.0.0.1:8181/?get=contract&name=Dice',
     erc20: {
       address: ERC20.address,
       abi: JSON.parse(ERC20.abi)

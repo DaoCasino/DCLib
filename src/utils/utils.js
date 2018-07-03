@@ -27,6 +27,18 @@ export const debugLog = function (data, loglevel = _config.loglevel, enable = tr
   return log(data)
 }
 
+export const LocalGameContract = (url) => {
+  const xhr = new XMLHttpRequest()
+  xhr.open('GET', url, false)
+  xhr.send()
+
+  if (xhr.status === 200) {
+    return JSON.parse(xhr.responseText)
+  } else {
+    throw new Error('Bad JSON response')
+  }
+}
+
 /**
  * Convert BET from decimal, to "human" format, ex: 110000000 = 1.1BET
  * @param  {number} bets
