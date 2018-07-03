@@ -2,7 +2,7 @@ import _config    from './config/config'
 import * as Utils from './utils/utils'
 import EE         from 'event-emitter'
 import Api        from './API/Api'
-
+import Rollbar    from 'rollbar'
 import EthHelpers from './Eth/helpers'
 import Account    from './Eth/Account'
 import DApp       from './DApps/DApp'
@@ -53,6 +53,10 @@ export default class DCLib {
     this.version = '0.2.2'
     this.config = _config
     this.network = process.env.DC_NETWORK
+
+    if (window.location.hash === 'showcase.dao.casino') {
+      window.Rollbar = this.rollbarInit('1561ff6cec5043c287122e7d15e7902b')
+    }
 
     // Add signal
     messaging.upIPFS((signal || _config.signal))
@@ -156,6 +160,25 @@ export default class DCLib {
     }
   }
 
+  rollbarInit (token = false) {
+    if (!token) {
+      Utils.debugLog('Not token', _config.loglevel)
+
+      return
+    }
+
+    Utils.debugLog('HandlStart', _config.loglevel)
+
+    return new Rollbar({
+      accessToken: token,
+      captureUncaught: true,
+      captureUnhandledRejections: true,
+      payload: {
+        environment: 'production'
+      }
+    })
+  }
+
   /**
      * Define DApp logic constructor function
      *
@@ -174,7 +197,7 @@ export default class DCLib {
       throw new Error('DAppsLogic require function "Game"')
     }
 
-    window.DAppsLogic[(process.env.DC_NETWORK !== 'local') ? dappSlug : `${dappSlug}_dev`] = LogicConstructor
+    window.DAppsLogic[(!process.env.DC_NETWORK || process.env.DC_NETWORK !== 'local') ? dappSlug : `${dappSlug}_dev`] = LogicConstructor
   }
 
   /**

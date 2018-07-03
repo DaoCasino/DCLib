@@ -29,6 +29,14 @@ module.exports = {
 
   tx_confirmations:0,
 
+  rollbar: {
+    accessToken: '1561ff6cec5043c287122e7d15e7902b',
+    captureUncaught: true,
+    payload: {
+      environment: 'production'
+    }
+  },
+
   contracts: {
     paychannelContract: 'http://127.0.0.1:8181/?get=contract&name=Dice',
     erc20: {
