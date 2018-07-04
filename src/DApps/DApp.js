@@ -202,7 +202,8 @@ export default class DApp {
       const connection = await this.request({
         action  : 'connect',
         slug    : this.slug,
-        address : bankroller_address
+        address : bankroller_address,
+        player  : Account.get().openkey
       }, false, this.sharedRoom, false)
 
       if (!connection.id) {
@@ -216,6 +217,7 @@ export default class DApp {
       if (this.debug) Utils.debugLog(['🔗 Connection established ', connection], _config.loglevel)
       this.Status.emit('connect::info', {status: 'connected', data: {connection: connection}})
 
+      await this.sharedRoom.channel.leave()
       this.Room = new messaging.RTC(
         Account.get().openkey,
         this.hash + '_' + connection.id,

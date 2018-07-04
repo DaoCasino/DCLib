@@ -21,7 +21,7 @@
   ],
   "main": "./src/index.js",
   "dependencies": {
-    "dc-messaging": "github:DaoCasino/dc-messaging",
+    "dc-messaging": "github:DaoCasino/dc-messaging#develop",
     "dexie": "^2.0.3",
     "dexie-observable": "^1.0.0-beta.4",
     "event-emitter": "^0.3.5",
