@@ -36,8 +36,11 @@ export default class Account {
     /**
      * @ignore
      */
-
-    this.web3 = new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
+    if (_config.wss_url) {
+      this.web3 = new WEB3(new WEB3.providers.WebsocketProvider(_config.wss_url))
+    } else {
+      this.web3 = new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
+    }
 
     // Init ERC20 contract
     this._ERC20 = new this.web3.eth.Contract(
