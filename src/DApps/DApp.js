@@ -114,18 +114,9 @@ export default class DApp {
     }
 
     this.contract_address = false
-    /** Add contract's */
-    if (params.contract && process.env.DC_NETWORK !== 'local') {
-      this.contract_address = params.contract.address
-      this.contract_abi     = params.contract.abi
-    } else {
-      const contract = Utils.LocalGameContract(_config.contracts.paychannelContract)
-      this.contract_address = contract.address
-      this.contract_abi     = JSON.parse(contract.abi)
-    }
 
     this.web3 = web3
-    this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
+    this.contractInit(params)
 
     this.web3.eth.defaultAccount = Account.get().openkey
 
@@ -137,6 +128,21 @@ export default class DApp {
     /** @ignore */
     this.Status       = new EC()
     this.info_channel = EE()
+  }
+
+  async contractInit (params) {
+    if (params.contract &&
+      (process.env.DC_NETWORK !== 'local' ||
+      process.env.DC_NETWORK === 'stage')) {
+      this.contract_address = params.contract.address
+      this.contract_abi     = params.contract.abi
+    } else {
+      const contract = await Utils.LocalGameContract(_config.contracts.paychannelContract)
+      this.contract_address = contract.address
+      this.contract_abi     = JSON.parse(contract.abi)
+    }
+
+    this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
   }
 
   /**

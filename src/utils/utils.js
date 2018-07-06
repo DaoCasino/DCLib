@@ -27,15 +27,12 @@ export const debugLog = function (data, loglevel = _config.loglevel, enable = tr
   return log(data)
 }
 
-export const LocalGameContract = (url) => {
-  const xhr = new XMLHttpRequest()
-  xhr.open('GET', url, false)
-  xhr.send()
-
-  if (xhr.status === 200) {
-    return JSON.parse(xhr.responseText)
-  } else {
-    throw new Error('Bad JSON response')
+export const LocalGameContract = async url => {
+  try {
+    const data = await fetch(url)
+    return await data.json()
+  } catch (err) {
+    throw new Error(err)
   }
 }
 
