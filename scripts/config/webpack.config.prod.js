@@ -118,12 +118,12 @@ let webpack_prod_config = {
       {
         test: /\.worker\.js$/,
         loader: 'worker-loader',
-        options: { 
+        options: {
           // name: '../dist/[name].js',
-          inline: true 
+          inline: true
         }
       },
-      
+
       // Disable require.ensure as it's not a standard language feature.
       // We are waiting for https://github.com/facebookincubator/create-react-app/issues/2176.
       { parser: { requireEnsure: false } },
@@ -237,7 +237,7 @@ let webpack_prod_config = {
   },
 
   plugins: [
-	 	new BundleAnalyzerPlugin(rootdir + '/size-report.txt'),
+	 	// new BundleAnalyzerPlugin(rootdir + '/size-report.txt'),
 
     // Makes some environment variables available in index.html.
     // The public URL is available as %PUBLIC_URL% in index.html, e.g.:

@@ -197,7 +197,11 @@ export default class DCLib {
       throw new Error('DAppsLogic require function "Game"')
     }
 
-    window.DAppsLogic[(!process.env.DC_NETWORK || process.env.DC_NETWORK !== 'local') ? dappSlug : `${dappSlug}_dev`] = LogicConstructor
+    window.DAppsLogic[
+      (!process.env.DC_NETWORK ||
+        process.env.DC_NETWORK !== 'local' ||
+        process.env.DC_NETWORK === 'stage'
+      ) ? dappSlug : `${dappSlug}_dev`] = LogicConstructor
   }
 
   /**
