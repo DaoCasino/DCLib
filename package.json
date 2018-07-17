@@ -5,6 +5,7 @@
   "author": "DAO casino team <team@dao.casino>",
   "private": false,
   "scripts": {
+    "postinstall": "bash ./postinstall.sh",
     "commit": "git-cz",
     "start": "DC_NETWORK=local PORT=9876 node scripts/start.js",
     "start_ropsten": "DC_NETWORK=ropsten PORT=3001 node scripts/start.js",
