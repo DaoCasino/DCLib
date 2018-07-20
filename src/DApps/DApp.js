@@ -123,7 +123,9 @@ export default class DApp {
     /** @ignore */
     this.Room = false
     /** @ignore */
-    this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
+    setTimeout(() => {
+      this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
+    }, 1000)
 
     /** @ignore */
     this.Status       = new EC()
