@@ -114,6 +114,7 @@ export default class DApp {
     }
 
     this.contract_address = false
+    this.maxDeposit = 0
 
     this.web3 = web3
     this.contractInit(params)
@@ -125,6 +126,7 @@ export default class DApp {
     /** @ignore */
     setTimeout(() => {
       this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
+      this.findTheMaxBalance()
     }, 1000)
 
     /** @ignore */
@@ -882,6 +884,27 @@ export default class DApp {
      *
      * @memberOf DApp
      */
+
+  findTheMaxBalance () {
+    let repeat        = 0
+    let reduceDeposit = 0
+
+    const checkBalance = data => {
+      if (repeat < 10) {
+        reduceDeposit = (reduceDeposit < data.deposit)
+          ? data.deposit
+          : reduceDeposit
+
+        this.maxDeposit = reduceDeposit / 2
+        repeat++
+      } else {
+        this.sharedRoom.off('action::bankroller_active', checkBalance)
+      }
+    }
+
+    this.sharedRoom.on('action::bankroller_active', checkBalance)
+  }
+
   findBankroller (deposit = false) {
     // if (window.DC_DEMO_MODE) {
     //   return new Promise(resolve=>{resolve('0xDEMOMODE000000000000000000')})
@@ -901,6 +924,7 @@ export default class DApp {
           status: 'bankrollerInfo',
           data: data
         })
+        console.log(data)
 
         if (deposit && data.deposit < deposit) {
           return
