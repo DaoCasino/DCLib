@@ -44,7 +44,7 @@ export const LocalGameContract = async url => {
  */
 export function dec2bet (val, r = 2) {
   if (!val) return 0
-  let n = web3_utils.fromWei(val + '')
+  let n = web3_utils.fromWei(numToHex(val))
   return (+n).toFixed(r)
 }
 
