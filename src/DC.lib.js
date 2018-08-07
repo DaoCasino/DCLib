@@ -1,3 +1,5 @@
+/* global DCLIB_CONFIG */
+
 import _config    from './config/config'
 import * as Utils from './utils/utils'
 import EE         from 'event-emitter'
@@ -32,6 +34,7 @@ const Event = new EC()
  */
 let _ready = false
 
+
 /**
  * Base class in global namespace.
  *
@@ -53,6 +56,10 @@ export default class DCLib {
     this.version = '0.2.2'
     this.config = _config
     this.network = process.env.DC_NETWORK
+
+    if (typeof DCLIB_CONFIG === 'object') {
+      this.config = Object.assign(_config, DCLIB_CONFIG)
+    }
 
     if (window.location.hash === 'showcase.dao.casino') {
       window.Rollbar = rollbar.init({
