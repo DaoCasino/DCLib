@@ -107,7 +107,14 @@ export default class DCLib {
       }
 
       Event.emit('ready')
+
       _ready = true
+
+      if (typeof document !== 'undefined') {
+        let event = document.createEvent('Event')
+        event.initEvent('DCLib::ready', true, true)
+        document.dispatchEvent(event)
+      }
     })
 
     /**
