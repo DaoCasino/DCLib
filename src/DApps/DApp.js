@@ -1,3 +1,4 @@
+/* global CustomEvent */
 import _config         from '../config/config'
 import * as messaging  from 'dc-messaging'
 import EthHelpers      from '../Eth/helpers'
@@ -130,8 +131,18 @@ export default class DApp {
     }, 1000)
 
     /** @ignore */
-    this.Status       = new EC()
-    this.info_channel = EE()
+    const SE = new EC()
+    this.Status = {
+      emit (event_name, data) {
+        SE.emit(event_name, data)
+        if (typeof document !== 'undefined') {
+          document.dispatchEvent((new CustomEvent('DCLib::' + event_name, {detail:data})))
+        }
+      },
+      on (action, callback) {
+        return SE.on(action, callback)
+      }
+    }
   }
 
   async contractInit (params) {

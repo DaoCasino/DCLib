@@ -1,4 +1,4 @@
-/* global DCLIB_CONFIG */
+/* global DCLIB_CONFIG CustomEvent */
 
 import _config    from './config/config'
 import * as Utils from './utils/utils'
@@ -27,13 +27,12 @@ const EC = function () {}; EE(EC.prototype)
 /**
  * @ignore
  */
-const Event = new EC()
+const E = new EC()
 
 /**
  * @ignore
  */
 let _ready = false
-
 
 /**
  * Base class in global namespace.
@@ -90,7 +89,7 @@ export default class DCLib {
      */
     this.Eth = Eth
 
-    Event.on('_ready', () => {
+    E.on('_ready', () => {
       /* globals localStorage */
       if (typeof localStorage.requestBets === 'undefined') {
         localStorage.requestBets = true
@@ -106,21 +105,19 @@ export default class DCLib {
         })
       }
 
-      Event.emit('ready')
+      E.emit('ready')
 
       _ready = true
 
       if (typeof document !== 'undefined') {
-        let event = document.createEvent('Event')
-        event.initEvent('DCLib::ready', true, true)
-        document.dispatchEvent(event)
+        document.dispatchEvent((new CustomEvent('DCLib::ready', {detail:this.config})))
       }
     })
 
     /**
      * Account instance
      */
-    this.Account = new Account(_config, () => setTimeout(() => Event.emit('_ready'), 1))
+    this.Account = new Account(_config, () => setTimeout(() => E.emit('_ready'), 1))
 
     /**
      * WEB3 version 1.0  instance
@@ -207,7 +204,7 @@ export default class DCLib {
   }
 
   /**
-  * Callback for triger DClib event.
+  * Callback for triger DClib e.
   *
   * @callback eventCallback
   */
@@ -224,7 +221,7 @@ export default class DCLib {
    */
   on (event, callback) {
     if (_ready) callback(_ready)
-    Event.on(event, callback)
+    E.on(event, callback)
   }
 
   /**
