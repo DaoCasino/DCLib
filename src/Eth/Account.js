@@ -51,7 +51,7 @@ export default class Account {
     callback()
   }
 
-  async create (privateKey = false, password) {
+  create (privateKey = false, password) {
     password = (password || this._config.wallet_pass).toString()
 
     const account = (privateKey)
@@ -64,6 +64,8 @@ export default class Account {
         password
       )
     ))
+
+    Utils.debugLog([' 👤 New account created:', account.address])
   }
 
   async initAccount (callback = false) {
