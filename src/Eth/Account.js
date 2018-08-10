@@ -51,6 +51,21 @@ export default class Account {
     callback()
   }
 
+  async create (privateKey = false, password) {
+    password = (password || this._config.wallet_pass).toString()
+
+    const account = (privateKey)
+      ? this.web3.eth.accounts.privateKeyToAccount(privateKey)
+      : this.web3.eth.accounts.create(password)
+
+    Store.setItem('ethwallet', JSON.stringify(
+      this.web3.eth.accounts.encrypt(
+        account.privateKey,
+        password
+      )
+    ))
+  }
+
   async initAccount (callback = false) {
     const ethwallet = Store.getItem('ethwallet')
 
