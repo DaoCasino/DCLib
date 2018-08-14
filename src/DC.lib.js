@@ -56,10 +56,6 @@ export default class DCLib {
     this.config = _config
     this.network = process.env.DC_NETWORK
 
-    if (typeof DCLIB_CONFIG === 'object') {
-      this.config = Object.assign(_config, DCLIB_CONFIG)
-    }
-
     if (window.location.hash === 'showcase.dao.casino') {
       window.Rollbar = rollbar.init({
         accessToken: '1561ff6cec5043c287122e7d15e7902b',
