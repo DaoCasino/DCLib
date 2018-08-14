@@ -47,7 +47,7 @@ export default class EthHelpers {
       )
 
       this.getBalances(Account.get().openkey).then(balance => {
-        const getAccount = JSON.parse(localStorage.getItem('statusGetAccfromFaucet'))
+        const getAccount = JSON.parse(localStorage.getItem('statusGetAccfromFaucet')) || {}
 
         if ((balance.bets * 1 < 5 || Number(balance.eth).toFixed(1) * 1 < 0.2) &&
           !getAccount.error && getAccount.error === 'undefined'
