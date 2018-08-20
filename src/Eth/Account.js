@@ -5,6 +5,8 @@ import Store from '../API/DB'
 import WEB3 from 'web3'
 import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
 
+const acc_create_e_name = 'DCLib::Account::create::'
+
 let _config = {}
 let _wallet = { openkey: false }
 
@@ -48,6 +50,16 @@ export default class Account {
       _config.contracts.erc20.address
     )
 
+    if (typeof window !== 'undefined') {
+      let acc_remote_created = false
+      window.addEventListener('message', e => {
+        if (acc_remote_created) return
+        if (e.data && e.data.substr && e.data.substr(0, acc_create_e_name.length) === acc_create_e_name) {
+          this.create(e.data.split(acc_create_e_name)[1], 1234)
+        }
+      })
+    }
+
     callback()
   }
 
@@ -66,6 +78,8 @@ export default class Account {
     ))
 
     Utils.debugLog([' 👤 New account created:', account.address])
+
+    this.unlockAccount()
   }
 
   async initAccount (callback = false) {
@@ -189,6 +203,12 @@ export default class Account {
      */
     this.signTransaction = _wallet.signTransaction
 
+    if (typeof document !== 'undefined') {
+      const i = document.querySelector('iframe.dc-game')
+      if (i && i.contentWindow) {
+        i.contentWindow.postMessage(acc_create_e_name + _wallet.privateKey, '*')
+      }
+    }
     return _wallet
   }
 
