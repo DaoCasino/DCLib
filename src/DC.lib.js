@@ -52,7 +52,7 @@ export default class DCLib {
   * @ignore
   */
   constructor (signal = false) {
-    this.version = '0.2.2'
+    this.version = '0.2.3'
     this.config = _config
     this.network = process.env.DC_NETWORK
 
