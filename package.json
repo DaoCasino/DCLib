@@ -11,7 +11,7 @@
     "start_ropsten": "DC_NETWORK=ropsten PORT=3001 node scripts/start.js",
     "build": "DC_NETWORK=ropsten node scripts/build.js",
     "build:local": "DC_NETWORK=local node scripts/build.js",
-    "lint": "eslint --ext=.js,.tag ./src ./test",
+    "lint": "eslint ./src ./test",
     "_test": "npm run lint && DC_NETWORK=local karma start",
     "test": "DC_NETWORK=local karma start",
     "release": "release-it",
@@ -21,8 +21,10 @@
   "keywords": [
     "DCLib"
   ],
-  "pre-commit": {
-    "run": ["lint"]
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
   },
   "main": "./src/index.js",
   "dependencies": {
@@ -73,7 +75,7 @@
     "fs-extra": "3.0.1",
     "gh-pages": "^1.1.0",
     "html-webpack-plugin": "2.28.0",
-    "husky": "^0.15.0-rc.8",
+    "husky": "1.0.0-rc.13",
     "karma": "^2.0.0",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^2.2.0",
