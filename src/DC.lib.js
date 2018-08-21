@@ -51,9 +51,10 @@ export default class DCLib {
   /**
   * @ignore
   */
-  constructor (config) {
-    this.version = '0.2.2'
-    this.config  = Object.assign(_config, config)
+
+  constructor (signal = false) {
+    this.version = '0.2.3'
+    this.config = _config
     this.network = process.env.DC_NETWORK
 
     if (window.location.hash === 'showcase.dao.casino') {
@@ -68,7 +69,7 @@ export default class DCLib {
     }
 
     // Add signal
-    messaging.upIPFS((config.signal || _config.signal))
+    messaging.upIPFS((_config.signal || _config.signal))
 
     /**
     * little utilities
