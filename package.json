@@ -14,6 +14,7 @@
     "lint": "eslint --ext=.js,.tag ./src ./test",
     "_test": "npm run lint && DC_NETWORK=local karma start",
     "test": "DC_NETWORK=local karma start",
+    "precommit": "npm run lint",
     "release": "release-it",
     "docs:serve": "documentation serve --watch src/index.js",
     "docs": "rimraf docs/* && documentation build src/index.js -f html -o docs && gh-pages -d docs"
