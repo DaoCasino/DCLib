@@ -89,35 +89,33 @@ export default class DApp {
    * @ignore
    */
   constructor (params) {
-    if (!params.slug) {
+    this.slug  = params.slug
+    this.rules = params.rules
+
+    if (!this.slug) {
       throw new Error('slug option is required')
     }
-
-    this.slug = (!process.env.DC_NETWORK || process.env.DC_NETWORK !== 'local')
-      ? params.slug : `${params.slug}_dev`
 
     if (!window.DAppsLogic || !window.DAppsLogic[this.slug]) {
       throw new Error('Cant find DApp logic')
     }
 
     let logic = window.DAppsLogic[this.slug]
-    /** DApp name */
-    this.rules = params.rules
     /** @ignore */
-    this.hash = Utils.checksum(this.slug)
+    this.hash   = Utils.checksum(this.slug)
+    this.debug  = true
     /** DApp logic */
     this.logic  = payChannelWrap(logic)
     this.Crypto = new PromiseWorker(new CryptoWorker())
-    this.debug = true
 
     if (typeof params.debug !== 'undefined') {
       this.debug = params.debug
     }
 
     this.contract_address = false
-    this.maxDeposit = 0
+    this.maxDeposit       = 0
+    this.web3             = web3
 
-    this.web3 = web3
     this.contractInit(params)
 
     this.web3.eth.defaultAccount = Account.get().openkey
@@ -145,16 +143,13 @@ export default class DApp {
     }
   }
 
-  async contractInit (params) {
-    if (params.contract &&
-      (process.env.DC_NETWORK !== 'local' ||
-      process.env.DC_NETWORK === 'stage')) {
+  contractInit (params) {
+    if (params.contract) {
       this.contract_address = params.contract.address
       this.contract_abi     = params.contract.abi
     } else {
-      const contract = await Utils.LocalGameContract(_config.contracts.paychannelContract)
-      this.contract_address = contract.address
-      this.contract_abi     = JSON.parse(contract.abi)
+      this.contract_address = _config.contracts.paychannel.address
+      this.contract_abi     = JSON.parse(_config.contracts.paychannel.abi)
     }
 
     this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)

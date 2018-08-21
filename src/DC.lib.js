@@ -51,9 +51,9 @@ export default class DCLib {
   /**
   * @ignore
   */
-  constructor (signal = false) {
+  constructor (config) {
     this.version = '0.2.2'
-    this.config = _config
+    this.config  = Object.assign(_config, config)
     this.network = process.env.DC_NETWORK
 
     if (window.location.hash === 'showcase.dao.casino') {
@@ -68,7 +68,7 @@ export default class DCLib {
     }
 
     // Add signal
-    messaging.upIPFS((signal || _config.signal))
+    messaging.upIPFS((config.signal || _config.signal))
 
     /**
     * little utilities
@@ -192,11 +192,7 @@ export default class DCLib {
       throw new Error('DAppsLogic require function "Game"')
     }
 
-    window.DAppsLogic[
-      (!process.env.DC_NETWORK ||
-        process.env.DC_NETWORK !== 'local' ||
-        process.env.DC_NETWORK === 'stage'
-      ) ? dappSlug : `${dappSlug}_dev`] = LogicConstructor
+    window.DAppsLogic[dappSlug] = LogicConstructor
   }
 
   /**

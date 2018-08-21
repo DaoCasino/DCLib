@@ -6,6 +6,6 @@
    - написать UI кошелька
 */
 
-import DCLib   from './DC.lib.js'
-window.DCLib = new DCLib()
-export default window.DCLib
+import DCLib from './DC.lib.js'
+// window.DCLib = new DCLib()
+export default DCLib

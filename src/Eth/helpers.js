@@ -1,7 +1,7 @@
 import _config from '../config/config'
 import Acc from './Account'
 import * as Utils from '../utils/utils'
-import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
+import {sign as signHash} from 'eth-lib/lib/account.js'
 
 /**
  * @ignore

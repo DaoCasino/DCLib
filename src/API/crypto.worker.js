@@ -3,7 +3,7 @@ import _config            from '../config/config'
 import promiseWorker      from 'promise-worker/register'
 import Acc                from '../Eth/Account'
 import * as Utils         from '../utils/utils'
-import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
+import {sign as signHash} from 'eth-lib/lib/account.js'
 
 const Account = new Acc(_config, () => {}, false)
 const web3    = Account.web3

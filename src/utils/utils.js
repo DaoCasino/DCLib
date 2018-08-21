@@ -1,7 +1,7 @@
 import debug   from 'debug'
 import _config from '../config/config'
 
-const web3_utils = require('web3-utils/src/')
+const web3_utils = require('web3-utils')
 // const web3sha3 = require('web3-utils/src/soliditySha3.js')
 
 export const sha3 = web3_utils.soliditySha3

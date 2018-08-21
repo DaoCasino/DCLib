@@ -1,15 +1,13 @@
 let config
 
 if (process.env.DC_NETWORK === 'local') {
-  config = require('./local/config')
+  config = (typeof window.DCLIB_CONFIG !== 'object')
+    ? require('./local/config')
+    : Object.assign(require('./local/config'), window.DCLIB_CONFIG)
 }
 
 if (!process.env.DC_NETWORK || process.env.DC_NETWORK === 'ropsten') {
   config = require('./ropsten/config')
-}
-
-if (typeof DCLIB_CONFIG === 'object') {
-  config = Object.assign(config, DCLIB_CONFIG)
 }
 
 module.exports = config

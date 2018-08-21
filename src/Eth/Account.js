@@ -3,7 +3,7 @@ import conf from '../config/config'
 import * as Utils from '../utils/utils'
 import Store from '../API/DB'
 import WEB3 from 'web3'
-import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
+import {sign as signHash} from 'eth-lib/lib/account.js'
 
 let _config = {}
 let _wallet = { openkey: false }
@@ -43,7 +43,7 @@ export default class Account {
     }
 
     // Init ERC20 contract
-    this._ERC20 = new this.web3.eth.Contract(
+    this._ERC20 = (_config.contracts) && new this.web3.eth.Contract(
       _config.contracts.erc20.abi,
       _config.contracts.erc20.address
     )

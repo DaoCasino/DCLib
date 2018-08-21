@@ -69,11 +69,15 @@ let webpack_prod_config = {
   output: {
     // The build folder.
     path: paths.appBuild,
+    library: 'DCLib',
+    libraryExport: "default",
+    libraryTarget: 'umd',
+    umdNamedDefine: true,
 
     // Generated JS file names (with nested folders).
     // There will be one main bundle, and one file per asynchronous chunk.
     // We don't currently advertise code splitting but Webpack supports it.
-    filename: '../dist/DC.js',
+    filename: '../../../../SDK/dapp/static/lib/DC.js',
     chunkFilename: '../dist/DC.[chunkhash:8].chunk.js',
 
     // We inferred the "public path" (such as / or /my-project) from homepage.

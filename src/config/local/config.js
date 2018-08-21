@@ -1,15 +1,5 @@
 
 /* global XMLHttpRequest */
-
-let ERC20
-const xhr = new XMLHttpRequest()
-xhr.open('GET', 'http://127.0.0.1:8181/?get=contract&name=ERC20', false)
-xhr.send()
-
-if (xhr.status === 200) {
-  ERC20 = JSON.parse(xhr.responseText)
-}
-
 module.exports = {
   upd : '17.10.2017',
 
@@ -34,14 +24,6 @@ module.exports = {
     captureUncaught: true,
     payload: {
       environment: 'production'
-    }
-  },
-
-  contracts: {
-    paychannelContract: 'http://127.0.0.1:8181/?get=contract&name=Dice',
-    erc20: {
-      address: ERC20.address,
-      abi: JSON.parse(ERC20.abi)
     }
   },
 
