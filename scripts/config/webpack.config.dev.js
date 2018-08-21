@@ -1,6 +1,5 @@
 'use strict'
 
-const autoprefixer                  = require('autoprefixer')
 const path                          = require('path')
 const webpack                       = require('webpack')
 const HtmlWebpackPlugin             = require('html-webpack-plugin')
@@ -166,28 +165,6 @@ let webpack_dev_config = {
         }
       },
 
-      // SVG loader
-      // https://github.com/webpack-contrib/svg-inline-loader
-      // load svg as plain/html
-      // example usage:
-      //  import myiconhtml from '../icons/myicon.svg'
-      //  this.root.innerHTML = require('../../icons/' + this.opts.src)
-      {
-        test: /\.svg$/,
-        loader: 'svg-inline-loader'
-      },
-
-      // "url" loader works like "file" loader except that it embeds assets
-      // smaller than specified limit in bytes as data URLs to avoid requests.
-      // A missing `test` is equivalent to a match.
-      {
-        test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
-        loader: require.resolve('url-loader'),
-        options: {
-          limit: 10000,
-          name: 'static/media/[name].[hash:8].[ext]'
-        }
-      },
 
       // Process JS with Babel.
       {
@@ -209,41 +186,7 @@ let webpack_dev_config = {
         }
       },
 
-      // "postcss" loader applies autoprefixer to our CSS.
-      // "css" loader resolves paths in CSS and adds assets as dependencies.
-      // "style" loader turns CSS into JS modules that inject <style> tags.
-      // In production, we use a plugin to extract that CSS to a file, but
-      // in development "style" loader enables hot editing of CSS.
-      {
-        test: /\.css$/,
-        use: [
-          require.resolve('style-loader'),
-          {
-            loader: require.resolve('css-loader'),
-            options: {
-              importLoaders: 1
-            }
-          },
-          {
-            loader: require.resolve('postcss-loader'),
-            options: {
-              ident: 'postcss', // https://webpack.js.org/guides/migrating/#complex-options
-              plugins: () => [
-                require('postcss-flexbugs-fixes'),
-                autoprefixer({
-                  browsers: [
-                    '>1%',
-                    'last 4 versions',
-                    'Firefox ESR',
-                    'not ie < 9' // React doesn't support IE8 anyway
-                  ],
-                  flexbox: 'no-2009'
-                })
-              ]
-            }
-          }
-        ]
-      }
+
 
       // ** STOP ** Are you adding a new loader?
       // Remember to add the new extension(s) to the "file" loader exclusion list.
@@ -309,19 +252,5 @@ let webpack_dev_config = {
   }
 }
 
-// LESS loader
-if (process.env.enable_less) {
-  webpack_dev_config.module.rules.push({
-    test: /\.less$/,
-    use: [
-      // creates style nodes from JS strings
-      { loader: 'style-loader' },
-      // translates CSS into CommonJS
-      { loader: 'css-loader'   },
-      // compiles Less to CSS
-      { loader: 'less-loader'  }
-    ]
-  })
-}
 
 module.exports = webpack_dev_config

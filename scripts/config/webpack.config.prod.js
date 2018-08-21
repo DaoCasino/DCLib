@@ -1,6 +1,5 @@
 'use strict'
 
-const autoprefixer            = require('autoprefixer')
 // const fs                      = require('fs')
 const path                    = require('path')
 const webpack                 = require('webpack')
@@ -160,27 +159,6 @@ let webpack_prod_config = {
         }
       },
 
-      // SVG loader
-      // https://github.com/webpack-contrib/svg-inline-loader
-      // load svg as plain/html
-      // example usage:
-      //  import myiconhtml from '../icons/myicon.svg'
-      //  this.root.innerHTML = require('../../icons/' + this.opts.src)
-      {
-        test: /\.svg$/,
-        loader: 'svg-inline-loader'
-      },
-
-      // "url" loader works just like "file" loader but it also embeds
-      // assets smaller than specified size as data URLs to avoid requests.
-      {
-        test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
-        loader: require.resolve('url-loader'),
-        options: {
-          limit: 10000,
-          name: 'static/media/[name].[hash:8].[ext]'
-        }
-      },
 
       // Process JS with Babel.
       {
@@ -195,44 +173,6 @@ let webpack_prod_config = {
     				] }
       },
 
-      {
-        test: /\.css$/,
-        loader: ExtractTextPlugin.extract(Object.assign({
-          fallback: require.resolve('style-loader'),
-          use: [
-            {
-              loader: require.resolve('css-loader'),
-              options: {
-                importLoaders: 1,
-                minimize: true,
-                sourceMap: true
-              }
-            },
-            {
-              loader: require.resolve('postcss-loader'),
-              options: {
-                ident: 'postcss', // https://webpack.js.org/guides/migrating/#complex-options
-                plugins: () => [
-                  require('postcss-flexbugs-fixes'),
-                  autoprefixer({
-                    browsers: [
-                      '>1%',
-                      'last 4 versions',
-                      'Firefox ESR',
-                      'not ie < 9' // React doesn't support IE8 anyway
-                    ],
-                    flexbox: 'no-2009'
-                  })
-                ]
-              }
-            }
-          ]
-        }, extractTextPluginOptions)
-        )
-
-        // Note: this won't work without `new ExtractTextPlugin()` in `plugins`.
-
-      }
 
       // ** STOP ** Are you adding a new loader?
       // Remember to add the new extension(s) to the "file" loader exclusion list.
@@ -318,21 +258,6 @@ let webpack_prod_config = {
     net: 'empty',
     tls: 'empty'
   }
-}
-
-// LESS loader
-if (process.env.enable_less) {
-  webpack_prod_config.module.rules.push({
-    test: /\.less$/,
-    use: [
-      // creates style nodes from JS strings
-      { loader: 'style-loader' },
-      // translates CSS into CommonJS
-      { loader: 'css-loader'   },
-      // compiles Less to CSS
-      { loader: 'less-loader'  }
-    ]
-  })
 }
 
 module.exports = webpack_prod_config
