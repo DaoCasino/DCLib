@@ -1,0 +1,17 @@
+{
+  "provider": {
+    "host": "ipfs.infura.io",
+    "__host": "localhost",
+    "port": "5001",
+    "opts": {
+      "protocol": "https"
+    }
+  },
+  "versions": [
+    {
+      "hash": "QmbRSDHfjv4eFsThWn2ooqWqBqNmuwAcA3vFn9hWrZDRRx",
+      "timestamp": "2018-08-20T11:13:27.433Z"
+    }
+  ],
+  "path": "dist"
+}
