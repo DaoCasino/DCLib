@@ -875,9 +875,8 @@ export default class DApp {
      */
 
   findTheMaxBalance () {
-    let repeat        = 0
-    let reduceDeposit = 0
-
+    let repeat         = 0
+    let reduceDeposit  = 0
     const checkBalance = data => {
       if (repeat < 10) {
         reduceDeposit   = (reduceDeposit < data.deposit) ? data.deposit : reduceDeposit
