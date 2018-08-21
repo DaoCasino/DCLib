@@ -1,3 +1,5 @@
+/* global DCLIB_CONFIG */
+
 let config
 
 if (process.env.DC_NETWORK === 'local') {

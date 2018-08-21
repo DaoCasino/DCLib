@@ -1,4 +1,4 @@
-/* global DCLIB_CONFIG CustomEvent */
+/* global CustomEvent */
 
 import _config    from './config/config'
 import * as Utils from './utils/utils'
