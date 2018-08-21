@@ -45,7 +45,7 @@ let _ready = false
  *
  * @export
  * @class DCLib
- * @version 0.2.2
+ * @version 0.2.3
  */
 export default class DCLib {
   /**
