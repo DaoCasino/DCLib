@@ -29,6 +29,10 @@ const Eth = new EthHelpers()
  * @ignore
  */
 const EC = function () {}; EE(EC.prototype)
+/**
+ * @ignore
+ */
+const SE = new EC()
 
 const channelState = (function () {
   let state = {
@@ -89,47 +93,28 @@ export default class DApp {
    * @ignore
    */
   constructor (params) {
-    this.slug  = params.slug
-    this.rules = params.rules
+    if (!params.slug) throw new Error('slug option is required')
 
-    if (!this.slug) {
-      throw new Error('slug option is required')
-    }
-
-    if (!window.DAppsLogic || !window.DAppsLogic[this.slug]) {
+    if (!window.DAppsLogic || !window.DAppsLogic[params.slug]) {
       throw new Error('Cant find DApp logic')
     }
 
-    let logic = window.DAppsLogic[this.slug]
-    /** @ignore */
-    this.hash   = Utils.checksum(this.slug)
-    this.debug  = true
+    this.slug               = params.slug
+    this.rules              = params.rules
+    this.hash               = Utils.checksum(this.slug)
+    this.debug              = (typeof params.debug !== 'undefined') ? params.debug : false
+    this.maxDeposit         = 0
+    web3.eth.defaultAccount = Account.get().openkey
+
     /** DApp logic */
-    this.logic  = payChannelWrap(logic)
-    this.Crypto = new PromiseWorker(new CryptoWorker())
+    this.logic = payChannelWrap(window.DAppsLogic[this.slug])
 
-    if (typeof params.debug !== 'undefined') {
-      this.debug = params.debug
-    }
-
-    this.contract_address = false
-    this.maxDeposit       = 0
-    this.web3             = web3
+    this.Crypto     = new PromiseWorker(new CryptoWorker())
+    this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
 
     this.contractInit(params)
+    this.findTheMaxBalance()
 
-    this.web3.eth.defaultAccount = Account.get().openkey
-
-    /** @ignore */
-    this.Room = false
-    /** @ignore */
-    setTimeout(() => {
-      this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
-      this.findTheMaxBalance()
-    }, 1000)
-
-    /** @ignore */
-    const SE = new EC()
     this.Status = {
       emit (event_name, data) {
         SE.emit(event_name, data)
@@ -137,9 +122,7 @@ export default class DApp {
           document.dispatchEvent((new CustomEvent('DCLib::' + event_name, {detail:data})))
         }
       },
-      on (action, callback) {
-        return SE.on(action, callback)
-      }
+      on: (action, callback) => SE.on(action, callback)
     }
   }
 
@@ -152,7 +135,7 @@ export default class DApp {
       this.contract_abi     = JSON.parse(_config.contracts.paychannel.abi)
     }
 
-    this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
+    this.PayChannel = new web3.eth.Contract(this.contract_abi, this.contract_address)
   }
 
   /**
@@ -897,10 +880,7 @@ export default class DApp {
 
     const checkBalance = data => {
       if (repeat < 10) {
-        reduceDeposit = (reduceDeposit < data.deposit)
-          ? data.deposit
-          : reduceDeposit
-
+        reduceDeposit   = (reduceDeposit < data.deposit) ? data.deposit : reduceDeposit
         this.maxDeposit = reduceDeposit / 2
         repeat++
       } else {

@@ -3,9 +3,9 @@
 let config
 
 if (process.env.DC_NETWORK === 'local') {
-  config = (typeof window.DCLIB_CONFIG !== 'object')
+  config = (typeof DCLIB_CONFIG !== 'object')
     ? require('./local/config')
-    : Object.assign(require('./local/config'), window.DCLIB_CONFIG)
+    : Object.assign(require('./local/config'), DCLIB_CONFIG)
 }
 
 if (!process.env.DC_NETWORK || process.env.DC_NETWORK === 'ropsten') {
