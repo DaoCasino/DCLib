@@ -58,6 +58,7 @@ const extractTextPluginOptions = shouldUseRelativeAssetPaths
 let webpack_prod_config = {
   // Don't attempt to continue if there are any errors.
   bail: true,
+  mode: 'production',
 
   // We generate sourcemaps in production. This is slow but gives good results.
   // You can exclude the *.map files from the build during deployment.
@@ -75,7 +76,12 @@ let webpack_prod_config = {
     // We don't currently advertise code splitting but Webpack supports it.
     filename: '../dist/DC.js',
     chunkFilename: '../dist/DC.[chunkhash:8].chunk.js',
-
+    
+    library: 'DCLib',
+    libraryTarget: 'umd',
+    libraryExport: 'default',
+    umdNamedDefine: true,
+    globalObject: 'this',
     // We inferred the "public path" (such as / or /my-project) from homepage.
     publicPath: publicPath,
 
