@@ -5,7 +5,7 @@ const path                          = require('path')
 const webpack                       = require('webpack')
 const HtmlWebpackPlugin             = require('html-webpack-plugin')
 const CaseSensitivePathsPlugin      = require('case-sensitive-paths-webpack-plugin')
-const InterpolateHtmlPlugin         = require('react-dev-utils/InterpolateHtmlPlugin')
+const InterpolateHtmlPlugin         = require('interpolate-html-plugin');
 const WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin')
 const eslintFormatter               = require('react-dev-utils/eslintFormatter')
 const ModuleScopePlugin             = require('react-dev-utils/ModuleScopePlugin')
@@ -31,10 +31,11 @@ let htmlReplacements = env.raw
 // It is focused on developer experience and fast rebuilds.
 // The production configuration is different and lives in a separate file.
 let webpack_dev_config = {
+  mode: 'development',
+  target: 'webworker',
   // You may want 'eval' instead if you prefer to see the compiled output in DevTools.
   // See the discussion in https://github.com/facebookincubator/create-react-app/issues/343.
   devtool: 'cheap-module-source-map',
-
   // These are the "entry points" to our application.
   // This means they will be the "root" imports that are included in JS bundle.
   // The first two entry points enable "hot" CSS and auto-refreshes for JS.
@@ -55,7 +56,7 @@ let webpack_dev_config = {
     require.resolve('./polyfills'),
 
     // Errors should be considered fatal in development
-    // require.resolve('react-error-overlay'),
+    require.resolve('react-error-overlay'),
 
     // Finally, this is your app's code:
     paths.appIndexJs
@@ -82,6 +83,12 @@ let webpack_dev_config = {
     // This is the URL that app is served from. We use "/" in development.
     publicPath: publicPath,
 
+    library: 'DCLib',
+    libraryTarget: 'umd',
+    libraryExport: 'default',
+    umdNamedDefine: true,
+    globalObject: 'this',
+
     // Point sourcemap entries to original disk location
     devtoolModuleFilenameTemplate: info => path.resolve(info.absoluteResourcePath)
   },
@@ -102,6 +109,7 @@ let webpack_dev_config = {
     // https://github.com/facebookincubator/create-react-app/issues/290
     extensions: ['.js', '.json', '.tag'],
     alias: {
+      protocol: path.resolve(process.cwd(), './protocol')
     },
     plugins: [
       // Prevents users from importing files from outside of src/ (or node_modules/).
@@ -109,7 +117,7 @@ let webpack_dev_config = {
       // To fix this, we prevent you from importing files out of src/ -- if you'd like to,
       // please link the files into your node_modules/ and let module-resolution kick in.
       // Make sure your source files are compiled, as they will not be processed in any way.
-      new ModuleScopePlugin(paths.appSrc)
+      // new ModuleScopePlugin(paths.appSrc, [paths.appProtocol])
     ]
   },
   module: {
@@ -118,7 +126,15 @@ let webpack_dev_config = {
     rules: [
       {
         test: /\.worker\.js$/,
-        loader: 'worker-loader',
+        exclude: /node_modules/,
+        loader: 'worker-loader'
+      },
+      {
+        test: require.resolve('web3'),
+        use: [{
+          loader: 'expose-loader',
+          options: 'web3'
+        }]
       },
 
       // First, run the linter.
@@ -252,17 +268,16 @@ let webpack_dev_config = {
   },
 
   plugins: [
-    // Makes some environment variables available in index.html.
-    // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
-    // <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-    // In development, this will be an empty string.
-    new InterpolateHtmlPlugin(htmlReplacements),
-
     // Generates an `index.html` file with the <script> injected.
     new HtmlWebpackPlugin({
       inject: true,
       template: paths.appHtml
     }),
+    // Makes some environment variables available in index.html.
+    // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
+    // <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+    // In development, this will be an empty string.    
+    new InterpolateHtmlPlugin(htmlReplacements),
 
     // Add module names to factory functions so they appear in browser profiler.
     new webpack.NamedModulesPlugin(),
@@ -272,7 +287,7 @@ let webpack_dev_config = {
     new webpack.DefinePlugin(env.stringified),
 
     // This is necessary to emit hot updates (currently CSS only):
-    new webpack.HotModuleReplacementPlugin(),
+    // new webpack.HotModuleReplacementPlugin(),
 
     // Watcher doesn't work well if you mistype casing in a path so we use
     // a plugin that prints an error when you attempt to do this.

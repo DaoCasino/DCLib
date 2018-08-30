@@ -1,9 +1,8 @@
 /* global fetch */
-import conf from '../config/config'
-import * as Utils from '../utils/utils'
-import Store from '../API/DB'
-import WEB3 from 'web3'
-import {sign as signHash} from 'web3-eth-accounts/node_modules/eth-lib/lib/account.js'
+import conf        from '../config/config'
+import Store       from '../API/DB'
+import * as Utils  from '../utils/utils'
+import * as ETHLib from 'eth-lib/lib/account.js'
 
 let _config = {}
 let _wallet = { openkey: false }
@@ -28,31 +27,26 @@ export default class Account {
   */
   constructor (config, callback = false) {
     callback = callback || (() => {})
+    _config  = Object.assign(conf, config)
 
-    _config = Object.assign(conf, config)
-    // this._wallet = _wallet
-    this._config = _config
+    if (typeof window !== 'undefined') {
+      const WEB3 = require('web3')
 
-    /**
-     * @ignore
-     */
-    if (_config.wss_url) {
-      this.web3 = new WEB3(new WEB3.providers.WebsocketProvider(_config.wss_url))
-    } else {
-      this.web3 = new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
+      this.web3 = (_config.wss_url)
+        ? new WEB3(new WEB3.providers.WebsocketProvider(_config.wss_url))
+        : new WEB3(new WEB3.providers.HttpProvider(_config.rpc_url))
+
+      this._ERC20 = new this.web3.eth.Contract(
+        _config.contracts.erc20.abi,
+        _config.contracts.erc20.address
+      )
     }
-
-    // Init ERC20 contract
-    this._ERC20 = new this.web3.eth.Contract(
-      _config.contracts.erc20.abi,
-      _config.contracts.erc20.address
-    )
 
     callback()
   }
 
   create (privateKey = false, password) {
-    password = (password || this._config.wallet_pass).toString()
+    password = (password || _config.wallet_pass).toString()
 
     const account = (privateKey)
       ? this.web3.eth.accounts.privateKeyToAccount(privateKey)
@@ -92,7 +86,7 @@ export default class Account {
       await Store.setItem('ethwallet', JSON.stringify(
         this.web3.eth.accounts.encrypt(
           privateKey,
-          this._config.wallet_pass
+          _config.wallet_pass
         )
       ))
 
@@ -171,7 +165,7 @@ export default class Account {
    * @extends {Account}
    */
   unlockAccount (password = false) {
-    password = password || this._config.wallet_pass
+    password = password || _config.wallet_pass
 
     if (!Store.getItem('ethwallet')) return false
 
@@ -181,7 +175,6 @@ export default class Account {
     )
 
     this.web3.eth.accounts.wallet.add(_wallet.privateKey)
-
     _wallet.openkey = _wallet.address
 
     /**
@@ -203,14 +196,12 @@ export default class Account {
    * // method return
    * > "0xd8c226915b298530ee9ede352a1c9fe49f15a78167477e34731e26ccc7f577aa" // PrivateKey
    *
-   * @param {string} [password=false] - user passwod for decrypt privateKey
+   * @param {string} [password = false] - user passwod for decrypt privateKey
    * @returns {string} - Private key for user account
    *
    * @extends {Account}
    */
   exportPrivateKey (password = false) {
-    // if (_wallet.privateKey) return _wallet.privateKey
-
     return this.unlockAccount(password).privateKey
   }
 
@@ -303,7 +294,11 @@ export default class Account {
       console.log('Use DCLib.Utils.makeSeed or Utils.soliditySHA3(your_args) to create valid hash')
     }
 
-    return signHash(hash, Utils.add0x(this.exportPrivateKey()))
+    return ETHLib.sign(hash, Utils.add0x(this.exportPrivateKey()))
+  }
+
+  checkHashSig (rawMsg, signedMsg, needAddress) {
+    return (needAddress.toLowerCase() === ETHLib.recover(rawMsg, signedMsg).toLowerCase())
   }
 
   /**
@@ -345,15 +340,15 @@ export default class Account {
    * @memberOf {Account}
    */
   async sendBets (toInput, amountInput, callback = false) {
-    const to = Utils.add0x(toInput)
+    const to     = Utils.add0x(toInput)
     const amount = Utils.bet2dec(amountInput)
 
     return this._ERC20.methods
       .transfer(to, amount)
       .send({
         from: this.get().openkey,
-        gasPrice: this._config.gasPrice,
-        gas: (await this._ERC20.methods.transfer(to, amount).estimateGas({from: this.get().openkey}))
+        gasPrice: _config.gasPrice,
+        gas: (await this._ERC20.methods.transfer(to, amount).estimateGas({ from: this.get().openkey }))
       })
       .on('transactionHash', transactionHash => { Utils.debugLog('transactionHash:', transactionHash) })
       .on('receipt', receipt => { Utils.debugLog('receipt:', receipt) })

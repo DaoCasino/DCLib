@@ -1,5 +1,5 @@
 /* global DCLib */
-DCLib.defineDAppLogic('dicetest_v42', function (payChannel) {
+DCLib.defineDAppLogic('dice_ex_v1', function (payChannel) {
   const MAX_RAND_NUM = 65535
   const HOUSEEDGE    = 0.02 // 2%
 

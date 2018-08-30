@@ -6,3 +6,4 @@ public/tests/payChannel/*
 public/tests/utils/*
 build/*
 scripts/*
+src/API/crypto.worker.js

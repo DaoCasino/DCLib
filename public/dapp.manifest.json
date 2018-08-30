@@ -1,9 +1,0 @@
-{
-  "name" : "Dice Game v42",
-  "slug" : "dicetest_v42",
-
-  "index" : "./index.html",
-  "logic" : "./dapp_logic.js",
-
-  "run"   : "./bankroller.js"
-}

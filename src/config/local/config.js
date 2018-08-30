@@ -1,50 +1,31 @@
-
-/* global XMLHttpRequest */
-
-let ERC20
-const xhr = new XMLHttpRequest()
-xhr.open('GET', 'http://127.0.0.1:8181/?get=contract&name=ERC20', false)
-xhr.send()
-
-if (xhr.status === 200) {
-  ERC20 = JSON.parse(xhr.responseText)
+const paychannel = require('protocol/dapp.contract.json')
+const ERC20 = {
+  address: require('protocol/addresses.json').ERC20,
+  abi: require('protocol/contracts/ERC20.json').abi
 }
 
 module.exports = {
-  upd : '17.10.2017',
+  upd: '17.10.2017',
 
-  wallet_pass : '1234',
+  wallet_pass: '1234',
 
-  db_name   : 'DCLib',
-  rtc_room  : 'dc-room1',
-  rtc_store : 'rtc_msgs',
-  logname   : 'dclib',
-  // loglevel  : window.LOG_LEVEL || 'none',
-  loglevel  : 'hight',
+  db_name:   'DCLib',
+  rtc_room:  'dc-room1',
+  rtc_store: 'rtc_msgs',
+  logname:   'dclib',
+  loglevel:  'hight',
 
   network: 'local',
-  rpc_url: 'http://localhost:9545/',
+  rpc_url: 'http://localhost:1406/',
   api_url: 'http://localhost:8181/',
-  signal : '/ip4/127.0.0.1/tcp/9090/ws/p2p-websocket-star/',
 
-  tx_confirmations:0,
-
-  rollbar: {
-    accessToken: '1561ff6cec5043c287122e7d15e7902b',
-    captureUncaught: true,
-    payload: {
-      environment: 'production'
-    }
-  },
+  tx_confirmations: 0,
 
   contracts: {
-    paychannelContract: 'http://127.0.0.1:8181/?get=contract&name=Dice',
-    erc20: {
-      address: ERC20.address,
-      abi: JSON.parse(ERC20.abi)
-    }
+    paychannel: paychannel,
+    erc20: ERC20
   },
 
-  gasPrice : 40 * 1000000000,
-  gasLimit : 40 * 100000
+  gasPrice: 40 * 1000000000,
+  gasLimit: 40 * 100000
 }

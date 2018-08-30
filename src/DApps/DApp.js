@@ -93,13 +93,11 @@ export default class DApp {
       throw new Error('slug option is required')
     }
 
-    this.slug = (!process.env.DC_NETWORK || process.env.DC_NETWORK !== 'local')
-      ? params.slug : `${params.slug}_dev`
-
-    if (!window.DAppsLogic || !window.DAppsLogic[this.slug]) {
+    if (!window.DAppsLogic || !window.DAppsLogic[params.slug]) {
       throw new Error('Cant find DApp logic')
     }
 
+    this.slug = params.slug
     let logic = window.DAppsLogic[this.slug]
     /** DApp name */
     this.rules = params.rules
@@ -125,10 +123,8 @@ export default class DApp {
     /** @ignore */
     this.Room = false
     /** @ignore */
-    setTimeout(() => {
-      this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
-      this.findTheMaxBalance()
-    }, 1000)
+    this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
+    this.findTheMaxBalance()
 
     /** @ignore */
     const SE = new EC()
@@ -136,7 +132,7 @@ export default class DApp {
       emit (event_name, data) {
         SE.emit(event_name, data)
         if (typeof document !== 'undefined') {
-          document.dispatchEvent((new CustomEvent('DCLib::' + event_name, {detail:data})))
+          document.dispatchEvent((new CustomEvent('DCLib::' + event_name, { detail: data })))
         }
       },
       on (action, callback) {
@@ -145,16 +141,13 @@ export default class DApp {
     }
   }
 
-  async contractInit (params) {
-    if (params.contract &&
-      (process.env.DC_NETWORK !== 'local' ||
-      process.env.DC_NETWORK === 'stage')) {
+  contractInit (params) {
+    if (params.contract && process.env.DC_NETWORK !== 'local') {
       this.contract_address = params.contract.address
       this.contract_abi     = params.contract.abi
     } else {
-      const contract = await Utils.LocalGameContract(_config.contracts.paychannelContract)
-      this.contract_address = contract.address
-      this.contract_abi     = JSON.parse(contract.abi)
+      this.contract_address = _config.contracts.paychannel.address
+      this.contract_abi     = _config.contracts.paychannel.abi
     }
 
     this.PayChannel = new this.web3.eth.Contract(this.contract_abi, this.contract_address)
@@ -174,7 +167,7 @@ export default class DApp {
   async connect (params = {}, callback = false) {
     if (this.debug) Utils.debugLog('DApp %c' + this.slug + ' %cconnecting...', 'color:orange', 'color:default', _config.loglevel)
 
-    let def_params = {bankroller: 'auto'}
+    let def_params = { bankroller: 'auto' }
 
     params = Object.assign(def_params, params)
 
@@ -189,7 +182,7 @@ export default class DApp {
     let deposit = (params.paychannel && params.paychannel.deposit) ? params.paychannel.deposit : 0
 
     if (Number(deposit) === 0) {
-      this.Status.emit('error', {code: 'deposit null', 'text': 'your deposit can not be 0'})
+      this.Status.emit('error', { code: 'deposit null', 'text': 'your deposit can not be 0' })
       throw new Error('😓 Your deposit can not be 0')
     }
 
@@ -201,15 +194,15 @@ export default class DApp {
     let bankroller_address = params.bankroller || 'auto'
 
     if (bankroller_address === 'auto') {
-      this.Status.emit('connect::info', {status: 'findBankroller', data: {deposit: deposit}})
+      this.Status.emit('connect::info', { status: 'findBankroller', data: { deposit: deposit } })
       bankroller_address = await this.findBankroller(deposit)
-      this.Status.emit('connect::info', {status: 'find_compleate', data: bankroller_address})
+      this.Status.emit('connect::info', { status: 'find_compleate', data: bankroller_address })
     }
     if (this.debug) Utils.debugLog(['📫 Bankroller address:', bankroller_address], _config.loglevel)
 
     let connectionResult = false
     let conT = setTimeout(() => {
-      this.Status.emit('error', {code: 'timeout', 'text': 'Connection timeout'})
+      this.Status.emit('error', { code: 'timeout', 'text': 'Connection timeout' })
       throw new Error('⌛ Connection timeout.... 🤐🤐🤐 ', 'error')
       // callback(connectionResult, null)
     }, 7777)
@@ -218,7 +211,7 @@ export default class DApp {
     this.connection_info = { bankroller_address: bankroller_address }
 
     try {
-      this.Status.emit('connect::info', {status: 'connect', data: {bankroller_address: bankroller_address}})
+      this.Status.emit('connect::info', { status: 'connect', data: { bankroller_address: bankroller_address } })
 
       const connection = await this.request({
         action  : 'connect',
@@ -228,7 +221,7 @@ export default class DApp {
       }, false, this.sharedRoom, false)
 
       if (!connection.id) {
-        this.Status.emit('error', {code: 'unknow', 'text': 'Cant establish connection'})
+        this.Status.emit('error', { code: 'unknow', 'text': 'Cant establish connection' })
         Utils.debugLog('😓 Cant establish connection....', 'error')
         return callback(connectionResult, null)
       }
@@ -236,19 +229,19 @@ export default class DApp {
       clearTimeout(conT)
 
       if (this.debug) Utils.debugLog(['🔗 Connection established ', connection], _config.loglevel)
-      this.Status.emit('connect::info', {status: 'connected', data: {connection: connection}})
+      this.Status.emit('connect::info', { status: 'connected', data: { connection: connection } })
 
       await this.sharedRoom.channel.leave()
       this.Room = new messaging.RTC(
         Account.get().openkey,
         this.hash + '_' + connection.id,
-        {privateKey: (await Account.exportPrivateKey()), allowed_users:[bankroller_address]}
+        { privateKey: (await Account.exportPrivateKey()), allowed_users:[bankroller_address] }
       )
 
       this.connection_info.id = connection.id
       this.connection_info.room_name = this.hash + '_' + connection.id
     } catch (e) {
-      this.Status.emit('error', {code: 'unknow', 'text': 'Connection error', err: e})
+      this.Status.emit('error', { code: 'unknow', 'text': 'Connection error', err: e })
       Utils.debugLog([' 🚬 Connection error...', e], 'error')
       return callback(connectionResult, null)
     }
@@ -259,7 +252,7 @@ export default class DApp {
         throw new Error('logic.payChannel - required')
       }
 
-      this.Status.emit('connect::info', {status: 'openChannel', data: {paychannel: params.paychannel}})
+      this.Status.emit('connect::info', { status: 'openChannel', data: { paychannel: params.paychannel } })
       params.paychannel.bankroller_address = this.connection_info.bankroller_address
 
       this.connection_info.channel = await this.openChannel(params.paychannel, params.gamedata)
@@ -298,13 +291,13 @@ export default class DApp {
 
       if (mineth !== false && user_balance.eth * 1 < mineth * 1) {
         Utils.debugLog(user_balance.eth + ' is very low, you need minimum ' + mineth, 'error')
-        reject(new Error({error: 'low balance'}))
+        reject(new Error({ error: 'low balance' }))
         return false
       }
 
       if (minbet !== false && user_balance.bets * 1 < minbet * 1) {
         Utils.debugLog('Your BET balance ' + user_balance.bets + ' <  ' + minbet, 'error')
-        reject(new Error({error: 'low balance'}))
+        reject(new Error({ error: 'low balance' }))
         return false
       }
 
@@ -345,36 +338,39 @@ export default class DApp {
       }
 
       // Проверяем возвращаемые банкроллером аргументы путем валидации хеша
-      this.Crypto.postMessage({
-        action: 'check_sign',
-        data: {
-          bankroller_address : params.bankroller_address.toLowerCase(),
-          bankroller_sign    : b_args.signed_args,
-          verify_hash_args   : [
-            {t: 'bytes32', v: args.channel_id                      },
-            {t: 'address', v: args.player_address                  },
-            {t: 'address', v: b_args.args.bankroller_address       },
-            {t: 'uint',    v: '' + args.player_deposit             },
-            {t: 'uint',    v: '' + b_args.args.bankroller_deposit  },
-            {t: 'uint',    v: b_args.args.opening_block            },
-            {t: 'uint',    v: args.game_data                       },
-            {t: 'bytes',   v: b_args.args._N                       },
-            {t: 'bytes',   v: b_args.args._E                       }
-          ]
-        }
-      }).catch(e => {
+      try {
+        await this.Crypto.postMessage({
+          action: 'check_sign',
+          data: {
+            bankroller_address : params.bankroller_address.toLowerCase(),
+            bankroller_sign    : b_args.signed_args,
+            verify_hash_args   : [
+              { t: 'bytes32', v: args.channel_id                      },
+              { t: 'address', v: args.player_address                  },
+              { t: 'address', v: b_args.args.bankroller_address       },
+              { t: 'uint',    v: '' + args.player_deposit             },
+              { t: 'uint',    v: '' + b_args.args.bankroller_deposit  },
+              { t: 'uint',    v: b_args.args.opening_block            },
+              { t: 'uint',    v: args.game_data                       },
+              { t: 'bytes',   v: b_args.args._N                       },
+              { t: 'bytes',   v: b_args.args._E                       }
+            ]
+          }
+        })
+      } catch (err) {
         console.error('invalid bankroller sign')
         this.Status.emit('connect::error', {
           status : 'error',
           msg    : 'Bankroller open channel args invalid',
           data   : {}
         })
-        reject(e.message)
-      })
+
+        reject(err.message)
+      }
 
       // Создаем RSA с ключем банкроллера
       // для дальнейшей верификации сообщения от него
-      this.Crypto.postMessage({action:'create_rsa', data:{_N:b_args.args._N, _E:b_args.args._E}})
+      this.Crypto.postMessage({ action:'create_rsa', data:{ _N: b_args.args._N, _E: b_args.args._E } })
 
       // проверяем апрув банкроллера перед открытием
       const bankroll_allow = await Eth.ERC20.methods.allowance(b_args.args.bankroller_address, this.PayChannel._address).call()
@@ -425,7 +421,7 @@ export default class DApp {
           this.Status.emit('connect::info', {
             status : 'transactionHash',
             msg    : 'Open channel',
-            data   : {transactionHash:transactionHash}
+            data   : { transactionHash:transactionHash }
           })
         })
         .on('confirmation', async (confirmationNumber) => {
@@ -434,7 +430,8 @@ export default class DApp {
           }
           if (confirmationNumber >= _config.tx_confirmations && !check_open_channel_send) {
             check_open_channel_send = true
-            const check = await this.request({action : 'check_open_channel'})
+            const check = await this.request({ action : 'check_open_channel' })
+            console.log(check)
             if (!check.error && check.status === 'ok') {
               // Set deposit to paychannel in game logic
               this.logic.payChannel._setDeposits(
@@ -539,13 +536,13 @@ export default class DApp {
         seed       : Utils.makeSeed()
       }
       const to_sign = [
-        {t: 'bytes32', v: data.channel_id    },
-        {t: 'uint',    v: data.session       },
-        {t: 'uint',    v: data.user_bet },
-        {t: 'uint',    v: data.gamedata      },
-        {t: 'bytes32', v: data.seed          }
+        { t: 'bytes32', v: data.channel_id    },
+        { t: 'uint',    v: data.session       },
+        { t: 'uint',    v: data.user_bet      },
+        { t: 'uint',    v: data.gamedata      },
+        { t: 'bytes32', v: data.seed          }
       ]
-      const sign = await Eth.signHash(Utils.sha3(...to_sign))
+      const sign = await Account.signHash(Utils.sha3(...to_sign))
 
       // Call function in bankroller side
       const res = await this.request({
@@ -569,23 +566,25 @@ export default class DApp {
 
       // Проверяем корректность подписи рандома
       const rnd_hash_args = [
-        {t: 'bytes32', v: data.channel_id },
-        {t: 'uint',    v: data.session    },
-        {t: 'uint',    v: data.user_bet   },
-        {t: 'uint',    v: data.gamedata   },
-        {t: 'bytes32', v: data.seed       }
+        { t: 'bytes32', v: data.channel_id },
+        { t: 'uint',    v: data.session    },
+        { t: 'uint',    v: data.user_bet   },
+        { t: 'uint',    v: data.gamedata   },
+        { t: 'bytes32', v: data.seed       }
       ]
 
-      await this.Crypto.postMessage({
-        action: 'rsa_verify',
-        data: {
-          rnd_hash: rnd_hash_args,
-          rnd_sign: res.rnd_sign
-        }
-      }).catch(() => {
+      try {
+        await this.Crypto.postMessage({
+          action: 'rsa_verify',
+          data: {
+            rnd_hash: rnd_hash_args,
+            rnd_sign: res.rnd_sign
+          }
+        })
+      } catch (err) {
         console.error('Invalid sign for random!')
         this.openDispute(data)
-      })
+      }
 
       // Проверяем что рандом сделан из этой подписи
       // if (res.args[rnd_i] !== Utils.sha3(res.rnd_sign)) {
@@ -608,11 +607,11 @@ export default class DApp {
       }
       console.log('DCLIB state_data', state_data)
       const state_hash = Utils.sha3(
-        {t: 'bytes32', v: state_data._id                },
-        {t: 'uint',    v: state_data._playerBalance     },
-        {t: 'uint',    v: state_data._bankrollerBalance },
-        {t: 'uint',    v: state_data._totalBet          },
-        {t: 'uint',    v: state_data._session           }
+        { t: 'bytes32', v: state_data._id                },
+        { t: 'uint',    v: state_data._playerBalance     },
+        { t: 'uint',    v: state_data._bankrollerBalance },
+        { t: 'uint',    v: state_data._totalBet          },
+        { t: 'uint',    v: state_data._session           }
       )
 
       await this.Crypto.postMessage({
@@ -635,11 +634,14 @@ export default class DApp {
       }
 
       // Сохраняем состояние с подписью банкроллера
-      channelState.set(Object.assign(Object.assign({}, state_data), {'_sign' : res.state._sign }))
+      channelState.set(Object.assign(Object.assign({}, state_data), { '_sign' : res.state._sign }))
 
       const _sign = await this.Crypto.postMessage({
         action: 'sign_hash',
-        data: { hash: state_hash }
+        data: {
+          hash: state_hash,
+          privateKey: Account.exportPrivateKey(_config.wallet_pass)
+        }
       })
 
       // Отправляем банкроллеру свою подпись состояния
@@ -647,7 +649,7 @@ export default class DApp {
         action : 'update_state',
         state  : Object.assign(
           channelState.get(),
-          {'_sign' : _sign }
+          { '_sign' : _sign }
         )
       })
       if (upd_state_res.status !== 'ok') {
@@ -688,7 +690,7 @@ export default class DApp {
       result.channel = await this.closeByConsent()
     }
 
-    result.connection = await this.request({action: 'disconnect'})
+    result.connection = await this.request({ action: 'disconnect' })
 
     this.connection_info = {}
 
@@ -712,14 +714,14 @@ export default class DApp {
       // console.log('closeByConsent last_state', last_state)
 
       const close_data_hash = Utils.sha3(
-        {t: 'bytes32', v: last_state._id                },
-        {t: 'uint', v: last_state._playerBalance     },
-        {t: 'uint', v: last_state._bankrollerBalance },
-        {t: 'uint', v: last_state._totalBet          },
-        {t: 'uint', v: last_state._session           },
-        {t: 'bool', v: true                          }
+        { t: 'bytes32', v: last_state._id             },
+        { t: 'uint', v: last_state._playerBalance     },
+        { t: 'uint', v: last_state._bankrollerBalance },
+        { t: 'uint', v: last_state._totalBet          },
+        { t: 'uint', v: last_state._session           },
+        { t: 'bool', v: true                          }
       )
-      const sign = await Eth.signHash(close_data_hash)
+      const sign = await Account.signHash(close_data_hash)
 
       // Запрашиваем у банкроллера подпись закрытия канала
       // и отправляем свою на всякий случай
@@ -729,9 +731,13 @@ export default class DApp {
         sign   : sign
       })
 
-      const recover_openkey = web3.eth.accounts.recover(close_data_hash, close_data.sign)
-      if (recover_openkey.toLowerCase() !== this.connection_info.bankroller_address.toLowerCase()) {
-        console.error('State ' + recover_openkey + '!=' + this.connection_info.bankroller_address)
+      if (
+        !Account.checkHashSig(
+          close_data_hash,
+          close_data.sign,
+          this.connection_info.bankroller_address)
+      ) {
+        console.error('Invalid sign')
         return
       }
 
@@ -757,17 +763,17 @@ export default class DApp {
           this.Status.emit('disconnect::info', {
             status : 'transactionHash',
             msg    : 'Close channel',
-            data   : {transactionHash:transactionHash}
+            data   : { transactionHash:transactionHash }
           })
         })
         .on('confirmation', async (confirmationNumber) => {
           if (confirmationNumber >= _config.tx_confirmations && !channel_closed_send) {
             channel_closed_send = true
-            const understand = await this.request({action : 'channel_closed'})
+            const understand = await this.request({ action : 'channel_closed' })
             console.log('understand:', understand)
             this.logic.payChannel.reset()
             this.connection_info.channel = false
-            resolve({status:'ok'})
+            resolve({ status:'ok' })
           }
         })
         .on('error', err => {
@@ -799,14 +805,14 @@ export default class DApp {
       console.log('channel state:', channel)
       console.log('last local state:', last_state)
       const state_hash = Utils.sha3(
-        {t: 'bytes32', v: last_state._id             },
-        {t: 'uint', v: last_state._playerBalance     },
-        {t: 'uint', v: last_state._bankrollerBalance },
-        {t: 'uint', v: last_state._totalBet          },
-        {t: 'uint', v: last_state._session           }
+        { t: 'bytes32', v: last_state._id             },
+        { t: 'uint', v: last_state._playerBalance     },
+        { t: 'uint', v: last_state._bankrollerBalance },
+        { t: 'uint', v: last_state._totalBet          },
+        { t: 'uint', v: last_state._session           }
       )
       console.log('Bankroller:', this.connection_info.bankroller_address)
-      console.log('Signer:', web3.eth.accounts.recover(state_hash, last_state._sign))
+      console.log('Check sign:', Account.checkHashSig(state_hash, last_state._sign, this.connection_info.bankroller_address))
       console.log('Sender:', Account.get().openkey)
       console.groupEnd()
 
@@ -844,13 +850,13 @@ export default class DApp {
     await this.updateChannel()
 
     const to_sign = [
-      {t: 'bytes32', v: data.channel_id    },
-      {t: 'uint',    v: data.session       },
-      {t: 'uint',    v: data.user_bet      },
-      {t: 'uint',    v: data.gamedata      },
-      {t: 'bytes32', v: data.seed          }
+      { t: 'bytes32', v: data.channel_id    },
+      { t: 'uint',    v: data.session       },
+      { t: 'uint',    v: data.user_bet      },
+      { t: 'uint',    v: data.gamedata      },
+      { t: 'bytes32', v: data.seed          }
     ]
-    const sign = await Eth.signHash(Utils.sha3(...to_sign))
+    const sign = await Account.signHash(Utils.sha3(...to_sign))
 
     return new Promise((resolve, reject) => {
       // Send open channel TX
@@ -924,7 +930,7 @@ export default class DApp {
     if (this.debug) Utils.debugLog(' 🔎 Find bankrollers in shared Dapp room...', _config.loglevel)
     const Status = this.Status
     let noBankroller = setTimeout(function noInf (params) {
-      Status.emit('connect::info', {status: 'noBankroller', data: {deposit: deposit}})
+      Status.emit('connect::info', { status: 'noBankroller', data: { deposit: deposit } })
       Utils.debugLog(' 🔎 Not bankroller with the same deposit, find continue', _config.loglevel)
       noBankroller = setTimeout(noInf, 8000)
     }, 8000)

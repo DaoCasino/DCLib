@@ -7,11 +7,11 @@ const webpack                 = require('webpack')
 const HtmlWebpackPlugin       = require('html-webpack-plugin')
 const ExtractTextPlugin       = require('extract-text-webpack-plugin')
 const ManifestPlugin          = require('webpack-manifest-plugin')
-const InterpolateHtmlPlugin   = require('react-dev-utils/InterpolateHtmlPlugin')
+const InterpolateHtmlPlugin   = require('interpolate-html-plugin');
 // const eslintFormatter         = require('react-dev-utils/eslintFormatter')
 const ModuleScopePlugin       = require('react-dev-utils/ModuleScopePlugin')
 const BundleAnalyzerPlugin    = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
-
+const UglifyJsPlugin          = require('uglifyjs-webpack-plugin')
 const paths                   = require('./paths')
 const getClientEnvironment    = require('./env')
 
@@ -239,13 +239,6 @@ let webpack_prod_config = {
   plugins: [
 	 	// new BundleAnalyzerPlugin(rootdir + '/size-report.txt'),
 
-    // Makes some environment variables available in index.html.
-    // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
-    // <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-    // In production, it will be an empty string unless you specify "homepage"
-    // in `package.json`, in which case it will be the pathname of that URL.
-    new InterpolateHtmlPlugin(htmlReplacements),
-
     // Generates an `index.html` file with the <script> injected.
     new HtmlWebpackPlugin({
       inject:   true,
@@ -264,6 +257,14 @@ let webpack_prod_config = {
       }
     }),
 
+    // Makes some environment variables available in index.html.
+    // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
+    // <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+    // In production, it will be an empty string unless you specify "homepage"
+    // in `package.json`, in which case it will be the pathname of that URL.
+    new InterpolateHtmlPlugin(htmlReplacements),
+
+
     // Makes some environment variables available to the JS code, for example:
     // if (process.env.NODE_ENV === 'production') { ... }. See `./env.js`.
     // It is absolutely essential that NODE_ENV was set to production here.
@@ -271,21 +272,6 @@ let webpack_prod_config = {
     new webpack.DefinePlugin(env.stringified),
 
     // Minify the code.
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false,
-        // Disabled because of an issue with Uglify breaking seemingly valid code:
-        // https://github.com/facebookincubator/create-react-app/issues/2376
-        // Pending further investigation:
-        // https://github.com/mishoo/UglifyJS2/issues/2011
-        comparisons: false
-      },
-      output: {
-        comments: false
-      },
-      sourceMap: true,
-      mangle: false
-    }),
 
     // Note: this won't work without ExtractTextPlugin.extract(..) in `loaders`.
     new ExtractTextPlugin({
@@ -306,6 +292,11 @@ let webpack_prod_config = {
     // You can remove this if you don't use Moment.js:
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
   ],
+  optimization: {
+    minimizer: [
+      new UglifyJsPlugin(),
+    ]
+  },
 
   // Some libraries import Node modules but don't use them in the browser.
   // Tell Webpack to provide empty mocks for them so importing them works.

@@ -101,6 +101,6 @@ export default class PayChannel {
     balance.player     = 0
     balance.bankroller = 0
     _profit            = 0
-    _history.push({reset:true, timestamp:new Date().getTime()})
+    _history.push({ reset: true, timestamp: new Date().getTime() })
   }
 }

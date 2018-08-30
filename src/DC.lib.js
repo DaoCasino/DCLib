@@ -1,14 +1,13 @@
 /* global DCLIB_CONFIG CustomEvent */
 
-import _config    from './config/config'
-import * as Utils from './utils/utils'
-import EE         from 'event-emitter'
-import Api        from './API/Api'
-import rollbar    from 'rollbar'
-import EthHelpers from './Eth/helpers'
-import Account    from './Eth/Account'
-import DApp       from './DApps/DApp'
-
+import _config         from './config/config'
+import * as Utils      from './utils/utils'
+import EE              from 'event-emitter'
+import Api             from './API/Api'
+import rollbar         from 'rollbar'
+import EthHelpers      from './Eth/helpers'
+import Account         from './Eth/Account'
+import DApp            from './DApps/DApp'
 import * as messaging  from 'dc-messaging'
 
 /**
@@ -106,7 +105,7 @@ export default class DCLib {
       _ready = true
 
       if (typeof document !== 'undefined') {
-        document.dispatchEvent((new CustomEvent('DCLib::ready', {detail:this.config})))
+        document.dispatchEvent((new CustomEvent('DCLib::ready', { detail:this.config })))
       }
     })
 
@@ -192,11 +191,12 @@ export default class DCLib {
       throw new Error('DAppsLogic require function "Game"')
     }
 
-    window.DAppsLogic[
-      (!process.env.DC_NETWORK ||
-        process.env.DC_NETWORK !== 'local' ||
-        process.env.DC_NETWORK === 'stage'
-      ) ? dappSlug : `${dappSlug}_dev`] = LogicConstructor
+    // window.DAppsLogic[
+    //   (!process.env.DC_NETWORK ||
+    //     process.env.DC_NETWORK !== 'local' ||
+    //     process.env.DC_NETWORK === 'stage'
+    //   ) ? dappSlug : `${dappSlug}_dev`] = LogicConstructor
+    window.DAppsLogic[dappSlug] = LogicConstructor
   }
 
   /**
@@ -245,7 +245,7 @@ export default class DCLib {
 
     data.bet = Utils.bet2dec(data.bet)
 
-    return {rnd:data}
+    return { rnd: data }
   }
 
   /**
