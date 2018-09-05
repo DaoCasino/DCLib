@@ -209,20 +209,7 @@ let webpack_dev_config = {
       {
         test: /\.js$/,
         include: paths.appSrc,
-        enforce: 'post',
-        loader: require.resolve('babel-loader'),
-        options: {
-          presets: [ ['env', {
-					      'targets': {
-					        'browsers': ['last 2 versions', 'safari >= 7']
-					      }
-					    }]
-    				],
-          // This is a feature of `babel-loader` for webpack (not Babel itself).
-          // It enables caching results in ./node_modules/.cache/babel-loader/
-          // directory for faster rebuilds.
-          cacheDirectory: true
-        }
+        loader: 'babel-loader'
       },
 
       // "postcss" loader applies autoprefixer to our CSS.

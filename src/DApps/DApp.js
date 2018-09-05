@@ -742,7 +742,7 @@ export default class DApp {
       }
 
       // Send open channel TX
-      const gasLimit = 4600000
+      const gasLimit = 900000
       let channel_closed_send = false
       this.PayChannel.methods
         .closeByConsent(
