@@ -5,7 +5,7 @@ const path                          = require('path')
 const webpack                       = require('webpack')
 const HtmlWebpackPlugin             = require('html-webpack-plugin')
 const CaseSensitivePathsPlugin      = require('case-sensitive-paths-webpack-plugin')
-const InterpolateHtmlPlugin         = require('interpolate-html-plugin');
+const InterpolateHtmlPlugin         = require('interpolate-html-plugin')
 const WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin')
 const eslintFormatter               = require('react-dev-utils/eslintFormatter')
 const ModuleScopePlugin             = require('react-dev-utils/ModuleScopePlugin')
@@ -13,7 +13,7 @@ const ModuleScopePlugin             = require('react-dev-utils/ModuleScopePlugin
 const getClientEnvironment          = require('./env')
 const paths                         = require('./paths')
 
-const rootdir = __dirname + '/../..'
+const rootdir = path.join(__dirname, '/../..')
 // Webpack uses `publicPath` to determine where the app is being served from.
 // In development, we always serve from the root. This makes config easier.
 const publicPath = '/'
@@ -263,7 +263,7 @@ let webpack_dev_config = {
     // Makes some environment variables available in index.html.
     // The public URL is available as %PUBLIC_URL% in index.html, e.g.:
     // <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-    // In development, this will be an empty string.    
+    // In development, this will be an empty string.
     new InterpolateHtmlPlugin(htmlReplacements),
 
     // Add module names to factory functions so they appear in browser profiler.
