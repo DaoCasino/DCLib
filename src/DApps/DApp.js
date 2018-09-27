@@ -398,6 +398,7 @@ export default class DApp {
 
       // Send open channel TX
       let check_open_channel_send = false
+
       this.PayChannel.methods
         .openChannel(
           args.channel_id,

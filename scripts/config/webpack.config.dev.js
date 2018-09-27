@@ -127,7 +127,10 @@ let webpack_dev_config = {
       {
         test: /\.worker\.js$/,
         exclude: /node_modules/,
-        loader: 'worker-loader'
+        loader: 'worker-loader',
+        options: {
+          inline: true
+        }
       },
       {
         test: require.resolve('web3'),
