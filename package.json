@@ -12,9 +12,13 @@
     "start:nobankroll": "dc-scripts run -p && npm run dev",
     "start:ropsten": "DC_NETWORK=ropsten PORT=3001 node scripts/start.js",
     "stop": "dc-scripts stop",
-    "build": "DC_NETWORK=ropsten node scripts/build.js",
+    "build": "DC_NETWORK=ropsten node scripts/build.js && npm run integrity",
     "build:local": "DC_NETWORK=local node scripts/build.js",
     "build:ropsten": "DC_NETWORK=ropsten node scripts/build.js",
+
+    "integrity"  : "cat dist/DC.js | openssl dgst -sha384 -binary | openssl base64 -A",
+    "integrity2" : "shasum -b -a 384 dist/DC.js | xxd -r -p | base64",
+
     "lint": "eslint --ext=.js,.tag ./src ./test",
     "_test": "npm run lint && DC_NETWORK=local karma start",
     "test": "DC_NETWORK=local karma start",
