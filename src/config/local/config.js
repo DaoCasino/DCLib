@@ -10,8 +10,7 @@ module.exports = {
   wallet_pass: '1234',
 
   db_name:   'DCLib',
-  rtc_room:  'dc-room1',
-  rtc_store: 'rtc_msgs',
+  dappRoom  : process.env.DAPP_ROOM  || 'dapp_room_',
   logname:   'dclib',
   loglevel:  'hight',
 
@@ -19,6 +18,11 @@ module.exports = {
   rpc_url: 'http://localhost:1406/',
   api_url: 'http://localhost:8181/',
 
+  // signal  : [
+  //   '/dns4/signal2.dao.casino/tcp/443/wss/p2p-websocket-star/',
+  //   '/dns4/signal3.dao.casino/tcp/443/wss/p2p-websocket-star/',
+  // ],
+  
   tx_confirmations: 0,
 
   contracts: {

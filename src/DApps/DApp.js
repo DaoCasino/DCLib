@@ -123,7 +123,7 @@ export default class DApp {
     /** @ignore */
     this.Room = false
     /** @ignore */
-    this.sharedRoom = new messaging.RTC(Account.get().openkey, 'dapp_room_' + this.hash)
+    this.sharedRoom = new messaging.RTC(Account.get().openkey, _config.dappRoom + this.hash)
     this.findTheMaxBalance()
 
     /** @ignore */

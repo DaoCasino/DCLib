@@ -16,8 +16,8 @@ module.exports = {
   wallet_pass : '1234',
 
   db_name   : 'DCLib',
-  rtc_room  : 'dc-room1',
-  rtc_store : 'rtc_msgs',
+  dappRoom  : process.env.DAPP_ROOM  || 'dapp_room_',
+
   logname   : 'dclib',
   loglevel  : 'hight',
 
@@ -27,10 +27,10 @@ module.exports = {
 
   api_url: api_url,
 
-  // signal : '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star',
-  // signal  : '/ip4/46.101.244.101/tcp/9090/ws/p2p-websocket-star/',
-  // signal  : '/ip4/146.185.173.84/tcp/9090/ws/p2p-websocket-star/',
-  signal  : '/dns4/ws.dao.casino/tcp/443/wss/p2p-websocket-star/',
+  // signal  : [
+  //   '/dns4/signal2.dao.casino/tcp/443/wss/p2p-websocket-star/',
+  //   '/dns4/signal3.dao.casino/tcp/443/wss/p2p-websocket-star/',
+  // ],
 
   tx_confirmations:2,
 
