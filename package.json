@@ -6,6 +6,7 @@
   "private": false,
   "scripts": {
     "postinstall": "bash ./postinstall.sh",
+    "reinstall": "rm -rf ./node_modules package-lock.json yarn.lock && ls -al && npm i",
     "commit": "git-cz",
     "dev": "DC_NETWORK=local PORT=9876 node scripts/start.js",
     "start": "dc-scripts run && npm run dev",
@@ -15,10 +16,8 @@
     "build": "DC_NETWORK=ropsten node scripts/build.js && npm run integrity",
     "build:local": "DC_NETWORK=local node scripts/build.js",
     "build:ropsten": "DC_NETWORK=ropsten node scripts/build.js",
-
-    "integrity"  : "cat dist/DC.js | openssl dgst -sha384 -binary | openssl base64 -A",
-    "integrity2" : "shasum -b -a 384 dist/DC.js | xxd -r -p | base64",
-
+    "integrity": "cat dist/DC.js | openssl dgst -sha384 -binary | openssl base64 -A",
+    "integrity2": "shasum -b -a 384 dist/DC.js | xxd -r -p | base64",
     "lint": "eslint --ext=.js,.tag ./src ./test",
     "_test": "npm run lint && DC_NETWORK=local karma start",
     "test": "DC_NETWORK=local karma start",

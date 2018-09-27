@@ -11,7 +11,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 module.exports = {
-  upd: '17.10.2017',
+  v: 'r_3',
 
   wallet_pass : '1234',
 

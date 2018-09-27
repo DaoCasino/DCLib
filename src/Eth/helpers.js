@@ -185,7 +185,7 @@ export default class EthHelpers {
           approveAmount
         ).send({
           from: Account.get().openkey,
-          gasPrice: 1.2 * _config.gasPrice,
+          gasPrice: _config.gasPrice,
           gas: _config.gasLimit
         }).on('transactionHash', transactionHash => {
           Utils.debugLog(['# approve TX pending', transactionHash], _config.loglevel)

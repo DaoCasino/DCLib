@@ -5,7 +5,7 @@ const ERC20 = {
 }
 
 module.exports = {
-  upd: '17.10.2017',
+  v: 'l_3',
 
   wallet_pass: '1234',
 
@@ -22,7 +22,7 @@ module.exports = {
   //   '/dns4/signal2.dao.casino/tcp/443/wss/p2p-websocket-star/',
   //   '/dns4/signal3.dao.casino/tcp/443/wss/p2p-websocket-star/',
   // ],
-  
+
   tx_confirmations: 0,
 
   contracts: {

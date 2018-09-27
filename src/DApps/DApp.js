@@ -398,7 +398,6 @@ export default class DApp {
 
       // Send open channel TX
       let check_open_channel_send = false
-      const gasLimit = 4600000
       this.PayChannel.methods
         .openChannel(
           args.channel_id,
@@ -412,8 +411,8 @@ export default class DApp {
           b_args.args._E,
           b_args.signed_args
         ).send({
-          gas      : gasLimit,
-          gasPrice : 1.2 * _config.gasPrice,
+          gas      : _config.gasLimit,
+          gasPrice : _config.gasPrice,
           from     : args.player_address
         })
         .on('transactionHash', transactionHash => {
@@ -742,7 +741,6 @@ export default class DApp {
       }
 
       // Send open channel TX
-      const gasLimit = 900000
       let channel_closed_send = false
       this.PayChannel.methods
         .closeByConsent(
@@ -754,8 +752,8 @@ export default class DApp {
           true,
           close_data.sign
         ).send({
-          gas      : gasLimit,
-          gasPrice : 1.2 * _config.gasPrice,
+          gas      : _config.gasLimit,
+          gasPrice : _config.gasPrice,
           from     : Account.get().openkey
         })
         .on('transactionHash', transactionHash => {
@@ -817,7 +815,6 @@ export default class DApp {
       console.groupEnd()
 
       // Send open channel TX
-      const gasLimit = 4600000
       this.PayChannel.methods
         .updateChannel(
           last_state._id,
@@ -827,8 +824,8 @@ export default class DApp {
           last_state._session,
           last_state._sign
         ).send({
-          gas      : gasLimit,
-          gasPrice : 1.2 * _config.gasPrice,
+          gas      : _config.gasLimit,
+          gasPrice : _config.gasPrice,
           from     : Account.get().openkey
         })
         .on('transactionHash', transactionHash => {
@@ -860,7 +857,6 @@ export default class DApp {
 
     return new Promise((resolve, reject) => {
       // Send open channel TX
-      const gasLimit = 4600000
       this.PayChannel.methods
         .openDispute(
           data.channel_id,
@@ -870,8 +866,8 @@ export default class DApp {
           data.seed,
           sign
         ).send({
-          gas      : gasLimit,
-          gasPrice : 1.2 * _config.gasPrice,
+          gas      : _config.gasLimit,
+          gasPrice : _config.gasPrice,
           from     : Account.get().openkey
         })
         .on('transactionHash', transactionHash => {
