@@ -3,7 +3,7 @@ import conf from '../config/config'
 import * as Utils from '../utils/utils'
 import Store from '../API/DB'
 import WEB3 from 'web3'
-import {sign as signHash} from 'eth-lib/lib/account.js'
+import { sign as signHash } from 'eth-lib/lib/account.js'
 
 const acc_create_e_name = 'DCLib::Account::create::'
 
@@ -50,6 +50,7 @@ export default class Account {
       _config.contracts.erc20.address
     )
 
+    // create acc from iframe
     if (typeof window !== 'undefined') {
       let acc_remote_created = false
       window.addEventListener('message', e => {
