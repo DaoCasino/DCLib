@@ -4,7 +4,6 @@ import _config         from './config/config'
 import * as Utils      from './utils/utils'
 import EE              from 'event-emitter'
 import Api             from './API/Api'
-import rollbar         from 'rollbar'
 import EthHelpers      from './Eth/helpers'
 import Account         from './Eth/Account'
 import DApp            from './DApps/DApp'
@@ -54,17 +53,6 @@ export default class DCLib {
     this.version = '0.2.2'
     this.config = _config
     this.network = process.env.DC_NETWORK
-
-    if (window.location.hash === 'showcase.dao.casino') {
-      window.Rollbar = rollbar.init({
-        accessToken: '1561ff6cec5043c287122e7d15e7902b',
-        captureUncaught: true,
-        captureUnhandledRejections: true,
-        payload: {
-          environment: 'production'
-        }
-      })
-    }
 
     // Add signal
     messaging.upIPFS((signal || _config.signal))
