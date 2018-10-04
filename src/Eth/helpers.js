@@ -175,36 +175,27 @@ export default class EthHelpers {
    */
   async ERC20approve (spender, amount, callback = false) {
     return new Promise(async (resolve, reject) => {
-      let allowance = await this.ERC20.methods.allowance(Account.get().openkey, spender).call()
-
-      if (allowance < amount || (amount === 0 && allowance !== 0)) {
-        const approveAmount = amount
-
-        const receipt = await this.ERC20.methods.approve(
-          spender,
-          approveAmount
-        ).send({
-          from: Account.get().openkey,
-          gasPrice: _config.gasPrice,
-          gas: _config.gasLimit
-        }).on('transactionHash', transactionHash => {
-          Utils.debugLog(['# approve TX pending', transactionHash], _config.loglevel)
-        }).on('error', err => {
-          Utils.debugLog(err, 'error')
-          reject(err, true)
-        })
-
-        if (!['0x01', '0x1', true].includes(receipt.status)) {
-          reject(receipt, true)
-          return
+      const receipt = await this.ERC20.methods.approve(
+        spender,
+        amount
+      ).send({
+        from: Account.get().openkey,
+        gasPrice: _config.gasPrice,
+        gas: _config.gasLimit
+      }).on('transactionHash', transactionHash => {
+        Utils.debugLog(['# approve TX pending', transactionHash], _config.loglevel)
+      }).on('confirmation', confirmationNumber => {
+        if (confirmationNumber <= _config.tx_confirmations) {
+          console.log('open channel confirmationNumber', confirmationNumber)
+        } else {
+          (!['0x01', '0x1', true].includes(receipt.status))
+            ? reject(new Error('invalid status'))
+            : resolve(true)
         }
-
-        resolve(receipt, true)
-      }
-
-      resolve(null, true)
-
-      if (callback) callback()
+      }).on('error', err => {
+        Utils.debugLog(err, 'error')
+        reject(err, true)
+      })
     })
   }
 }
