@@ -53,6 +53,11 @@ export default class DCLib {
     this.version = '0.2.2'
     this.config = _config
     this.network = process.env.DC_NETWORK
+    
+    this.pending = {
+      start: new window.Event('pending_start'),
+      stop: new window.Event('pending_stop')
+}
 
     // Add signal
     messaging.upIPFS((signal || _config.signal))
